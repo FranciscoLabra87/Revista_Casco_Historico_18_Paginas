@@ -23,8 +23,8 @@ Sistema_Revista_Casco_Historico_Interactivo/
 │   ├── 01_portada/                    P01
 │   ├── 02_sumario_creditos/           P02
 │   ├── 03_carta_editorial/            P03
-│   ├── 04_articulo_central/           P06–P07
-│   ├── 05_noticias_breves/            P04–P05
+│   ├── 04_noticias_breves/            P04–P05
+│   ├── 05_reportaje_central/          P06–P07
 │   ├── 06_entrevista/                 P08–P09
 │   ├── 07_memoria_patrimonio/         P10–P11
 │   ├── 08_comunidad_servicios/        P12
@@ -39,7 +39,7 @@ Sistema_Revista_Casco_Historico_Interactivo/
 └── PLANTILLAS/
 ```
 
-Las carpetas 04 y 05 conservan sus nombres históricos, pero el orden de lectura es primero noticias y avances (P04–P05) y después el reportaje central (P06–P07).
+El número de cada carpeta sigue el orden de lectura de la revista: la carpeta 04 abre en la página 4 y la 05 en la página 6.
 
 Dentro de cada segmento:
 

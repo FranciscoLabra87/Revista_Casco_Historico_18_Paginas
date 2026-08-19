@@ -1,6 +1,17 @@
-IMÁGENES DEL SEGMENTO
+ARCHIVO DE IMÁGENES DEL SEGMENTO
 
-Use nombres claros y únicos, por ejemplo: p07-entrevista-retrato.jpg.
-Conserve el archivo original aparte y coloque aquí una copia de trabajo.
-Registre para cada imagen: nombre del original, autor, permiso de publicación, pie de foto y crédito exacto.
-No publique una imagen si el permiso o el crédito están pendientes.
+Esta carpeta es el archivo de originales de la sección. Guarde aquí la fotografía
+completa tal como salió de la cámara o del teléfono, sin recortar ni reducir.
+
+El taller editorial guarda dentro del navegador una copia reducida a 1.600 píxeles
+de lado mayor. Esa copia sirve para maquetar y para el PDF de oficina, pero no
+alcanza la calidad que pide una imprenta profesional. Si la revista se imprime,
+el archivo final se arma con los originales de esta carpeta.
+
+Para cada imagen:
+
+- Use un nombre claro y único, por ejemplo p01-portada-principal.jpg.
+- Complete la ficha de PLANTILLAS/FICHA_FOTOGRAFIA.md con el mismo nombre de archivo.
+- Guarde junto al original el comprobante del permiso de publicación.
+- Registre autor, permiso, pie de foto y crédito exacto.
+- No publique una imagen si el permiso o el crédito están pendientes.

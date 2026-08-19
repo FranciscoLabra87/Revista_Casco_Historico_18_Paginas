@@ -1,21 +1,21 @@
-# Ficha de articulo
+# Ficha de artículo
 
-## Identificacion
+## Identificación
 
-- Seccion:
-- Pagina o paginas previstas:
-- Titulo provisional:
+- Sección:
+- Página o páginas previstas:
+- Título provisional:
 - Responsable:
 - Autor:
-- Estado: POR RECIBIR / EN REDACCION / EN REVISION / APROBADO / DIAGRAMADO
+- Estado: POR RECIBIR / EN REDACCIÓN / EN REVISIÓN / APROBADO / DIAGRAMADO
 - Fecha de entrega:
-- Extension maxima:
+- Extensión máxima:
 
-## Proposito
+## Propósito
 
-- Que queremos que el lector comprenda:
-- Por que este tema importa a la comunidad:
-- Accion que esperamos del lector, si corresponde:
+- Qué queremos que el lector comprenda:
+- Por qué este tema importa a la comunidad:
+- Acción que esperamos del lector, si corresponde:
 
 ## Contenido
 
@@ -23,9 +23,9 @@
 - Fecha y lugar:
 - Personas u organizaciones involucradas:
 - Antecedentes necesarios:
-- Proximos pasos:
+- Próximos pasos:
 
-## Fuentes y verificacion
+## Fuentes y verificación
 
 - Fuente 1 y contacto:
 - Fuente 2 y contacto:
@@ -34,18 +34,17 @@
 
 ## Recursos visuales
 
-- Fotografia principal:
-- Fotografias secundarias:
+- Fotografía principal:
+- Fotografías secundarias:
 - Autor de cada imagen:
-- Autorizacion recibida: SI / NO
+- Autorización recibida: SÍ / NO
 - Pie de foto:
 
-## Edicion
+## Edición
 
-- Titulo final:
+- Título final:
 - Bajada:
 - Frase destacada:
 - Recuadro o dato clave:
 - Observaciones del editor:
 - Aprobado por y fecha:
-

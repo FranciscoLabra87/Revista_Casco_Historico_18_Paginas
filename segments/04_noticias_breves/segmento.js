@@ -1,5 +1,5 @@
 window.MAGAZINE_SEGMENTS.push({
-  id: "05_noticias_breves",
+  id: "04_noticias_breves",
   title: "Noticias y avances",
   purpose: "Reunir hechos recientes y rendir cuenta de los avances de la agrupación.",
   pages: [

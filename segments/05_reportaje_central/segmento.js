@@ -1,6 +1,6 @@
 window.MAGAZINE_SEGMENTS.push({
-  id: "04_articulo_central",
-  title: "Artículo central",
+  id: "05_reportaje_central",
+  title: "Reportaje central",
   purpose: "Desarrollar con profundidad el tema principal de la edición.",
   pages: [
     {

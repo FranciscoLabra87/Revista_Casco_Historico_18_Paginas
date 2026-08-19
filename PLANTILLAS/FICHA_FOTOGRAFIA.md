@@ -1,15 +1,16 @@
-# Ficha de fotografia
+# Ficha de fotografía
 
-- Nombre del archivo:
-- Tema o articulo:
-- Fecha de la fotografia:
+- Nombre del archivo original:
+- Ubicación del archivo original fuera del navegador:
+- Tema o artículo:
+- Fecha de la fotografía:
 - Lugar:
 - Personas que aparecen:
-- Nombre del fotografo:
+- Nombre del fotógrafo:
 - Propietario del archivo original:
-- Autorizacion de publicacion: SI / NO
+- Autorización de publicación: SÍ / NO
+- Comprobante de autorización y dónde está guardado:
 - Restricciones de uso:
 - Pie de foto exacto:
-- Credito que debe publicarse:
+- Crédito que debe publicarse:
 - Observaciones:
-

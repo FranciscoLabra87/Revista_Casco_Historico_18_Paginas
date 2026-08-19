@@ -12,7 +12,7 @@ La edición incluye portada y contraportada:
 - P04 noticias breves; P05 avances de la agrupación.
 - P06–P07 reportaje central; P08–P09 entrevista; P10–P11 memoria y patrimonio.
 - P12 comunidad y servicios; P13 comercio local; P14 cartas y opinión.
-- P15 agenda y cultura; P16 participación y próxima edición.
+- P15 agenda y datos útiles; P16 cultura y participación.
 - P17 publicidad y colaboradores; P18 contraportada.
 
 Consulte el detalle en `PROGRAMA_18_PAGINAS.md`.

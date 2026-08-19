@@ -69,6 +69,8 @@
   const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i;
   const MAX_IMAGE_CHARACTERS = 6_300_000;
   const MAX_SOURCE_IMAGE_BYTES = 20_000_000;
+  const IMAGE_MAX_EDGE = 1600;
+  const PRINT_TARGET_PPI = 300;
   const MAX_BACKUP_CHARACTERS = 40_000_000;
   const IMAGE_SLOTS = new Set([
     "p01.hero",
@@ -553,15 +555,29 @@
     return pageFrame(page, content, "cover-page");
   }
 
+  function contentsRows() {
+    const lastNumber = pages.length;
+    return segments
+      .filter((segment) => segment.pages.some((entry) => entry.number > 2 && entry.number < lastNumber))
+      .map((segment) => {
+        const numbers = segment.pages.map((entry) => entry.number).sort((a, b) => a - b);
+        const first = numbers[0];
+        const last = numbers[numbers.length - 1];
+        return {
+          segmentId: segment.id,
+          title: segment.title,
+          marker: String(first).padStart(2, "0"),
+          range: first === last ? String(first) : `${first}–${last}`
+        };
+      });
+  }
+
   function renderIndex(page) {
-    const rows = (page.lists?.contents || []).map((item, index) => {
-      const [section, title, number] = splitItem(item, 3);
-      return `<div class="contents-row">
-        <strong>${editableList(page, "contents", index, "section", section)}</strong>
-        <span>${editableList(page, "contents", index, "title", title)}</span>
-        <em>${editableList(page, "contents", index, "page", number)}</em>
-      </div>`;
-    }).join("");
+    const rows = contentsRows().map((row) => `<div class="contents-row">
+        <strong>${escapeHtml(row.marker)}</strong>
+        <span>${editableValue(page, `contents.${row.segmentId}.title`, row.title)}</span>
+        <em>${escapeHtml(row.range)}</em>
+      </div>`).join("");
     const content = `
       ${runningHead(page)}
       <h2 class="page-title">${editable(page, "title")}</h2>
@@ -1319,6 +1335,32 @@
           });
         }
 
+        const printResolution = imageSlots.map((slot) => {
+          try {
+            const metadata = imageMetadata(slot.dataset.imageKey);
+            if (!metadata?.originalWidth || !metadata?.originalHeight) return null;
+            const rect = slot.getBoundingClientRect();
+            if (!rect.width || !rect.height) return null;
+            const estimatedPpi = Math.floor(Math.min(
+              metadata.originalWidth / (rect.width / 96),
+              metadata.originalHeight / (rect.height / 96)
+            ));
+            return estimatedPpi < PRINT_TARGET_PPI ? estimatedPpi : null;
+          } catch {
+            return null;
+          }
+        }).filter((value) => value !== null);
+        if (printResolution.length) {
+          issues.push({
+            severity: "review",
+            type: "image-print",
+            pageId: page.id,
+            pageIndex,
+            title: printResolution.length === 1 ? "Una fotografía no alcanza calidad de imprenta" : `${printResolution.length} fotografías no alcanzan calidad de imprenta`,
+            detail: `El archivo original rinde ${Math.min(...printResolution)} ppp en el tamaño en que se publica. Una imprenta profesional suele pedir ${PRINT_TARGET_PPI} ppp: sirve para pantalla y oficina, no para un tiraje.`
+          });
+        }
+
         const placeholders = [...new Set((pageElement.textContent.match(/\[[^\]\n]{2,80}\]/g) || []).map((value) => value.trim()))];
         if (placeholders.length) {
           issues.push({
@@ -1368,6 +1410,19 @@
           });
         }
       });
+      const originals = [...IMAGE_SLOTS]
+        .map((slotKey) => imageMetadata(slotKey)?.originalName)
+        .filter((name) => typeof name === "string" && name.trim());
+      if (originals.length) {
+        issues.push({
+          severity: "review",
+          type: "originals",
+          pageId: null,
+          pageIndex: null,
+          title: `Guarda ${originals.length === 1 ? "el archivo original" : `los ${originals.length} archivos originales`} fuera del navegador`,
+          detail: `El taller conserva una copia reducida a ${IMAGE_MAX_EDGE} píxeles, suficiente para maquetar pero no para imprenta. Deja los originales completos en la carpeta imagenes del segmento: ${originals.slice(0, 3).join(", ")}${originals.length > 3 ? ` y ${originals.length - 3} más` : ""}.`
+        });
+      }
     } finally {
       measure.remove();
     }
@@ -1807,7 +1862,7 @@
         const image = new Image();
         image.onerror = reject;
         image.onload = () => {
-          const max = 1600;
+          const max = IMAGE_MAX_EDGE;
           const scale = Math.min(1, max / Math.max(image.width, image.height));
           const canvas = document.createElement("canvas");
           canvas.width = Math.round(image.width * scale);

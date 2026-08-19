@@ -2,13 +2,12 @@
 
 - Nombre del anunciante:
 - Persona de contacto:
-- Telefono y correo:
-- Tamano contratado:
-- Pagina o ubicacion:
+- Teléfono y correo:
+- Tamaño contratado:
+- Página o ubicación:
 - Texto aprobado:
-- Logo e imagenes recibidos: SI / NO
-- Vigencia de precios o promocion:
-- Pago o acuerdo confirmado: SI / NO
-- Fecha de aprobacion de la prueba:
+- Logo e imágenes recibidos: SÍ / NO
+- Vigencia de precios o promoción:
+- Pago o acuerdo confirmado: SÍ / NO
+- Fecha de aprobación de la prueba:
 - Observaciones:
-

@@ -46,11 +46,11 @@ Perfil de un comercio o emprendimiento de 300 a 450 palabras. Debe indicarse cla
 
 Dos a cuatro cartas breves, con un máximo recomendado de 180 palabras cada una. Se verifica la identidad del autor, el sector y la fecha. No se publican amenazas, datos personales ajenos ni acusaciones sin respaldo.
 
-## Página 15 · Agenda y cultura
+## Página 15 · Agenda y datos útiles
 
 Calendario de reuniones, actividades, ferias, talleres y panoramas culturales. Cada dato debe indicar fecha, hora, lugar, organizador, costo, inscripción y contacto, y verificarse inmediatamente antes del cierre.
 
-## Página 16 · Participación y próxima edición
+## Página 16 · Cultura y participación
 
 Convocatoria para enviar noticias, fotografías, historias, cartas y propuestas. Debe informar plazo, canales de contacto, condiciones de selección y requisitos de autorización para publicar.
 
