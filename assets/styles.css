@@ -3470,13 +3470,68 @@ button.project-card__preview {
   min-height: 80mm;
 }
 
-/* El botón sólo existe en modo edición y nunca se imprime. */
-.ad-strip-toggle {
+/* El espacio del aviso se ofrece donde va el aviso, con el mismo lenguaje que
+   los huecos de fotografía: un recuadro punteado que se pulsa. Sólo existe en
+   modo edición y nunca se imprime. */
+.ad-strip-placeholder {
+  display: flex;
+  gap: 4mm;
+  align-items: center;
+  width: 100%;
+  margin-top: auto;
+  padding: 4mm;
+  border: 0.45mm dashed rgba(87, 56, 29, 0.45);
+  border-radius: 1mm;
+  background: linear-gradient(135deg, rgba(184, 138, 69, 0.1), rgba(55, 134, 175, 0.06));
+  color: var(--wood);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ad-strip-placeholder:hover {
+  border-color: var(--tone);
+  border-style: solid;
+}
+
+.ad-strip-placeholder__plus {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 9mm;
+  height: 9mm;
+  border: 0.4mm solid var(--tone);
+  border-radius: 50%;
+  color: var(--tone-ink);
+  font-size: 14pt;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ad-strip-placeholder strong {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 9.5pt;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ad-strip-placeholder small {
+  display: block;
+  margin-top: 0.8mm;
+  color: var(--muted);
+  font-size: 7.5pt;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+.ad-strip-remove {
   position: absolute;
-  bottom: 5mm;
-  right: 8mm;
-  z-index: 6;
-  padding: 2px 9px;
+  top: -3mm;
+  right: 0;
+  padding: 1px 8px;
   border: 0.3mm solid var(--tone);
   border-radius: 999px;
   background: var(--cream);
@@ -3487,12 +3542,10 @@ button.project-card__preview {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 0 1mm 3mm rgba(29, 20, 13, 0.14);
 }
 
-.ad-strip-toggle.is-active {
-  background: var(--tone);
-  color: var(--cream);
+.page-ad-strip {
+  position: relative;
 }
 
 /* Carta editorial: el retrato ocupa toda la altura de la columna derecha y el

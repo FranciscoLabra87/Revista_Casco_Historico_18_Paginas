@@ -753,14 +753,24 @@
     return projectStorage.getItem(storageKey("text", `${page.id}.adStrip`)) === "1";
   }
 
-  function adStripToggle(page) {
-    if (!state.editing || !pageAllowsAdStrip(page)) return "";
-    const activo = adStripEnabled(page);
-    return `<button type="button" class="ad-strip-toggle app-chrome${activo ? " is-active" : ""}" data-ad-strip="${page.id}" aria-pressed="${activo}">${activo ? "Quitar faldón" : "Faldón publicitario"}</button>`;
+  function adStripToggle() {
+    return "";
   }
 
   function adStrip(page) {
-    if (!pageAllowsAdStrip(page) || !adStripEnabled(page)) return "";
+    if (!pageAllowsAdStrip(page)) return "";
+
+    if (!adStripEnabled(page)) {
+      if (!state.editing) return "";
+      return `<button type="button" class="ad-strip-placeholder app-chrome" data-ad-strip="${page.id}" aria-pressed="false">
+        <span class="ad-strip-placeholder__plus" aria-hidden="true">+</span>
+        <span><strong>Agregar faldón publicitario</strong><small>Aviso al pie con título, contacto e imagen. Disponible en las páginas impares.</small></span>
+      </button>`;
+    }
+
+    const quitar = state.editing
+      ? `<button type="button" class="ad-strip-remove app-chrome" data-ad-strip="${page.id}" aria-pressed="true">Quitar faldón</button>`
+      : "";
     return `<aside class="page-ad-strip">
       ${editableLabel(page, "adLabel", "Publicidad", "span", "ad-label")}
       <div class="page-ad-strip__body">
@@ -768,6 +778,7 @@
         <p>${editableValue(page, "adBody", "Una línea que describa el aviso, con dirección, horario y teléfono verificados.")}</p>
       </div>
       ${imageSlot(page, "ad", "Agregar imagen del aviso", "page-ad-strip__image")}
+      ${quitar}
     </aside>`;
   }
 
