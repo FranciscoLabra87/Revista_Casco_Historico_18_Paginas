@@ -84,62 +84,79 @@
     "p13.commerce",
     "p16.culture"
   ]);
-  const MODEL_COPY_PATTERNS = [
-    /\bMes 2026\b/i,
-    /\bT[ií]tulo (?:de la noticia|del reportaje) principal\b/i,
-    /\bNombre de (?:la persona entrevistada|del comercio o emprendimiento)\b/i,
-    /\bDato clave\b/i,
-    /\bUna bajada breve explica\b/i,
-    /\besta p[aá]gina debe explicar\b/i,
-    /\bAqu[ií] se destacan los principales\b/i,
-    /\bEl cierre invita a participar\b/i,
-    /\bLa bajada resume el hecho\b/i,
-    /\bLa apertura responde qu[eé] ocurri[oó]\b/i,
-    /\bEl desarrollo incorpora antecedentes\b/i,
-    /\bLa segunda p[aá]gina explica consecuencias\b/i,
-    /\bEl cierre resume la importancia\b/i,
-    /\bResumen del tema tratado\b/i,
-    /\bQu[eé] se realiz[oó]\b/i,
-    /\bSolicitud presentada\b/i,
-    /\bQu[eé] actividad se realizar[aá]\b/i,
-    /\bEn 80 a 120 palabras\b/i,
-    /\bAqu[ií] se incorpora una respuesta\b/i,
-    /\bLa respuesta puede combinar\b/i,
-    /\bRespuesta seleccionada y revisada\b/i,
-    /\bRespuesta sobre propuestas\b/i,
-    /\bCierre humano y breve\b/i,
-    /\bEsta secci[oó]n puede presentar\b/i,
-    /\bEl relato identifica el lugar\b/i,
-    /\bLas fechas y datos hist[oó]ricos deben\b/i,
-    /\bUn proyecto vecinal, operativo\b/i,
-    /\bDescribir la iniciativa\b/i,
-    /\bIndicar requisitos\b/i,
-    /\bEntregar fecha, lugar\b/i,
-    /\bEl texto principal puede explicar\b/i,
-    /\bUna presentaci[oó]n breve explica\b/i,
-    /\bContar cu[aá]ndo comenz[oó]\b/i,
-    /\bSi existe un pago o beneficio\b/i,
-    /\bUna frase del propietario\b/i,
-    /\bTexto de hasta \d+ palabras\b/i,
-    /\bCarta breve que\b/i,
-    /\bExposici[oó]n respetuosa\b/i,
-    /\b\d{2}\s*MES\b/i,
-    /\bEste espacio debe favorecer\b/i,
-    /\bSi existe un concurso\b/i,
-    /\bEnvíanos una fotograf[ií]a antigua\b/i,
-    /\bEspacio publicitario destacado\b/i,
-    /\bAviso de 1\/4 de p[aá]gina\b/i,
-    /\bMedia p[aá]gina o p[aá]gina completa\b/i,
-    /\bComercio, servicio o emprendimiento local\b/i,
-    /\bNombre del aviso\b/i,
-    /\bEsta p[aá]gina resume lo realizado\b/i,
-    /\bCada avance debe se[nñ]alar\b/i,
-    /\bIndicar las tareas pendientes\b/i,
-    /\bLa segunda p[aá]gina conecta la historia\b/i,
-    /\bDescribir qu[eé] permanece, qu[eé] cambi[oó]\b/i,
-    /\bCerrar con acciones posibles de resguardo\b/i,
-    /\bTestimonio breve de una vecina\b/i
-  ];
+  const MODEL_TEXT_SAMPLE = 3;
+  const modelDefaults = new Map();
+
+  function normalizeComparableText(value) {
+    return String(value ?? "").replace(/\s+/g, " ").trim().toLocaleLowerCase("es");
+  }
+
+  function rememberModelDefault(editKey, fallback) {
+    const normalized = normalizeComparableText(fallback);
+    if (normalized) modelDefaults.set(editKey, normalized);
+    else modelDefaults.delete(editKey);
+  }
+
+  function isModelText(editKey, value) {
+    const model = modelDefaults.get(editKey);
+    if (!model) return false;
+    return normalizeComparableText(value) === model;
+  }
+
+  const UNDO_LIMIT = 60;
+  const undoStack = [];
+  const editSnapshots = new WeakMap();
+
+  function normalizeEditedText(value) {
+    return String(value ?? "").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  function insertPlainText(raw) {
+    const text = String(raw ?? "").replace(/\r\n?/g, "\n");
+    if (!text) return;
+    document.execCommand("insertText", false, text);
+  }
+
+  function syncUndoButton() {
+    if (!els.undo) return;
+    const available = state.editing && undoStack.length > 0;
+    els.undo.hidden = !state.editing;
+    els.undo.disabled = !available;
+    els.undo.title = available
+      ? `Deshacer el último cambio de texto (${undoStack.length} disponibles)`
+      : "No hay cambios de texto que deshacer.";
+  }
+
+  function pushUndo(editKey, before, after) {
+    if (!editKey || before === after) return;
+    undoStack.push({ key: editKey, before, after });
+    while (undoStack.length > UNDO_LIMIT) undoStack.shift();
+    syncUndoButton();
+  }
+
+  function undoLastEdit() {
+    const entry = undoStack.pop();
+    syncUndoButton();
+    if (!entry) {
+      showToast("No hay cambios de texto que deshacer.");
+      return;
+    }
+    try {
+      projectStorage.setItem(storageKey("text", entry.key), entry.before);
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      showToast("No se pudo deshacer el cambio. Respalda la edición antes de continuar.");
+      return;
+    }
+    const pageId = String(entry.key).split(".")[0];
+    markPageDirty(pageId);
+    renderTree();
+    renderMagazine();
+    const page = pages.find((item) => item.id === pageId);
+    showToast(`Se deshizo el cambio en ${humanFieldLabel(entry.key)}${page ? ` de la página ${page.number}` : ""}.`);
+  }
+
   const SEVERITY_ORDER = { review: 1, warning: 2, critical: 3 };
   const segments = (window.MAGAZINE_SEGMENTS || [])
     .slice()
@@ -183,6 +200,7 @@
     sidebarZoomValue: document.getElementById("sidebarZoomValue"),
     safe: document.getElementById("safeToggle"),
     edit: document.getElementById("editButton"),
+    undo: document.getElementById("undoButton"),
     prev: document.getElementById("prevButton"),
     next: document.getElementById("nextButton"),
     navComplete: document.getElementById("pageCompleteButton"),
@@ -319,22 +337,60 @@
     return projectStorage.getItem(storageKey("text", `${pageId}.${key}`)) ?? fallback ?? "";
   }
 
+  const FIELD_LABELS = {
+    title: "título",
+    subtitle: "subtítulo",
+    body: "texto",
+    intro: "entrada",
+    deck: "bajada",
+    headline: "titular",
+    kicker: "antetítulo",
+    ribbon: "cintillo",
+    quote: "frase destacada",
+    callout: "recuadro",
+    caption: "pie de foto",
+    credit: "crédito",
+    credits: "créditos",
+    photoCredit: "crédito de la fotografía",
+    source: "fuentes",
+    signature: "firma",
+    contact: "contacto",
+    edition: "edición",
+    section: "sección",
+    page: "página",
+    detail: "detalle",
+    meta: "fecha y lugar",
+    author: "autor",
+    day: "día",
+    month: "mes",
+    date: "fecha",
+    status: "estado",
+    label: "etiqueta",
+    stat: "dato clave",
+    statLabel: "descripción del dato",
+    deadline: "plazo",
+    tagline: "lema",
+    nextTitle: "título de próximos pasos",
+    nextBody: "texto de próximos pasos"
+  };
+
   function humanFieldLabel(key) {
-    const labels = {
-      title: "título",
-      subtitle: "subtítulo",
-      body: "texto",
-      caption: "pie de foto",
-      contact: "contacto",
-      credits: "créditos",
-      signature: "firma",
-      edition: "edición"
-    };
     const lastPart = String(key).split(".").at(-1);
-    return labels[lastPart] || String(lastPart).replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+    if (FIELD_LABELS[lastPart]) return FIELD_LABELS[lastPart];
+    if (/^body\d+$/.test(lastPart)) return "texto";
+    if (/^teaser\d+$/.test(lastPart)) return "llamado de portada";
+    if (/^contact\d+$/.test(lastPart)) return "contacto";
+    if (/^q\d+$/.test(lastPart)) return "pregunta";
+    if (/^a\d+$/.test(lastPart)) return "respuesta";
+    if (/^fact\d+$/.test(lastPart)) return "dato";
+    if (/^ad\d+(Title|Body)$/.test(lastPart)) return "aviso";
+    if (/^block\d+(Title|Body)$/.test(lastPart)) return "bloque informativo";
+    if (/^primary(Title|Body)$/.test(lastPart)) return "aviso destacado";
+    return String(lastPart).replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
   }
 
   function editableValue(page, key, fallback, tag = "span", className = "") {
+    rememberModelDefault(`${page.id}.${key}`, fallback);
     const value = savedText(page.id, key, fallback);
     const editAttributes = state.editing
       ? ` tabindex="0" role="textbox" aria-multiline="true" aria-label="${escapeHtml(`${page.title}: ${humanFieldLabel(key)}`)}"`
@@ -940,6 +996,25 @@
   function attachPageEvents() {
     els.host.querySelectorAll("[data-edit-key]").forEach((node) => {
       node.contentEditable = state.editing ? "true" : "false";
+      node.addEventListener("focusin", () => {
+        editSnapshots.set(node, normalizeEditedText(node.innerText));
+      });
+      node.addEventListener("focusout", () => {
+        const before = editSnapshots.get(node);
+        editSnapshots.delete(node);
+        if (before === undefined) return;
+        pushUndo(node.dataset.editKey, before, normalizeEditedText(node.innerText));
+      });
+      node.addEventListener("paste", (event) => {
+        if (node.contentEditable !== "true") return;
+        event.preventDefault();
+        insertPlainText(event.clipboardData?.getData("text/plain"));
+      });
+      node.addEventListener("drop", (event) => {
+        if (node.contentEditable !== "true") return;
+        event.preventDefault();
+        insertPlainText(event.dataTransfer?.getData("text/plain"));
+      });
       node.addEventListener("input", () => {
         const value = node.innerText.replace(/\n{3,}/g, "\n\n").trim();
         try {
@@ -972,10 +1047,10 @@
     if (projectStorage.getItem(key) === "1") {
       projectStorage.removeItem(key);
     } else {
-      const issues = collectPreflightIssues();
-      const blocking = issues.filter((issue) => issue.pageId === pageId && (issue.severity === "warning" || issue.severity === "critical"));
+      const scoped = collectPreflightIssues({ pageIds: [pageId] });
+      const blocking = scoped.filter((issue) => issue.pageId === pageId && (issue.severity === "warning" || issue.severity === "critical"));
       if (blocking.length) {
-        renderPreflightReport(issues);
+        renderPreflightReport(collectPreflightIssues());
         if (!els.preflight.open) els.preflight.showModal();
         requestAnimationFrame(() => els.preflight.querySelector(`[data-preflight-page="${pages.findIndex((page) => page.id === pageId)}"]`)?.focus());
         showToast(`Corrige ${blocking.length} ${blocking.length === 1 ? "pendiente" : "pendientes"} antes de aprobar la página.`);
@@ -1005,6 +1080,7 @@
   function syncEditButton() {
     els.edit.setAttribute("aria-pressed", String(state.editing));
     els.edit.textContent = state.editing ? "Terminar edición" : "Editar";
+    syncUndoButton();
   }
 
   function setEditing(active, announce = true) {
@@ -1056,7 +1132,7 @@
     requestAnimationFrame(() => els.settingsForm.elements.namedItem("edition")?.focus());
   }
 
-  function collectPreflightIssues() {
+  function collectPreflightIssues(options = {}) {
     const issues = [];
     const settings = issueSettings();
     const pageNumbers = pages.map((page) => page.number);
@@ -1106,7 +1182,9 @@
     const measure = document.createElement("div");
     measure.className = "preflight-measure";
     measure.setAttribute("aria-hidden", "true");
-    measure.innerHTML = pages.map(renderPage).join("");
+    const scopedIds = Array.isArray(options.pageIds) && options.pageIds.length ? new Set(options.pageIds) : null;
+    const measuredPages = scopedIds ? pages.filter((page) => scopedIds.has(page.id)) : pages;
+    measure.innerHTML = measuredPages.map(renderPage).join("");
     document.body.appendChild(measure);
     hydrateImageSlots(measure);
 
@@ -1192,15 +1270,17 @@
           });
         }
 
-        const modelCopy = MODEL_COPY_PATTERNS.filter((pattern) => pattern.test(pageElement.textContent));
-        if (modelCopy.length) {
+        const modelFields = [...pageElement.querySelectorAll("[data-edit-key]")]
+          .filter((node) => isModelText(node.dataset.editKey, node.textContent));
+        if (modelFields.length) {
+          const names = [...new Set(modelFields.map((node) => humanFieldLabel(node.dataset.editKey)))];
           issues.push({
             severity: "warning",
             type: "model-copy",
             pageId: page.id,
             pageIndex,
-            title: "Queda texto de ejemplo del modelo",
-            detail: "Reemplaza los títulos o indicaciones de muestra por contenido confirmado para esta edición."
+            title: modelFields.length === 1 ? "Queda un texto de ejemplo del modelo" : `Quedan ${modelFields.length} textos de ejemplo del modelo`,
+            detail: `Sin editar: ${names.slice(0, MODEL_TEXT_SAMPLE).join(", ")}${names.length > MODEL_TEXT_SAMPLE ? ` y ${names.length - MODEL_TEXT_SAMPLE} más` : ""}. Reemplázalos por contenido confirmado para esta edición.`
           });
         }
 
@@ -1318,7 +1398,7 @@
       let target = null;
       if (issueType === "image" || issueType === "image-quality" || issueType === "image-meta") target = pageElement?.querySelector(".image-slot:not(.has-image), .image-slot.has-image");
       if (issueType === "placeholder") target = [...(pageElement?.querySelectorAll("[data-edit-key]") || [])].find((node) => /\[[^\]]+\]/.test(node.innerText));
-      if (issueType === "model-copy") target = [...(pageElement?.querySelectorAll("[data-edit-key]") || [])].find((node) => MODEL_COPY_PATTERNS.some((pattern) => pattern.test(node.innerText)));
+      if (issueType === "model-copy") target = [...(pageElement?.querySelectorAll("[data-edit-key]") || [])].find((node) => isModelText(node.dataset.editKey, node.textContent));
       if (!target) target = pageElement?.querySelector("[data-edit-key], [data-image-key], [data-page-complete]");
       pageElement?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
       target?.focus({ preventScroll: true });
@@ -1567,6 +1647,7 @@
     state.printMode = "review";
     state.preflightByPage.clear();
     state.lastPreflight = null;
+    undoStack.length = 0;
     document.body.classList.remove("edit-mode", "is-printing", "print-review", "print-final", "sidebar-open");
     document.title = state.originalTitle;
     [els.identity, els.settings, els.imageMeta, els.preflight, els.print, els.newProject, els.renameProject]
@@ -2126,9 +2207,18 @@
   });
   window.addEventListener("beforeprint", mountPrintLayout);
   window.addEventListener("afterprint", restoreAfterPrint);
+  els.undo?.addEventListener("click", undoLastEdit);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       if (els.sidebar.classList.contains("is-open")) setSidebarOpen(false);
+    }
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "z") {
+      const insideField = document.activeElement?.closest?.("[contenteditable='true']");
+      if (!insideField && !document.querySelector("dialog[open]") && undoStack.length) {
+        event.preventDefault();
+        undoLastEdit();
+        return;
+      }
     }
     const activeElement = document.activeElement;
     const interactive = activeElement?.matches("button, input, select, textarea, a, summary, [contenteditable='true']");

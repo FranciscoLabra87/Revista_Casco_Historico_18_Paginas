@@ -5,3 +5,4 @@ desktop.ini
 
 # Carpetas de previsualización o pruebas locales
 .preview_tmp/
+.claude/
