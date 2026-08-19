@@ -96,7 +96,8 @@
     "p12.service",
     "p13.commerce",
     "p16.culture",
-    "brand.logo"
+    "brand.logo",
+    ...["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15", "p16"].map((id) => `${id}.ad`)
   ]);
   const WORD_BUDGET_EXCLUDED = new Set([
     "title", "subtitle", "ribbon", "kicker", "headline", "edition", "label", "contact",
@@ -697,7 +698,53 @@
     const completeButton = `<button type="button" class="page-complete-toggle app-chrome ${complete ? "is-complete" : ""}" data-page-complete="${page.id}" aria-pressed="${complete}">${complete ? "Página lista" : "Marcar como lista"}</button>`;
     const overflowBadge = `<span class="page-overflow-badge app-chrome" hidden>Texto fuera del marco</span>`;
     const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} page--tone-${page.tone || "gold"}`;
-    return `<article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${overflowBadge}${content}${folio}</article>`;
+    return `<article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article>`;
+  }
+
+  const AD_STRIP_PAGES = new Set(["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15", "p16"]);
+
+  function adStripEnabled(page) {
+    return projectStorage.getItem(storageKey("text", `${page.id}.adStrip`)) === "1";
+  }
+
+  function adStripToggle(page) {
+    if (!state.editing || !AD_STRIP_PAGES.has(page.id)) return "";
+    const activo = adStripEnabled(page);
+    return `<button type="button" class="ad-strip-toggle app-chrome${activo ? " is-active" : ""}" data-ad-strip="${page.id}" aria-pressed="${activo}">${activo ? "Quitar faldón" : "Faldón publicitario"}</button>`;
+  }
+
+  function adStrip(page) {
+    if (!AD_STRIP_PAGES.has(page.id) || !adStripEnabled(page)) return "";
+    return `<aside class="page-ad-strip">
+      ${editableLabel(page, "adLabel", "Publicidad", "span", "ad-label")}
+      <div class="page-ad-strip__body">
+        <h3>${editableValue(page, "adTitle", "Nombre del comercio o servicio")}</h3>
+        <p>${editableValue(page, "adBody", "Una línea que describa el aviso, con dirección, horario y teléfono verificados.")}</p>
+      </div>
+      ${imageSlot(page, "ad", "Agregar imagen del aviso", "page-ad-strip__image")}
+    </aside>`;
+  }
+
+  function toggleAdStrip(pageId) {
+    const page = pages.find((item) => item.id === pageId);
+    if (!page) return;
+    const clave = storageKey("text", `${pageId}.adStrip`);
+    const activo = adStripEnabled(page);
+    try {
+      if (activo) projectStorage.removeItem(clave);
+      else projectStorage.setItem(clave, "1");
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      showToast("No se pudo guardar el cambio.");
+      return;
+    }
+    markPageDirty(pageId);
+    renderTree();
+    renderMagazine();
+    showToast(activo
+      ? `Faldón publicitario retirado de la página ${page.number}. Su contenido se conserva.`
+      : `Faldón publicitario agregado al pie de la página ${page.number}.`);
   }
 
   function runningHead(page, label) {
@@ -772,10 +819,9 @@
   function renderEditorial(page) {
     const content = `
       ${runningHead(page)}
-      ${editableLabel(page, "ribbon", "Carta editorial", "span", "section-ribbon")}
       <h2 class="page-title">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
-      <div class="feature-grid">
+      <div class="feature-grid page-fill feature-grid--stretch">
         <div class="two-columns">
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
@@ -1295,6 +1341,9 @@
         state.activeImageKey = node.dataset.imageKey;
         els.imageFile.click();
       });
+    });
+    els.host.querySelectorAll("[data-ad-strip]").forEach((button) => {
+      button.addEventListener("click", () => toggleAdStrip(button.dataset.adStrip));
     });
     els.host.querySelectorAll("[data-list-add], [data-list-remove]").forEach((button) => {
       button.addEventListener("click", () => {

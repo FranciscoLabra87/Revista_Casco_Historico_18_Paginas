@@ -3353,6 +3353,99 @@ button.project-card__preview {
   color: var(--tone-ink);
 }
 
+/* 11 · Faldón publicitario ----------------------------------- */
+
+/* Va pegado al pie: separa el contenido editorial del comercial y, de paso,
+   evita que la página termine en un vacío. */
+.page-ad-strip {
+  display: grid;
+  grid-template-columns: 1fr 34mm;
+  gap: 4mm;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 3mm;
+  border-top: 0.5mm solid var(--tone);
+}
+
+.page-ad-strip .ad-label {
+  grid-column: 1 / -1;
+  margin: 0 0 1mm;
+}
+
+.page-ad-strip__body h3 {
+  margin: 0 0 1mm;
+  color: var(--chocolate);
+  font-family: var(--font-title);
+  font-size: 11pt;
+  font-weight: 700;
+  line-height: 1.06;
+}
+
+.page-ad-strip__body p {
+  margin: 0;
+  font-size: 8pt;
+  line-height: 1.4;
+}
+
+.page-ad-strip__image {
+  min-height: 20mm;
+}
+
+/* Si la página lleva faldón, la fotografía de apertura cede la altura que el
+   aviso necesita, en lugar de empujar el contenido fuera del marco. */
+.mag-page:has(> .page-ad-strip) .page--opener .feature-image,
+.mag-page.page--opener:has(> .page-ad-strip) .feature-image {
+  min-height: 44mm;
+}
+
+.mag-page.page--opener:has(> .page-ad-strip) .culture-hero {
+  min-height: 52mm;
+}
+
+.mag-page:has(> .page-ad-strip) .heritage-photo {
+  min-height: 80mm;
+}
+
+/* El botón sólo existe en modo edición y nunca se imprime. */
+.ad-strip-toggle {
+  position: absolute;
+  bottom: 5mm;
+  right: 8mm;
+  z-index: 6;
+  padding: 2px 9px;
+  border: 0.3mm solid var(--tone);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--tone-ink);
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 1mm 3mm rgba(29, 20, 13, 0.14);
+}
+
+.ad-strip-toggle.is-active {
+  background: var(--tone);
+  color: var(--cream);
+}
+
+/* Cuando la sección abre con retrato y columnas de texto, el bloque estira
+   hasta el faldón en lugar de dejar el tercio inferior vacío. */
+.feature-grid--stretch {
+  align-items: stretch;
+}
+
+.feature-grid--stretch .feature-aside {
+  height: 100%;
+}
+
+.feature-grid--stretch .portrait-slot {
+  flex: 1 1 auto;
+  min-height: 46mm;
+}
+
 /* 10 · Logotipo en el cuadro de identidad --------------------- */
 
 .identity-logo {

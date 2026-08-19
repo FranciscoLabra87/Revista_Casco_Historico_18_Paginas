@@ -54,6 +54,17 @@ Calendario de reuniones, actividades, ferias, talleres y panoramas culturales. C
 
 Convocatoria para enviar noticias, fotografías, historias, cartas y propuestas. Debe informar plazo, canales de contacto, condiciones de selección y requisitos de autorización para publicar.
 
+## Faldón publicitario en páginas interiores
+
+Además de la página 17, cualquier página interior puede llevar un faldón al pie:
+un aviso horizontal con título, texto de contacto e imagen, identificado como
+publicidad. Se activa por página desde el taller y debe cumplir las mismas
+condiciones que el resto de los avisos: acuerdo con el anunciante, material
+aprobado, vigencia e identificación visible como publicidad.
+
+Conviene no ocupar con faldones las páginas que ya cargan mucha fotografía, y
+reservarlos para las que tienen espacio al pie.
+
 ## Página 17 · Publicidad y colaboradores
 
 Avisos comerciales, instituciones colaboradoras, agradecimientos y contacto publicitario. Cada aviso debe tener acuerdo, dimensiones, vigencia, material aprobado e identificación visible como publicidad o contenido patrocinado.
