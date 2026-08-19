@@ -55,7 +55,7 @@ Las carpetas de segmentos forman la plantilla común. El contenido de cada edici
    - Todos los textos son editables, incluidos los rótulos fijos y la cabecera de la portada.
    - En noticias breves, avances, cartas y agenda, los botones **+** y **−** de la esquina inferior agregan o quitan elementos. Al quitar uno, su texto se conserva por si vuelves a agregarlo.
    - En **Identidad** puedes reemplazar el logotipo de la revista y volver al original cuando quieras.
-   - El botón **Faldón publicitario**, abajo a la derecha de cada página interior, agrega un aviso al pie con título, texto e imagen. Se puede quitar y su contenido se conserva. La maqueta ajusta la fotografía de apertura para que el aviso quepa sin sacar texto del marco.
+   - El botón **Faldón publicitario**, arriba a la izquierda de las páginas impares (3, 5, 7, 9, 11, 13 y 15), agrega un aviso al pie con título, texto e imagen. Se puede quitar y su contenido se conserva. La maqueta ajusta la fotografía de apertura para que el aviso quepa sin sacar texto del marco.
 5. Use **Respaldar edición** con frecuencia. El archivo v2 contiene sólo la revista activa.
 6. Ejecute **Revisión final** para detectar páginas pendientes, texto de muestra, marcadores, fotografías o fichas incompletas, baja resolución y contenido fuera del marco A5.
 7. Si todavía hay observaciones, genere sólo un PDF de revisión. El sistema añade automáticamente la marca **BORRADOR · NO DISTRIBUIR**. Los problemas críticos bloquean la salida hasta corregirse.

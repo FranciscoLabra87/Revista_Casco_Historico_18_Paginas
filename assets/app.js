@@ -737,20 +737,30 @@
     return `<article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article>`;
   }
 
-  const AD_STRIP_PAGES = new Set(["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15", "p16"]);
+  // El faldón se ofrece en las páginas impares: en un cuadernillo son las de la
+  // derecha, las que el lector ve al abrir, y por eso son las que se venden.
+  // Quedan fuera la portada, la contraportada y la página que ya es de
+  // publicidad completa.
+  const AD_STRIP_EXCLUDED_SEGMENTS = new Set(["13_cierre_publicidad"]);
+
+  function pageAllowsAdStrip(page) {
+    if (!page || page.number % 2 !== 1) return false;
+    if (page.number === 1 || page.number === pages.length) return false;
+    return !AD_STRIP_EXCLUDED_SEGMENTS.has(page.segmentId);
+  }
 
   function adStripEnabled(page) {
     return projectStorage.getItem(storageKey("text", `${page.id}.adStrip`)) === "1";
   }
 
   function adStripToggle(page) {
-    if (!state.editing || !AD_STRIP_PAGES.has(page.id)) return "";
+    if (!state.editing || !pageAllowsAdStrip(page)) return "";
     const activo = adStripEnabled(page);
     return `<button type="button" class="ad-strip-toggle app-chrome${activo ? " is-active" : ""}" data-ad-strip="${page.id}" aria-pressed="${activo}">${activo ? "Quitar faldón" : "Faldón publicitario"}</button>`;
   }
 
   function adStrip(page) {
-    if (!AD_STRIP_PAGES.has(page.id) || !adStripEnabled(page)) return "";
+    if (!pageAllowsAdStrip(page) || !adStripEnabled(page)) return "";
     return `<aside class="page-ad-strip">
       ${editableLabel(page, "adLabel", "Publicidad", "span", "ad-label")}
       <div class="page-ad-strip__body">

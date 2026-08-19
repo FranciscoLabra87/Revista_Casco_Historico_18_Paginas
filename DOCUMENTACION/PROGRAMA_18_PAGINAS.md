@@ -54,16 +54,23 @@ Calendario de reuniones, actividades, ferias, talleres y panoramas culturales. C
 
 Convocatoria para enviar noticias, fotografías, historias, cartas y propuestas. Debe informar plazo, canales de contacto, condiciones de selección y requisitos de autorización para publicar.
 
-## Faldón publicitario en páginas interiores
+## Faldón publicitario en páginas impares
 
-Además de la página 17, cualquier página interior puede llevar un faldón al pie:
-un aviso horizontal con título, texto de contacto e imagen, identificado como
-publicidad. Se activa por página desde el taller y debe cumplir las mismas
-condiciones que el resto de los avisos: acuerdo con el anunciante, material
-aprobado, vigencia e identificación visible como publicidad.
+Además de la página 17, las páginas impares pueden llevar un faldón al pie: un
+aviso horizontal con título, texto de contacto e imagen, identificado como
+publicidad.
 
-Conviene no ocupar con faldones las páginas que ya cargan mucha fotografía, y
-reservarlos para las que tienen espacio al pie.
+Se ofrecen en las páginas **3, 5, 7, 9, 11, 13 y 15**: siete espacios por
+edición. La regla es de imprenta, no de diseño. En un cuadernillo las impares
+son las páginas de la derecha, las que quedan a la vista al abrir la revista, y
+por eso son las que se venden. Quedan fuera la portada, la contraportada, todas
+las pares y la página 17, que ya es publicidad completa.
+
+Cada faldón se activa página por página desde el taller y debe cumplir las
+mismas condiciones que el resto de los avisos: acuerdo con el anunciante,
+material aprobado, vigencia e identificación visible como publicidad. Cuando una
+página lleva faldón, la maqueta reduce la fotografía de apertura para que el
+aviso quepa sin sacar texto del marco.
 
 ## Página 17 · Publicidad y colaboradores
 
