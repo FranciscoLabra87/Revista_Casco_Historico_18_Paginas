@@ -378,6 +378,18 @@
               <textarea id="photoCaption" name="photoCaption" rows="2"></textarea>
               <small>Texto opcional que se mostrará junto a la fotografía.</small>
             </label>
+            <fieldset class="form-field form-field--wide photo-fit">
+              <legend>Cómo debe encajar en su espacio</legend>
+              <p class="photo-fit__hint" id="photoFitHint" role="status"></p>
+              <label class="photo-fit__option" for="photoFitCover">
+                <input type="radio" id="photoFitCover" name="photoFit" value="cover" />
+                <span><strong>Llenar el espacio</strong><small>Recorta lo que sobra. Es lo correcto para fotografías.</small></span>
+              </label>
+              <label class="photo-fit__option" for="photoFitContain">
+                <input type="radio" id="photoFitContain" name="photoFit" value="contain" />
+                <span><strong>Mostrar completa</strong><small>No recorta nada y deja márgenes. Es lo correcto para logotipos y avisos.</small></span>
+              </label>
+            </fieldset>
             <label class="form-confirmation form-field--wide" for="photoPermission">
               <input id="photoPermission" name="photoPermission" type="checkbox" required />
               <span>

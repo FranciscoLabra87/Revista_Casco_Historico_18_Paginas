@@ -675,11 +675,47 @@
     return `<div class="image-slot ${data ? "has-image" : ""} ${className}" data-image-key="${imageKey}" role="img" aria-label="${escapeHtml(description)}"><span>${escapeHtml(label)}</span></div>`;
   }
 
+  const FIT_CROP_LIMIT = 0.3;
+
+  // Proporcion de la imagen que se pierde si se recorta para llenar el hueco.
+  function cropLoss(imageRatio, slotRatio) {
+    if (!(imageRatio > 0) || !(slotRatio > 0)) return 0;
+    const mayor = Math.max(imageRatio, slotRatio);
+    const menor = Math.min(imageRatio, slotRatio);
+    return 1 - menor / mayor;
+  }
+
+  function slotRatioFor(imageKey) {
+    const elemento = document.querySelector(`[data-image-key="${CSS.escape(imageKey)}"]`);
+    if (!elemento) return 0;
+    const caja = elemento.getBoundingClientRect();
+    return caja.width > 0 && caja.height > 0 ? caja.width / caja.height : 0;
+  }
+
+  // Una fotografía se recorta para llenar; un logotipo o un aviso apaisado se
+  // muestra entero. La diferencia se decide por cuánto se perdería al recortar.
+  function suggestedFit(metadata, imageKey) {
+    const proporcionImagen = metadata?.width > 0 && metadata?.height > 0 ? metadata.width / metadata.height : 0;
+    const proporcionHueco = slotRatioFor(imageKey);
+    const perdida = cropLoss(proporcionImagen, proporcionHueco);
+    return { fit: perdida > FIT_CROP_LIMIT ? "contain" : "cover", perdida, proporcionImagen, proporcionHueco };
+  }
+
+  function imageFit(imageKey) {
+    const metadata = imageMetadata(imageKey);
+    return metadata?.fit === "contain" ? "contain" : "cover";
+  }
+
   function hydrateImageSlots(root = els.host) {
     root?.querySelectorAll?.("[data-image-key]").forEach((slot) => {
-      const [pageId, imageSlotName] = String(slot.dataset.imageKey || "").split(".");
+      const clave = String(slot.dataset.imageKey || "");
+      const [pageId, imageSlotName] = clave.split(".");
       const data = imageData(pageId, imageSlotName);
       slot.style.backgroundImage = data ? `url("${data}")` : "";
+      slot.style.backgroundRepeat = data ? "no-repeat" : "";
+      slot.style.backgroundPosition = data ? "center" : "";
+      slot.style.backgroundSize = data ? imageFit(clave) : "";
+      slot.classList.toggle("is-contained", Boolean(data) && imageFit(clave) === "contain");
     });
   }
 
@@ -1590,6 +1626,24 @@
           });
         }
 
+        const recortadas = imageSlots.filter((slot) => {
+          const metadata = imageMetadata(slot.dataset.imageKey);
+          if (!metadata?.width || !metadata?.height || metadata.fit === "contain") return false;
+          const caja = slot.getBoundingClientRect();
+          if (!caja.width || !caja.height) return false;
+          return cropLoss(metadata.width / metadata.height, caja.width / caja.height) > FIT_CROP_LIMIT;
+        });
+        if (recortadas.length) {
+          issues.push({
+            severity: "review",
+            type: "image-fit",
+            pageId: page.id,
+            pageIndex,
+            title: recortadas.length === 1 ? "Una imagen se está recortando mucho" : `${recortadas.length} imágenes se están recortando mucho`,
+            detail: "Su proporción no coincide con la del espacio, así que se pierde una parte importante. Si es un logotipo o un aviso, ábrela y elige “Mostrar completa”."
+          });
+        }
+
         const printResolution = imageSlots.map((slot) => {
           try {
             const metadata = imageMetadata(slot.dataset.imageKey);
@@ -1824,6 +1878,7 @@
     if (dimensions.some((key) => metadata[key] !== undefined && (!Number.isFinite(metadata[key]) || metadata[key] <= 0 || metadata[key] > 30_000))) return false;
     const textFields = ["alt", "credit", "caption", "originalName"];
     if (textFields.some((key) => metadata[key] !== undefined && (typeof metadata[key] !== "string" || metadata[key].length > 2_000))) return false;
+    if (metadata.fit !== undefined && metadata.fit !== "cover" && metadata.fit !== "contain") return false;
     return metadata.permission === undefined || typeof metadata.permission === "boolean";
   }
 
@@ -2109,10 +2164,10 @@
   function resizeImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error("No se pudo leer el archivo. Copia la imagen a una carpeta local e inténtalo otra vez."));
       reader.onload = () => {
         const image = new Image();
-        image.onerror = reject;
+        image.onerror = () => reject(new Error("El archivo no se pudo abrir como imagen. Puede estar dañado o tener una extensión que no corresponde a su contenido; ábrelo primero en el visor de fotos para comprobarlo."));
         image.onload = () => {
           const max = IMAGE_MAX_EDGE;
           const scale = Math.min(1, max / Math.max(image.width, image.height));
@@ -2521,6 +2576,24 @@
       photoCredit.value = String(previousMetadata?.credit || "");
       photoCaption.value = String(previousMetadata?.caption || "");
       photoPermission.checked = previousMetadata?.permission === true;
+
+      const sugerencia = suggestedFit(result, imageKey);
+      const encajeElegido = previousMetadata?.fit === "cover" || previousMetadata?.fit === "contain"
+        ? previousMetadata.fit
+        : sugerencia.fit;
+      const opciones = els.imageMetaForm.elements.namedItem("photoFit");
+      if (opciones) {
+        [...opciones].forEach((opcion) => { opcion.checked = opcion.value === encajeElegido; });
+      }
+      const aviso = document.getElementById("photoFitHint");
+      if (aviso) {
+        const porcentaje = Math.round(sugerencia.perdida * 100);
+        aviso.textContent = sugerencia.fit === "contain"
+          ? `Esta imagen es bastante más ${sugerencia.proporcionImagen > sugerencia.proporcionHueco ? "ancha" : "alta"} que su espacio: al recortarla se perdería cerca del ${porcentaje} %. Se propone mostrarla completa.`
+          : `La imagen calza bien en su espacio: al recortarla se pierde alrededor del ${porcentaje} %. Se propone llenar el espacio.`;
+        aviso.dataset.fit = sugerencia.fit;
+      }
+
       els.imageMeta.showModal();
       requestAnimationFrame(() => photoAlt.focus());
     } catch (error) {
@@ -2560,6 +2633,7 @@
       originalWidth: result.originalWidth,
       originalHeight: result.originalHeight,
       originalName,
+      fit: formData.get("photoFit") === "contain" ? "contain" : "cover",
       alt: String(formData.get("photoAlt") || "").trim(),
       credit: String(formData.get("photoCredit") || "").trim(),
       caption: String(formData.get("photoCaption") || "").trim(),

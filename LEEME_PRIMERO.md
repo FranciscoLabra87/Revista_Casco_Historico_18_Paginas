@@ -69,6 +69,8 @@ El sistema acepta respaldos v2 actuales y copias v1 del editor anterior. Toda im
 
 ## Fotografías, permisos y créditos
 
+Al cargar una imagen, el sistema compara su proporción con la del espacio donde va y propone cómo debe encajar: **llenar el espacio** recortando lo que sobra, que es lo correcto para fotografías, o **mostrarla completa** con márgenes, que es lo correcto para logotipos y avisos apaisados. La propuesta se puede cambiar, y la revisión final avisa si una imagen está perdiendo una parte importante al recortarse.
+
 Antes de publicar una imagen, confirme su archivo original, autor, permiso de publicación, pie de foto y crédito exacto. Use `PLANTILLAS/FICHA_FOTOGRAFIA.md` y el archivo `LEEME_IMAGENES.txt` de cada carpeta `imagenes`.
 
 El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y para el PDF de oficina. **El archivo original completo debe quedar en la carpeta `imagenes` del segmento**, junto al comprobante del permiso. Si la revista se imprime, el archivo final se arma con esos originales.
