@@ -3200,6 +3200,224 @@ button.project-card__preview {
   }
 }
 
+/* ============================================================
+   SISTEMA DE DISEÑO EDITORIAL
+
+   Antes las 18 páginas llevaban exactamente el mismo ornamento, así que la
+   portada pesaba lo mismo que la agenda. Aquí el ornamento pasa a significar
+   algo: marca qué página abre sección y a qué sección pertenece.
+
+   1. Tono cromático por sección, tomado de la guía de identidad.
+   2. Tres niveles de ornamento: cubierta, apertura y continuación.
+   3. Escala tipográfica con contraste real entre apertura y continuación.
+   4. Menos cajas: filetes y rótulos en lugar de recuadros.
+   ============================================================ */
+
+/* 1 · Tono por sección ------------------------------------- */
+
+.mag-page {
+  --tone: var(--gold);
+  --tone-ink: var(--gold-text);
+}
+
+.page--tone-ceramic { --tone: var(--ceramic); --tone-ink: #275c79; }
+.page--tone-palm    { --tone: var(--palm);    --tone-ink: var(--palm); }
+.page--tone-wood    { --tone: var(--wood);    --tone-ink: var(--wood); }
+.page--tone-gold    { --tone: var(--gold);    --tone-ink: var(--gold-text); }
+
+/* 2 · Jerarquía de ornamento -------------------------------- */
+
+/* El marco doble y las esquinas quedan sólo en cubierta y contracubierta. */
+.mag-page:not(.cover-page):not(.back-page)::before,
+.mag-page:not(.cover-page):not(.back-page) .heritage-corner {
+  display: none;
+}
+
+/* La cenefa de mosaico marca apertura de sección. */
+.page--continuation:not(.cover-page):not(.back-page)::after {
+  right: 11mm;
+  bottom: 8.6mm;
+  left: 11mm;
+  height: 0.4mm;
+  border: 0;
+  background: var(--tone);
+  opacity: 0.5;
+}
+
+/* 3 · Cabecera de sección ----------------------------------- */
+
+.page-running-head {
+  margin-bottom: 4mm;
+  padding-bottom: 1.5mm;
+  border-bottom: 0.3mm solid var(--tone);
+  color: var(--tone-ink);
+}
+
+.page--opener .page-running-head {
+  border-bottom-width: 0.7mm;
+}
+
+.page-running-head::before {
+  background: var(--tone);
+}
+
+.page-running-head::after {
+  display: none;
+}
+
+/* 4 · Escala tipográfica ------------------------------------ */
+
+.page--opener .page-title {
+  font-size: 26pt;
+  letter-spacing: 0.004em;
+  line-height: 0.97;
+}
+
+.page--opener .page-title--compact {
+  font-size: 21pt;
+}
+
+.page--continuation .page-title,
+.page--continuation .page-title--compact {
+  font-size: 17.5pt;
+}
+
+/* La bajada dejaba de ser bajada: competía con el titular en peso y color. */
+.page-deck {
+  max-width: 62ch;
+  color: var(--muted);
+  font-family: var(--font-subtitle);
+  font-size: 12pt;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.26;
+}
+
+.section-ribbon {
+  padding: 1.2mm 3.2mm 1mm;
+  border: 0;
+  border-radius: 0;
+  background: var(--tone);
+  color: var(--cream);
+}
+
+/* 5 · Menos cajas ------------------------------------------- */
+
+.quote-card {
+  padding: 1mm 0 1mm 4.5mm;
+  border: 0;
+  border-left: 0.9mm solid var(--tone);
+  border-radius: 0;
+  background: none;
+  color: var(--wood);
+  font-size: 13pt;
+  text-align: left;
+}
+
+.contact-card {
+  padding: 2mm 0 0;
+  border: 0;
+  border-top: 0.35mm solid var(--tone);
+  border-radius: 0;
+  background: none;
+}
+
+.contact-card h3 {
+  color: var(--tone-ink);
+}
+
+.brief-card,
+.letter-card,
+.agenda-item {
+  border: 0;
+  border-top: 0.5mm solid var(--tone);
+  border-radius: 0;
+  background: rgba(255, 253, 247, 0.5);
+}
+
+.brief-card h3,
+.letter-card h3 {
+  color: var(--tone-ink);
+}
+
+/* El aviso publicitario sí debe leerse como una caja: es lo que lo separa
+   del contenido editorial. */
+.ad-card {
+  border: 0.35mm solid var(--tone);
+}
+
+/* 6 · Folio -------------------------------------------------- */
+
+.page-folio {
+  background: none;
+  color: var(--tone-ink);
+}
+
+/* 7 · Fotografía a sangre en las aperturas ------------------- */
+
+/* Ninguna fotografía salía del margen: todas iban enmarcadas con aire
+   alrededor, que es lo que da aspecto de boletín y no de revista. En las
+   páginas que abren sección la imagen llega ahora al corte. */
+
+.page--opener .feature-image,
+.page--opener .culture-hero {
+  width: calc(100% + 22mm);
+  margin-right: -11mm;
+  margin-left: -11mm;
+  border-radius: 0;
+}
+
+.page--opener .feature-image {
+  min-height: 62mm;
+}
+
+.page--opener .culture-hero {
+  min-height: 70mm;
+}
+
+/* 8 · Portada ------------------------------------------------ */
+
+/* La cabecera iba en un recuadro pequeño arriba a la izquierda. Ahora cruza
+   la portada de lado a lado y el titular tiene el tamaño que le corresponde. */
+
+.cover-masthead {
+  grid-template-columns: 22mm 1fr;
+  gap: 3.5mm;
+  /* La cabecera cruza la portada de corte a corte: descuenta los 8 mm de
+     margen de la portada más el de la caja de contenido (4 mm / 5 mm). */
+  margin: -12mm -13mm 0;
+  padding: 6mm 8mm 4mm;
+  border: 0;
+  border-bottom: 0.9mm solid var(--gold);
+}
+
+.cover-masthead img {
+  width: 22mm;
+  height: 22mm;
+}
+
+.cover-masthead h2 {
+  font-size: 23pt;
+  letter-spacing: 0.012em;
+  line-height: 0.9;
+}
+
+.cover-masthead p {
+  margin-top: 1.2mm;
+  color: var(--wood);
+  font-family: var(--font-body);
+  font-size: 6.8pt;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.cover-story h3 {
+  font-size: 33pt;
+  line-height: 0.93;
+  text-wrap: balance;
+}
+
 @page {
   size: A5 portrait;
   margin: 0;

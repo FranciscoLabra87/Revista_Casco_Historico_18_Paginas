@@ -207,6 +207,22 @@
     });
   }
 
+  const SECTION_TONES = {
+    "01_portada": "gold",
+    "02_sumario_creditos": "gold",
+    "03_carta_editorial": "gold",
+    "04_noticias_breves": "ceramic",
+    "05_reportaje_central": "ceramic",
+    "06_entrevista": "palm",
+    "07_memoria_patrimonio": "wood",
+    "08_comunidad_servicios": "palm",
+    "09_comercio_local": "wood",
+    "10_cartas_director": "palm",
+    "11_agenda_datos": "ceramic",
+    "12_cultura_participacion": "palm",
+    "13_cierre_publicidad": "wood",
+    "14_contraportada": "gold"
+  };
   const MASTHEAD_DEFAULTS = {
     title: "Casco" + String.fromCharCode(10) + "Histórico",
     tagline: "Patrimonio · Comunidad · Historia · Comercio local"
@@ -292,14 +308,17 @@
     .slice()
     .sort((a, b) => Math.min(...a.pages.map((page) => page.number)) - Math.min(...b.pages.map((page) => page.number)));
   const pages = segments
-    .flatMap((segment) =>
-      segment.pages.map((page) => ({
+    .flatMap((segment) => {
+      const firstNumber = Math.min(...segment.pages.map((page) => page.number));
+      return segment.pages.map((page) => ({
         ...page,
         segmentId: segment.id,
         segmentTitle: segment.title,
-        segmentPurpose: segment.purpose
-      }))
-    )
+        segmentPurpose: segment.purpose,
+        isOpener: page.number === firstNumber,
+        tone: SECTION_TONES[segment.id] || "gold"
+      }));
+    })
     .sort((a, b) => a.number - b.number);
 
   const printPreview = new URLSearchParams(window.location.search).get("print") === "1";
@@ -602,7 +621,8 @@
     const folio = page.number === 1 || page.number === pages.length ? "" : `<span class="page-folio">${page.number}</span>`;
     const completeButton = `<button type="button" class="page-complete-toggle app-chrome ${complete ? "is-complete" : ""}" data-page-complete="${page.id}" aria-pressed="${complete}">${complete ? "Página lista" : "Marcar como lista"}</button>`;
     const overflowBadge = `<span class="page-overflow-badge app-chrome" hidden>Texto fuera del marco</span>`;
-    return `<article class="mag-page ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${overflowBadge}${content}${folio}</article>`;
+    const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} page--tone-${page.tone || "gold"}`;
+    return `<article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${overflowBadge}${content}${folio}</article>`;
   }
 
   function runningHead(page, label) {
