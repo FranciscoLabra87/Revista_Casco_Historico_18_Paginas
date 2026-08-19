@@ -4,6 +4,8 @@
 - [ ] El orden editorial coincide con `DOCUMENTACION/PROGRAMA_18_PAGINAS.md`.
 - [ ] Todos los nombres, cargos, fechas, teléfonos y direcciones fueron verificados.
 - [ ] Cada fotografía tiene archivo original identificado, autor, permiso de publicación, pie de foto y crédito exacto.
+- [ ] Los archivos originales completos están guardados en la carpeta `imagenes` del segmento, no sólo dentro del navegador.
+- [ ] La extensión de cada sección respeta el rango del programa editorial (el contador de palabras del taller lo indica al redactar).
 - [ ] Los comprobantes de permisos y créditos están guardados con la edición.
 - [ ] La publicidad de P17 y cualquier otro aviso están identificados y fueron aprobados por el anunciante.
 - [ ] La portada corresponde al contenido interior.

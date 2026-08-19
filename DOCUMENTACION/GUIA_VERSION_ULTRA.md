@@ -2,7 +2,7 @@
 
 La versión Ultra agrega una capa de control editorial al sistema ramificado de 18 páginas sin cambiar el formato A5 ni la identidad visual patrimonial.
 
-Las familias Cinzel, Cormorant Garamond y Source Sans 3 se incluyen localmente en `assets/fonts`, junto con sus licencias OFL. Por eso la composición no depende de que estén instaladas en el computador.
+Las familias Cinzel, Cormorant Garamond y Source Sans 3 se incluyen localmente en `assets/fonts`, en formato WOFF2 con el subconjunto latino completo y junto con sus licencias OFL. Por eso la composición no depende de que estén instaladas en el computador.
 
 ## 1. Programa editorial
 
@@ -44,12 +44,19 @@ La revisión final analiza las 18 páginas, aunque en pantalla se vea una sola o
 - fotografías faltantes;
 - descripción accesible, crédito y confirmación de permiso de cada fotografía incorporada;
 - resolución estimada de las fotografías cargadas;
+- resolución del archivo original frente a los 300 ppp que pide una imprenta;
 - marcadores entre corchetes que todavía deben reemplazarse;
-- instrucciones o textos de muestra que todavía pertenecen al modelo;
+- textos de muestra que siguen exactamente iguales al modelo;
+- extensión de la página frente al rango del programa editorial;
 - texto horizontal o vertical fuera del marco A5;
-- datos generales incompletos.
+- datos generales incompletos;
+- recordatorio de conservar los archivos fotográficos originales.
 
 Cada observación incluye un botón para ir directamente a la página que debe corregirse. Los desbordes de texto también aparecen como una alerta sobre la hoja y bloquean su aprobación hasta corregirlos.
+
+La detección de texto de muestra compara cada campo con el valor del modelo: si el texto sigue igual, aparece en la lista con el nombre del campo. Por eso el control sigue funcionando aunque se edite un archivo `segmento.js`.
+
+Las observaciones de extensión y de resolución de imprenta son informativas: avisan, pero no bloquean la aprobación de la página.
 
 El sistema exige registrar crédito y confirmar el permiso, pero no puede comprobar por sí solo que la declaración sea verdadera. El equipo debe conservar los originales y comprobantes fuera del navegador y realizar el control humano antes de aprobar el PDF final.
 

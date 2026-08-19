@@ -2760,6 +2760,49 @@ button.project-card__preview {
   box-shadow: none;
 }
 
+.local-file-warning {
+  position: relative;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border-bottom: 2px solid var(--danger);
+  background: var(--danger-soft);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.local-file-warning strong {
+  display: block;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.local-file-warning p {
+  margin: 3px 0 0;
+  max-width: 90ch;
+}
+
+.local-file-warning code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(29, 20, 13, 0.08);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+.local-file-warning button {
+  flex: 0 0 auto;
+}
+
+@media print {
+  .local-file-warning {
+    display: none !important;
+  }
+}
+
 .toast {
   position: fixed;
   right: 18px;

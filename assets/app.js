@@ -53,6 +53,17 @@
     }
     return;
   }
+  if (window.location.protocol === "file:") {
+    const warning = document.createElement("div");
+    warning.className = "local-file-warning";
+    warning.setAttribute("role", "alert");
+    warning.innerHTML = `<div><strong>Modo básico: esta ventana no guarda en el mismo lugar que el taller</strong>`
+      + `<p>Abriste <code>index.html</code> directamente. Las revistas que crees aquí no aparecerán al iniciar el software con <code>ABRIR_REVISTA.cmd</code>, porque el navegador guarda por separado los archivos locales y la dirección del servidor. Cierra esta ventana y usa el lanzador.</p></div>`
+      + `<button type="button" class="button button--ghost">Entendido</button>`;
+    warning.querySelector("button").addEventListener("click", () => warning.remove());
+    document.body.prepend(warning);
+  }
+
   const EXPECTED_PAGE_COUNT = 18;
   const MAGAZINE_SIZE_LABEL = "18 páginas";
   const ISSUE_DEFAULTS = {

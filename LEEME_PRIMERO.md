@@ -49,6 +49,9 @@ Las carpetas de segmentos forman la plantilla común. El contenido de cada edici
 2. Use el árbol lateral para recorrer los segmentos y las 18 páginas.
 3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. El sistema la reutiliza en las páginas correspondientes.
 4. Presione **Editar** para cambiar textos y fotografías. Cada foto exige descripción accesible, crédito y confirmación de permiso. Si modifica una página aprobada, vuelve automáticamente a estado pendiente.
+   - Al pegar desde Word o desde el correo, el taller conserva sólo el texto: lo que ve en pantalla es lo que se va a imprimir.
+   - **Deshacer** revierte el último cambio de texto. También funciona con Ctrl+Z cuando el cursor no está dentro de un campo.
+   - Junto al número de página aparece cuántas palabras lleva la hoja y el rango que pide el programa editorial.
 5. Use **Respaldar edición** con frecuencia. El archivo v2 contiene sólo la revista activa.
 6. Ejecute **Revisión final** para detectar páginas pendientes, texto de muestra, marcadores, fotografías o fichas incompletas, baja resolución y contenido fuera del marco A5.
 7. Si todavía hay observaciones, genere sólo un PDF de revisión. El sistema añade automáticamente la marca **BORRADOR · NO DISTRIBUIR**. Los problemas críticos bloquean la salida hasta corregirse.
@@ -63,6 +66,8 @@ El sistema acepta respaldos v2 actuales y copias v1 del editor anterior. Toda im
 ## Fotografías, permisos y créditos
 
 Antes de publicar una imagen, confirme su archivo original, autor, permiso de publicación, pie de foto y crédito exacto. Use `PLANTILLAS/FICHA_FOTOGRAFIA.md` y el archivo `LEEME_IMAGENES.txt` de cada carpeta `imagenes`.
+
+El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y para el PDF de oficina. **El archivo original completo debe quedar en la carpeta `imagenes` del segmento**, junto al comprobante del permiso. Si la revista se imprime, el archivo final se arma con esos originales.
 
 ## Qué tipo de PDF se obtiene
 

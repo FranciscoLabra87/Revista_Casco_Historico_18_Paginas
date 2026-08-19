@@ -113,6 +113,16 @@ Las nuevas P05 y P11 conservan el contenido inicial de la plantilla de 18 págin
 
 Las ediciones que se habían usado abriendo directamente `index.html` no son visibles desde el servidor local porque `file://` y `http://127.0.0.1:8787` tienen almacenes separados. Para trasladarlas, abra una vez el editor antiguo en el mismo navegador, descargue su copia JSON v1 y luego impórtela desde **Mis revistas**.
 
+## 5.1 Trabajo en equipo
+
+El taller guarda cada revista en un solo navegador de un solo equipo, y al importar un respaldo crea siempre un proyecto nuevo: no existe una función que mezcle el trabajo de dos personas en una misma edición. Mientras eso sea así, use este reparto:
+
+1. **Una sola persona maqueta.** Es la única que abre el taller y compone las páginas.
+2. **El resto entrega contenido por fichas.** Use `PLANTILLAS/FICHA_ARTICULO.md`, `FICHA_FOTOGRAFIA.md` y `FICHA_PUBLICIDAD.md`, más los archivos originales de fotografía.
+3. **Las fotografías originales viajan aparte**, con su ficha y su comprobante de permiso, a la carpeta `imagenes` del segmento correspondiente.
+4. **El respaldo circula, no se mezcla.** Si otra persona necesita revisar, entréguele el respaldo JSON: lo abrirá como un proyecto nuevo para leer y comentar, no para editar en paralelo.
+5. **Una sola pestaña a la vez.** El software bloquea la segunda ventana para proteger el autoguardado.
+
 ## 6. Componer una edición
 
 Dentro del taller, el árbol lateral reproduce la estructura ramificada de la revista. Las 14 secciones controlan las 18 páginas:
