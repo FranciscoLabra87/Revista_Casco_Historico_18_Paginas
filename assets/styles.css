@@ -3431,19 +3431,41 @@ button.project-card__preview {
   color: var(--cream);
 }
 
-/* Cuando la sección abre con retrato y columnas de texto, el bloque estira
-   hasta el faldón en lugar de dejar el tercio inferior vacío. */
-.feature-grid--stretch {
+/* Carta editorial: el retrato ocupa toda la altura de la columna derecha y el
+   texto reparte el espacio sobrante con el recuadro de invitación, en lugar de
+   acumular un hueco bajo las columnas. */
+.editorial-grid {
   align-items: stretch;
 }
 
-.feature-grid--stretch .feature-aside {
+.editorial-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5mm;
+  min-height: 0;
+}
+
+.editorial-aside {
   height: 100%;
 }
 
-.feature-grid--stretch .portrait-slot {
+.editorial-aside .portrait-slot {
   flex: 1 1 auto;
-  min-height: 46mm;
+  min-height: 52mm;
+}
+
+.editorial-aside .caption {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+/* El botón del faldón se cruzaba con el folio y la cenefa. */
+.ad-strip-toggle {
+  top: 5.5mm;
+  right: auto;
+  bottom: auto;
+  left: 8mm;
 }
 
 /* 10 · Logotipo en el cuadro de identidad --------------------- */

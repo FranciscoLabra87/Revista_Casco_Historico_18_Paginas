@@ -821,16 +821,19 @@
       ${runningHead(page)}
       <h2 class="page-title">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
-      <div class="feature-grid page-fill feature-grid--stretch">
-        <div class="two-columns">
-          <p class="body-copy lead-copy">${editable(page, "body1")}</p>
-          <p class="body-copy">${editable(page, "body2")}</p>
-          <p class="body-copy">${editable(page, "body3")}</p>
-          <p class="body-copy"><strong>${editable(page, "signature")}</strong></p>
-        </div>
-        <aside class="feature-aside">
-          ${imageSlot(page, "portrait", "Agregar retrato de quien firma", "portrait-slot")}
+      <div class="feature-grid page-fill editorial-grid">
+        <div class="editorial-main">
+          <div class="two-columns">
+            <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+            <p class="body-copy">${editable(page, "body2")}</p>
+            <p class="body-copy">${editable(page, "body3")}</p>
+            <p class="body-copy"><strong>${editable(page, "signature")}</strong></p>
+          </div>
           <div class="contact-card">${editableLabel(page, "inviteLabel", "Nuestra invitación", "h3")}${editableLabel(page, "inviteBody", "Esta revista se construye con las voces y aportes de la comunidad.", "p")}</div>
+        </div>
+        <aside class="feature-aside editorial-aside">
+          ${imageSlot(page, "portrait", "Agregar retrato de quien firma", "portrait-slot")}
+          <p class="caption">${editableValue(page, "portraitCaption", "Retrato: [nombre]. Pie de foto de quien firma la carta.")}</p>
         </aside>
       </div>`;
     return pageFrame(page, content);
