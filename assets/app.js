@@ -670,7 +670,7 @@
         <span class="brief-meta">${editableList(page, "briefs", index, "meta", meta)}</span>
       </article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="brief-grid">${cards}</div>`;
+    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="brief-grid page-fill">${cards}</div>`;
     return pageFrame(page, content);
   }
 
@@ -695,7 +695,7 @@
         ${imageSlot(page, "progress", "Agregar fotografía de una gestión o actividad", "advances-photo")}
         <p class="body-copy lead-copy">${editable(page, "body")}</p>
       </div>
-      <div class="milestone-grid">${milestones}</div>
+      <div class="milestone-grid page-fill">${milestones}</div>
       <div class="contact-card advances-next"><h3>${editable(page, "nextTitle")}</h3><p>${editable(page, "nextBody")}</p></div>`;
     return pageFrame(page, content);
   }
@@ -789,7 +789,7 @@
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
       ${imageSlot(page, "service", "Agregar fotografía de la iniciativa", "feature-image")}
-      <div class="community-grid">${blocks}</div>
+      <div class="community-grid page-fill">${blocks}</div>
       <div style="height:4mm"></div>
       <p class="body-copy">${editable(page, "body")}</p>
       <div class="contact-card"><h3>Información práctica</h3><p><strong>${editable(page, "contact")}</strong></p></div>`;
@@ -823,7 +823,7 @@
       const [title, body, author] = splitItem(item, 3);
       return `<article class="letter-card"><h3>${editableList(page, "letters", index, "title", title)}</h3><p>${editableList(page, "letters", index, "body", body)}</p><span class="letter-author">${editableList(page, "letters", index, "author", author)}</span></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid">${cards}</div><p class="caption">Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.</p>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div><p class="caption">Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.</p>`;
     return pageFrame(page, content);
   }
 
@@ -832,7 +832,7 @@
       const [day, month, title, detail] = splitItem(item, 4);
       return `<article class="agenda-item"><div class="agenda-date"><strong>${editableList(page, "agenda", index, "day", day)}</strong><span>${editableList(page, "agenda", index, "month", month)}</span></div><div class="agenda-detail"><h3>${editableList(page, "agenda", index, "title", title)}</h3><p>${editableList(page, "agenda", index, "detail", detail)}</p></div></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list">${items}</div><div style="height:4mm"></div><div class="contact-card"><h3>Antes de asistir</h3><p>Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.</p></div>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div><div style="height:4mm"></div><div class="contact-card"><h3>Antes de asistir</h3><p>Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.</p></div>`;
     return pageFrame(page, content);
   }
 
@@ -857,7 +857,7 @@
       ${runningHead(page)}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
-      <div class="ad-grid">
+      <div class="ad-grid page-fill">
         <article class="ad-card ad-card--primary"><span class="ad-label">Publicidad</span><h3>${editable(page, "primaryTitle")}</h3><p>${editable(page, "primaryBody")}</p></article>
         <article class="ad-card"><span class="ad-label">Publicidad</span><h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
         <article class="ad-card"><span class="ad-label">Publicidad</span><h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>

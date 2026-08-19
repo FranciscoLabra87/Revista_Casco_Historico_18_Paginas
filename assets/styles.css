@@ -1127,6 +1127,31 @@ button.project-card__preview {
   overflow: hidden;
 }
 
+/* Las páginas de listas reparten el espacio sobrante entre sus tarjetas
+   en lugar de dejar todo el aire acumulado al pie de la hoja. */
+.mag-page:not(.cover-page):not(.back-page) {
+  display: flex;
+  flex-direction: column;
+}
+
+.mag-page > .page-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.brief-grid.page-fill,
+.letter-grid.page-fill,
+.ad-grid.page-fill,
+.milestone-grid.page-fill,
+.community-grid.page-fill {
+  grid-auto-rows: 1fr;
+}
+
+.agenda-list.page-fill > .agenda-item {
+  flex: 1 1 auto;
+  align-content: center;
+}
+
 .mag-page::before {
   position: absolute;
   inset: 4mm;
