@@ -426,6 +426,14 @@
     safe: document.getElementById("safeToggle"),
     edit: document.getElementById("editButton"),
     undo: document.getElementById("undoButton"),
+    assistant: document.getElementById("assistantPanel"),
+    assistantButton: document.getElementById("assistantButton"),
+    assistantContext: document.getElementById("assistantContext"),
+    assistantState: document.getElementById("assistantState"),
+    assistantCaution: document.getElementById("assistantCaution"),
+    assistantResult: document.getElementById("assistantResult"),
+    assistantOutput: document.getElementById("assistantOutput"),
+    assistantUsage: document.getElementById("assistantUsage"),
     prev: document.getElementById("prevButton"),
     next: document.getElementById("nextButton"),
     navComplete: document.getElementById("pageCompleteButton"),
@@ -1282,10 +1290,13 @@
     attachPageEvents();
     updateNavigation(visible);
     updateTreeCurrent();
-    requestAnimationFrame(() => {
-      refreshVisibleOverflows();
-      updateWordBudget();
-    });
+    // El contador y el asistente sólo leen texto, así que se actualizan de
+    // inmediato: si la pestaña está en segundo plano el navegador no dispara el
+    // dibujo y se quedaban con la página anterior. La comprobación de desborde
+    // sí necesita medir, y por eso espera al siguiente cuadro.
+    updateWordBudget();
+    asistenteRefrescar();
+    requestAnimationFrame(refreshVisibleOverflows);
   }
 
   function renderTree() {
@@ -2747,6 +2758,204 @@
     if (state.editing || interactive || document.querySelector("dialog[open]")) return;
     if (event.key === "ArrowLeft") navigate(-1);
     if (event.key === "ArrowRight") navigate(1);
+  });
+
+
+  // ---------------------------------------------------------------------------
+  // Asistente editorial
+  //
+  // Conoce la pagina abierta, la pauta de su seccion y la extension que pide el
+  // programa. Siempre propone: no escribe en la revista. Los datos que no puede
+  // conocer los deja entre corchetes, y la revision final ya los detecta como
+  // pendientes por completar.
+  // ---------------------------------------------------------------------------
+
+  const ASISTENTE_SISTEMA = [
+    "Eres el asistente editorial de la revista comunal del Casco Histórico de Puente Alto, Chile,",
+    "que publica la Agrupación Barrio Casco Histórico. Es una revista vecinal impresa en A5.",
+    "",
+    "Reglas que no puedes romper:",
+    "- Escribe en castellano de Chile, claro y directo, comprensible para lectores de todas las edades.",
+    "- No inventes hechos, cifras, fechas, nombres, cargos ni citas. Si falta un dato, escríbelo entre",
+    "  corchetes, por ejemplo [fecha por confirmar] o [nombre del responsable].",
+    "- No redactes testimonios, declaraciones ni cartas atribuidas a personas reales.",
+    "- No uses lenguaje publicitario ni adjetivos grandilocuentes.",
+    "- Distingue siempre lo comprobado de lo que es propuesta u opinión.",
+    "- Entrega sólo el texto pedido, sin explicaciones previas ni comentarios finales."
+  ].join(String.fromCharCode(10));
+
+  const ASISTENTE_VOCES = new Set(["p08", "p09", "p14"]);
+
+  const ASISTENTE_TAREAS = {
+    borrador: {
+      etiqueta: "Redactando un borrador",
+      construir: (ctx) => [
+        `Redacta un borrador para la página ${ctx.numero} de la revista, sección "${ctx.seccion}".`,
+        `Propósito de la sección: ${ctx.proposito}`,
+        ctx.pauta ? `Pauta editorial de esta sección: ${ctx.pauta}` : "",
+        ctx.rango ? `Extensión objetivo: entre ${ctx.rango.min} y ${ctx.rango.max} palabras.` : "",
+        "",
+        "Texto actual de la página (puede ser sólo el modelo de muestra):",
+        ctx.texto || "(vacío)"
+      ].filter(Boolean).join(String.fromCharCode(10))
+    },
+    extension: {
+      etiqueta: "Ajustando la extensión",
+      construir: (ctx) => [
+        ctx.rango
+          ? `El texto de esta página tiene ${ctx.palabras} palabras y el programa pide entre ${ctx.rango.min} y ${ctx.rango.max}.`
+          : `El texto de esta página tiene ${ctx.palabras} palabras.`,
+        ctx.rango && ctx.palabras < ctx.rango.min
+          ? "Desarróllalo hasta alcanzar el rango, sin inventar información: profundiza lo que ya está dicho y marca entre corchetes los datos que hagan falta."
+          : "Recórtalo hasta el rango conservando todos los hechos y quitando lo redundante.",
+        `Sección: ${ctx.seccion}. ${ctx.proposito}`,
+        "",
+        "Texto actual:",
+        ctx.texto || "(vacío)"
+      ].filter(Boolean).join(String.fromCharCode(10))
+    },
+    titulares: {
+      etiqueta: "Proponiendo titulares",
+      construir: (ctx) => [
+        `Propón cinco opciones de titular con su bajada para la página ${ctx.numero}, sección "${ctx.seccion}".`,
+        "El titular no debe pasar de ocho palabras; la bajada, de veinticinco.",
+        "Numéralas del 1 al 5, titular en una línea y bajada en la siguiente.",
+        "",
+        "Contenido de la página:",
+        ctx.texto || "(vacío)"
+      ].join(String.fromCharCode(10))
+    },
+    foto: {
+      etiqueta: "Escribiendo pie de foto",
+      construir: (ctx) => [
+        "A partir del contenido de esta página, propón para su fotografía principal:",
+        "1. Una descripción accesible de una o dos frases, que cuente qué se ve y qué aporta.",
+        "2. Un pie de foto publicable, con quién aparece, dónde y cuándo, dejando entre corchetes lo que no se pueda saber.",
+        "",
+        `Sección: ${ctx.seccion}. ${ctx.proposito}`,
+        "",
+        "Contenido de la página:",
+        ctx.texto || "(vacío)"
+      ].join(String.fromCharCode(10))
+    },
+    estilo: {
+      etiqueta: "Revisando el estilo",
+      construir: (ctx) => [
+        "Revisa este texto y entrega una lista de observaciones concretas: ortografía, acentuación,",
+        "puntuación, coherencia de nombres y fechas, repeticiones y frases confusas.",
+        "No reescribas el texto completo: señala qué cambiar y por qué, citando el fragmento.",
+        "Si no encuentras problemas, dilo en una línea.",
+        "",
+        `Sección: ${ctx.seccion}.`,
+        "",
+        "Texto:",
+        ctx.texto || "(vacío)"
+      ].join(String.fromCharCode(10))
+    }
+  };
+
+  let asistenteOcupado = false;
+
+  function asistenteContexto() {
+    const page = pages[state.current];
+    const elemento = els.host.querySelector(`[data-page-id="${page.id}"]`);
+    const campos = elemento
+      ? [...elemento.querySelectorAll("[data-edit-key]")]
+          .filter((nodo) => !WORD_BUDGET_EXCLUDED.has(String(nodo.dataset.editKey).split(".").at(-1)))
+      : [];
+    const texto = campos.map((nodo) => nodo.textContent.trim()).filter(Boolean).join(String.fromCharCode(10) + String.fromCharCode(10));
+    const budget = PAGE_WORD_BUDGETS[page.id];
+    return {
+      page,
+      numero: page.number,
+      seccion: page.segmentTitle,
+      proposito: page.segmentPurpose || "",
+      pauta: budget ? budget.label : "",
+      rango: budget ? { min: budget.min, max: budget.max } : null,
+      palabras: countWords(texto),
+      texto
+    };
+  }
+
+  function asistenteRefrescar() {
+    if (!els.assistant || els.assistant.hidden) return;
+    const ctx = asistenteContexto();
+    els.assistantContext.textContent = `Página ${ctx.numero} · ${ctx.seccion}`;
+    els.assistantState.textContent = ctx.rango
+      ? `${ctx.palabras} palabras · objetivo ${ctx.rango.min}–${ctx.rango.max}`
+      : `${ctx.palabras} palabras en esta página`;
+    const delicada = ASISTENTE_VOCES.has(ctx.page.id);
+    els.assistantCaution.hidden = !delicada;
+    if (delicada) {
+      els.assistantCaution.textContent = "Esta página recoge palabras de personas identificadas. El asistente puede corregir estilo y proponer preguntas, pero no debe redactar testimonios ni cartas: eso las volvería falsas.";
+    }
+  }
+
+  async function asistenteEjecutar(tareaId) {
+    const tarea = ASISTENTE_TAREAS[tareaId];
+    if (!tarea || asistenteOcupado) return;
+    asistenteOcupado = true;
+    const ctx = asistenteContexto();
+    els.assistantResult.hidden = false;
+    els.assistantUsage.textContent = "";
+    els.assistantOutput.textContent = `${tarea.etiqueta}…`;
+    try {
+      const respuesta = await fetch("/api/asistente", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sistema: ASISTENTE_SISTEMA, mensaje: tarea.construir(ctx) })
+      });
+      const datos = await respuesta.json();
+      if (!respuesta.ok) {
+        els.assistantOutput.textContent = [datos.error, datos.detalle].filter(Boolean).join(String.fromCharCode(10) + String.fromCharCode(10));
+        return;
+      }
+      els.assistantOutput.textContent = datos.texto || "La respuesta llegó vacía.";
+      if (datos.uso && datos.uso.entrada != null) {
+        els.assistantUsage.textContent = `${datos.uso.entrada} tokens de entrada · ${datos.uso.salida} de salida`;
+      }
+    } catch {
+      els.assistantOutput.textContent = "No se pudo contactar el asistente. Comprueba que el taller se abrió con ABRIR_REVISTA.cmd y que hay conexión a internet.";
+    } finally {
+      asistenteOcupado = false;
+    }
+  }
+
+  function asistenteAbrir(abrir) {
+    if (!els.assistant) return;
+    els.assistant.hidden = !abrir;
+    if (els.assistantButton) els.assistantButton.setAttribute("aria-expanded", String(abrir));
+    document.body.classList.toggle("assistant-open", abrir);
+    if (!abrir) return;
+    asistenteRefrescar();
+    fetch("/api/asistente")
+      .then((r) => r.json())
+      .then((estado) => {
+        if (estado.disponible) return;
+        els.assistantResult.hidden = false;
+        els.assistantOutput.textContent = "Falta la llave de la API. Crea el archivo clave-ia.txt junto a servidor-local.mjs, con la llave dentro, y vuelve a abrir el taller. Ese archivo está excluido de git y no viaja en los respaldos.";
+      })
+      .catch(() => undefined);
+  }
+
+  if (els.assistantButton) {
+    els.assistantButton.addEventListener("click", () => asistenteAbrir(els.assistant.hidden));
+  }
+  const asistenteCerrar = document.getElementById("assistantClose");
+  if (asistenteCerrar) asistenteCerrar.addEventListener("click", () => asistenteAbrir(false));
+  const asistenteCopiar = document.getElementById("assistantCopy");
+  if (asistenteCopiar) {
+    asistenteCopiar.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(els.assistantOutput.textContent || "");
+        showToast("Propuesta copiada. Pégala en el campo que corresponda.");
+      } catch {
+        showToast("No se pudo copiar. Selecciona el texto y usa Ctrl+C.");
+      }
+    });
+  }
+  document.querySelectorAll("[data-assistant]").forEach((boton) => {
+    boton.addEventListener("click", () => asistenteEjecutar(boton.dataset.assistant));
   });
 
   if (compactQuery.matches) els.sidebar.inert = true;

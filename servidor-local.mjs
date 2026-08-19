@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,9 +35,157 @@ function safePath(urlPath) {
   return target;
 }
 
+// ---------------------------------------------------------------------------
+// Asistente editorial
+//
+// La llave de la API vive aquí, en el servidor local, y nunca llega al
+// navegador: la página pide /api/asistente a su propio equipo y es este proceso
+// el que habla con la API. Así la llave no viaja en la carpeta de la revista
+// cuando se copia, se comparte o se respalda.
+// ---------------------------------------------------------------------------
+
+const MODELO = "claude-sonnet-5";
+const MAX_CUERPO_BYTES = 200_000;
+const MAX_TOKENS_RESPUESTA = 1_500;
+const ORIGENES_PERMITIDOS = new Set([
+  `http://127.0.0.1:${port}`,
+  `http://localhost:${port}`
+]);
+
+async function leerLlave() {
+  const desdeEntorno = String(process.env.ANTHROPIC_API_KEY || "").trim();
+  if (desdeEntorno) return desdeEntorno;
+  try {
+    const archivo = await readFile(join(root, "clave-ia.txt"), "utf8");
+    return archivo.trim();
+  } catch {
+    return "";
+  }
+}
+
+function responderJson(response, status, cuerpo) {
+  const texto = JSON.stringify(cuerpo);
+  response.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Content-Length": Buffer.byteLength(texto),
+    "Cache-Control": "no-store"
+  });
+  response.end(texto);
+}
+
+function leerCuerpo(request) {
+  return new Promise((resolve, reject) => {
+    let total = 0;
+    const partes = [];
+    request.on("data", (parte) => {
+      total += parte.length;
+      if (total > MAX_CUERPO_BYTES) {
+        reject(new Error("La solicitud es demasiado grande."));
+        request.destroy();
+        return;
+      }
+      partes.push(parte);
+    });
+    request.on("end", () => resolve(Buffer.concat(partes).toString("utf8")));
+    request.on("error", reject);
+  });
+}
+
+async function manejarAsistente(request, response) {
+  const origen = request.headers.origin;
+  if (origen && !ORIGENES_PERMITIDOS.has(origen)) {
+    responderJson(response, 403, { error: "Origen no permitido." });
+    return;
+  }
+
+  const llave = await leerLlave();
+  if (!llave) {
+    responderJson(response, 503, {
+      error: "Falta la llave de la API.",
+      detalle: "Cree el archivo clave-ia.txt junto a servidor-local.mjs con la llave dentro, o defina la variable de entorno ANTHROPIC_API_KEY, y vuelva a iniciar el taller."
+    });
+    return;
+  }
+
+  let peticion;
+  try {
+    peticion = JSON.parse(await leerCuerpo(request));
+  } catch (error) {
+    responderJson(response, 400, { error: error.message || "No se pudo leer la solicitud." });
+    return;
+  }
+
+  const sistema = String(peticion.sistema || "").slice(0, 8_000);
+  const mensaje = String(peticion.mensaje || "").slice(0, 40_000);
+  if (!mensaje.trim()) {
+    responderJson(response, 400, { error: "La solicitud no incluye texto." });
+    return;
+  }
+
+  try {
+    const respuesta = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": llave,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: MODELO,
+        max_tokens: MAX_TOKENS_RESPUESTA,
+        system: sistema || undefined,
+        messages: [{ role: "user", content: mensaje }]
+      })
+    });
+
+    const datos = await respuesta.json();
+    if (!respuesta.ok) {
+      responderJson(response, respuesta.status, {
+        error: datos?.error?.message || "La API rechazó la solicitud.",
+        tipo: datos?.error?.type || ""
+      });
+      return;
+    }
+
+    const texto = (datos.content || [])
+      .filter((bloque) => bloque.type === "text")
+      .map((bloque) => bloque.text)
+      .join("")
+      .trim();
+
+    responderJson(response, 200, {
+      texto,
+      uso: {
+        entrada: datos.usage?.input_tokens ?? null,
+        salida: datos.usage?.output_tokens ?? null
+      }
+    });
+  } catch (error) {
+    responderJson(response, 502, {
+      error: "No se pudo contactar la API.",
+      detalle: "Compruebe la conexión a internet. El resto del taller funciona sin conexión."
+    });
+  }
+}
+
 const server = createServer(async (request, response) => {
+  const ruta = (request.url || "").split("?")[0];
+
+  if (ruta === "/api/asistente") {
+    if (request.method === "POST") {
+      await manejarAsistente(request, response);
+      return;
+    }
+    if (request.method === "GET") {
+      responderJson(response, 200, { disponible: Boolean(await leerLlave()), modelo: MODELO });
+      return;
+    }
+    responderJson(response, 405, { error: "Método no permitido." });
+    return;
+  }
+
   if (!request.url || !["GET", "HEAD"].includes(request.method || "")) {
-    response.writeHead(405, { Allow: "GET, HEAD" });
+    response.writeHead(405, { Allow: "GET, HEAD, POST" });
     response.end("Método no permitido");
     return;
   }

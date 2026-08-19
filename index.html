@@ -109,6 +109,7 @@
           <button type="button" class="button button--ghost button--supplemental" data-open-settings>Datos de edición</button>
           <button type="button" class="button button--ghost" id="editButton" aria-pressed="false">Editar</button>
           <button type="button" class="button button--ghost button--supplemental" id="undoButton" hidden disabled>Deshacer</button>
+          <button type="button" class="button button--ghost button--supplemental" id="assistantButton" aria-expanded="false" aria-controls="assistantPanel">Asistente</button>
           <button type="button" class="button button--review button--supplemental" data-open-preflight>Revisión final</button>
           <button type="button" class="button button--primary" id="printButton">Guardar PDF</button>
         </div>
@@ -179,6 +180,47 @@
       </aside>
 
       <button type="button" class="sidebar-scrim app-chrome" id="sidebarScrim" aria-label="Cerrar estructura" hidden></button>
+
+      <aside class="assistant app-chrome" id="assistantPanel" aria-label="Asistente editorial" hidden>
+        <header class="assistant__head">
+          <div>
+            <p class="eyebrow">Asistente editorial</p>
+            <h2 id="assistantContext">Página</h2>
+          </div>
+          <button type="button" class="icon-button" id="assistantClose" aria-label="Cerrar asistente">×</button>
+        </header>
+
+        <p class="assistant__state" id="assistantState" role="status"></p>
+        <p class="assistant__caution" id="assistantCaution" hidden></p>
+
+        <div class="assistant__actions">
+          <button type="button" class="assistant-action" data-assistant="borrador">
+            <strong>Redactar un borrador</strong><small>Con la pauta de la sección y la extensión que pide el programa</small>
+          </button>
+          <button type="button" class="assistant-action" data-assistant="extension">
+            <strong>Ajustar a la extensión</strong><small>Alarga o recorta lo escrito hasta el rango objetivo</small>
+          </button>
+          <button type="button" class="assistant-action" data-assistant="titulares">
+            <strong>Proponer titulares</strong><small>Cinco opciones de título y bajada para esta página</small>
+          </button>
+          <button type="button" class="assistant-action" data-assistant="foto">
+            <strong>Pie de foto y descripción accesible</strong><small>A partir de lo que cuenta la página</small>
+          </button>
+          <button type="button" class="assistant-action" data-assistant="estilo">
+            <strong>Revisar estilo</strong><small>Ortografía, tono y coherencia de datos, sin reescribir</small>
+          </button>
+        </div>
+
+        <div class="assistant__result" id="assistantResult" hidden>
+          <div class="assistant__result-head">
+            <span id="assistantUsage"></span>
+            <button type="button" class="button button--small button--ghost" id="assistantCopy">Copiar</button>
+          </div>
+          <div class="assistant__output" id="assistantOutput" tabindex="0"></div>
+        </div>
+
+        <p class="assistant__foot">El asistente propone; el texto lo aprueba y lo pega la persona responsable. Los datos que no puede saber los deja entre corchetes, y la revisión final los detecta como pendientes.</p>
+      </aside>
 
       <main class="workspace" id="workspace" tabindex="-1">
         <div class="workspace__notice app-chrome">

@@ -3362,6 +3362,137 @@ button.project-card__preview {
   color: var(--tone-ink);
 }
 
+/* 13 · Asistente editorial ----------------------------------- */
+
+.assistant {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(380px, 92vw);
+  padding: 18px;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: -12px 0 34px rgba(29, 20, 13, 0.16);
+}
+
+.assistant__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.assistant__head h2 {
+  margin: 2px 0 0;
+  font-family: var(--font-title);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.assistant__state {
+  margin: 0;
+  padding: 8px 11px;
+  border-radius: 6px;
+  background: var(--cream);
+  color: var(--wood);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.assistant__caution {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.assistant__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assistant-action {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.assistant-action:hover {
+  border-color: var(--gold);
+  background: var(--cream);
+}
+
+.assistant-action strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.assistant-action small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.assistant__result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assistant__result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.assistant__output {
+  max-height: 46vh;
+  padding: 12px 13px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.assistant__foot {
+  margin: auto 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media print {
+  .assistant {
+    display: none !important;
+  }
+}
+
 /* 12 · Encaje de la imagen en el cuadro de ficha -------------- */
 
 .photo-fit {

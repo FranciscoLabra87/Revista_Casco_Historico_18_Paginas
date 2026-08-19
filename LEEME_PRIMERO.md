@@ -82,4 +82,10 @@ El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y
 - **Cuadernillo doblado y corcheteado:** suele necesitar una cantidad de páginas múltiplo de cuatro. Consulte a la imprenta si debe ampliar la edición a 20 páginas antes de diseñar los pliegos.
 - **Imprenta profesional:** consulte primero sus requisitos. La salida actual es A5 y no agrega sangrado, marcas de corte, imposición ni un perfil de color de imprenta. Si la imprenta exige esos elementos, debe preparar y validar una salida distinta.
 
+## Asistente editorial
+
+El botón **Asistente** abre un panel que conoce la página abierta, su pauta y la extensión que pide el programa. Redacta borradores, ajusta el largo, propone titulares, escribe pies de foto y revisa el estilo. Siempre **propone**: el texto se lee, se corrige y se pega a mano.
+
+Necesita una llave de la API de Anthropic e internet; el resto del taller funciona sin ambas. La llave se guarda en `clave-ia.txt`, queda sólo en el servidor local y no viaja en los respaldos. Instrucciones completas en [`DOCUMENTACION/ASISTENTE_IA.md`](DOCUMENTACION/ASISTENTE_IA.md).
+
 El manual completo del software está en [`DOCUMENTACION/MANUAL_SOFTWARE.md`](DOCUMENTACION/MANUAL_SOFTWARE.md). La explicación de los controles Ultra está en [`DOCUMENTACION/GUIA_VERSION_ULTRA.md`](DOCUMENTACION/GUIA_VERSION_ULTRA.md).
