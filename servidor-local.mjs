@@ -21,6 +21,7 @@ const mimeTypes = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".ttf": "font/ttf",
+  ".woff2": "font/woff2",
   ".txt": "text/plain; charset=utf-8",
   ".pdf": "application/pdf",
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

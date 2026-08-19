@@ -535,7 +535,7 @@
       ${imageSlot(page, "hero", "Agregar fotografía principal", "cover-hero")}
       <div class="cover-content">
         <div class="cover-masthead">
-          <img src="./assets/brand/logo-casco-historico.png" alt="Logo Casco Histórico" />
+          <img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" />
           <div>
             <h2>Casco<br />Histórico</h2>
             <p>Patrimonio · Comunidad · Historia · Comercio local</p>
@@ -868,7 +868,7 @@
   }
 
   function renderBack(page) {
-    const content = `<div class="back-inner"><img src="./assets/brand/logo-casco-historico.png" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
+    const content = `<div class="back-inner"><img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
     return pageFrame(page, content, "back-page");
   }
 
@@ -1739,7 +1739,7 @@
          <button type="button" class="project-menu-button" data-project-archive="${id}" aria-label="Mover ${name} a la papelera" title="Mover a la papelera">⌫</button>`;
     return `<article class="project-card" data-project-card="${id}">
       <button type="button" class="project-card__preview" ${trashed ? `data-project-restore="${id}"` : `data-project-open="${id}"`} aria-label="${trashed ? "Restaurar" : "Abrir"} ${name}">
-        <img src="./assets/brand/logo-casco-historico.png" alt="" />
+        <img src="./assets/brand/logo-casco-historico.webp" alt="" />
       </button>
       <div class="project-card__body">
         <h3>${name}</h3>

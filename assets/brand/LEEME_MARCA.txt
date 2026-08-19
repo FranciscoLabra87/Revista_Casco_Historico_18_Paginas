@@ -1,0 +1,16 @@
+IDENTIDAD VISUAL
+
+logo-casco-historico.webp   Emblema de la Asociación Casco Histórico.
+guia-identidad-visual.webp  Guía de identidad visual que muestra el botón Identidad.
+
+Ambos archivos están en formato WebP de alta calidad. Antes pesaban 4,3 MB en
+conjunto y ahora pesan 0,6 MB, sin cambio visible en pantalla ni en el PDF.
+
+Los archivos PNG originales no se borraron: quedan guardados en el historial de
+git de este proyecto, en el commit "Estado inicial del taller editorial Casco
+Histórico". Para recuperarlos:
+
+    git show 0edcf16:assets/brand/logo-casco-historico.png > logo-original.png
+
+Si la imprenta pide el emblema en alta resolución, use ese original o el archivo
+maestro que conserve la agrupación, no la copia WebP de esta carpeta.
