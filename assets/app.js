@@ -84,6 +84,60 @@
     "p13.commerce",
     "p16.culture"
   ]);
+  const WORD_BUDGET_EXCLUDED = new Set([
+    "title", "subtitle", "ribbon", "kicker", "headline", "edition", "label", "contact",
+    "contact1", "contact2", "contact3", "credits", "credit", "photoCredit", "signature",
+    "source", "caption", "stat", "statLabel", "deadline", "tagline", "section", "page",
+    "day", "month", "date", "status", "meta", "author", "teaser1", "teaser2", "nextTitle"
+  ]);
+  const PAGE_WORD_BUDGETS = {
+    p03: { min: 250, max: 350, label: "Carta editorial: 250 a 350 palabras" },
+    p04: { min: 240, max: 700, label: "Noticias breves: 3 a 5 noticias de 80 a 140 palabras" },
+    p06: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
+    p07: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
+    p08: { min: 80, max: 260, label: "Entrevista · presentación: 80 a 120 palabras de introducción" },
+    p12: { min: 350, max: 500, label: "Comunidad y servicios: 350 a 500 palabras" },
+    p13: { min: 300, max: 450, label: "Comercio local: 300 a 450 palabras" },
+    p14: { min: 120, max: 720, label: "Cartas: máximo 180 palabras por carta" }
+  };
+
+  function countWords(value) {
+    const text = String(value ?? "").trim();
+    return text ? text.split(/\s+/).length : 0;
+  }
+
+  function countPageWords(pageElement) {
+    if (!pageElement) return 0;
+    return [...pageElement.querySelectorAll("[data-edit-key]")].reduce((total, node) => {
+      const lastPart = String(node.dataset.editKey || "").split(".").at(-1);
+      if (WORD_BUDGET_EXCLUDED.has(lastPart)) return total;
+      return total + countWords(node.textContent);
+    }, 0);
+  }
+
+  function wordBudgetState(pageId, pageElement) {
+    const budget = PAGE_WORD_BUDGETS[pageId];
+    if (!budget) return null;
+    const words = countPageWords(pageElement);
+    const status = words < budget.min ? "short" : words > budget.max ? "long" : "ok";
+    return { ...budget, words, status };
+  }
+
+  function updateWordBudget() {
+    if (!els.wordBudget) return;
+    const page = pages[state.current];
+    const pageElement = page ? els.host.querySelector(`[data-page-id="${page.id}"]`) : null;
+    const budget = pageElement ? wordBudgetState(page.id, pageElement) : null;
+    if (!state.editing || !budget) {
+      els.wordBudget.hidden = true;
+      return;
+    }
+    els.wordBudget.hidden = false;
+    els.wordBudget.dataset.status = budget.status;
+    els.wordBudget.textContent = `${budget.words} palabras · objetivo ${budget.min}–${budget.max}`;
+    els.wordBudget.title = budget.label;
+  }
+
   const MODEL_TEXT_SAMPLE = 3;
   const modelDefaults = new Map();
 
@@ -205,6 +259,7 @@
     next: document.getElementById("nextButton"),
     navComplete: document.getElementById("pageCompleteButton"),
     position: document.getElementById("pagePosition"),
+    wordBudget: document.getElementById("wordBudget"),
     message: document.getElementById("workspaceMessage"),
     autosave: document.getElementById("autosaveStatus"),
     progressBar: document.getElementById("progressBar"),
@@ -923,7 +978,10 @@
     attachPageEvents();
     updateNavigation(visible);
     updateTreeCurrent();
-    requestAnimationFrame(refreshVisibleOverflows);
+    requestAnimationFrame(() => {
+      refreshVisibleOverflows();
+      updateWordBudget();
+    });
   }
 
   function renderTree() {
@@ -1027,7 +1085,10 @@
         const pageElement = node.closest(".mag-page");
         markPageDirty(pageElement?.dataset.pageId);
         clearTimeout(node.overflowTimer);
-        node.overflowTimer = setTimeout(() => updateOverflowBadge(pageElement), 80);
+        node.overflowTimer = setTimeout(() => {
+          updateOverflowBadge(pageElement);
+          updateWordBudget();
+        }, 80);
       });
     });
     els.host.querySelectorAll("[data-image-key]").forEach((node) => {
@@ -1281,6 +1342,18 @@
             pageIndex,
             title: modelFields.length === 1 ? "Queda un texto de ejemplo del modelo" : `Quedan ${modelFields.length} textos de ejemplo del modelo`,
             detail: `Sin editar: ${names.slice(0, MODEL_TEXT_SAMPLE).join(", ")}${names.length > MODEL_TEXT_SAMPLE ? ` y ${names.length - MODEL_TEXT_SAMPLE} más` : ""}. Reemplázalos por contenido confirmado para esta edición.`
+          });
+        }
+
+        const budget = wordBudgetState(page.id, pageElement);
+        if (budget && budget.status !== "ok") {
+          issues.push({
+            severity: "review",
+            type: "word-budget",
+            pageId: page.id,
+            pageIndex,
+            title: budget.status === "short" ? "El texto queda bajo la extensión prevista" : "El texto supera la extensión prevista",
+            detail: `${budget.words} palabras frente a un objetivo de ${budget.min} a ${budget.max}. ${budget.label}.`
           });
         }
 
