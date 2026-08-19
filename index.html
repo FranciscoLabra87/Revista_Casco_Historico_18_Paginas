@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Taller editorial · Revista Casco Histórico</title>
+    <meta
+      name="description"
+      content="Sistema local para componer, revisar y exportar la revista comunal Casco Histórico en formato A5."
+    />
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <section class="project-home" id="projectHome" aria-labelledby="projectHomeTitle">
+      <a class="skip-link" href="#projectHomeMain">Saltar a mis revistas</a>
+      <header class="project-home__header">
+        <div class="project-home__brand">
+          <img src="./assets/brand/logo-casco-historico.png" alt="" />
+          <div>
+            <p class="eyebrow">Taller editorial local</p>
+            <p class="project-home__brand-name">Revista Casco Histórico</p>
+          </div>
+        </div>
+        <div class="project-home__header-actions">
+          <button type="button" class="button button--ghost" id="importProjectButton">Importar respaldo</button>
+          <button type="button" class="button button--primary" id="newProjectButton">Nueva revista</button>
+        </div>
+      </header>
+
+      <main class="project-home__main" id="projectHomeMain" tabindex="-1">
+        <div class="project-home__intro">
+          <div>
+            <p class="eyebrow">Ediciones guardadas en este computador</p>
+            <h1 id="projectHomeTitle">Mis revistas</h1>
+            <p>Crea, continúa y exporta cada edición sin perder las anteriores.</p>
+          </div>
+          <button
+            type="button"
+            class="button button--ghost project-trash-toggle"
+            id="openTrashButton"
+            aria-controls="projectTrashPanel"
+            aria-expanded="false"
+          >Papelera</button>
+        </div>
+
+        <section class="project-home__section" aria-labelledby="projectListTitle">
+          <div class="project-section-heading">
+            <h2 id="projectListTitle">Ediciones</h2>
+            <p>Selecciona una revista para abrir su mesa de trabajo.</p>
+          </div>
+          <div class="project-grid" id="projectHomeList" aria-live="polite" aria-busy="true">
+            <div class="project-loading" role="status">Preparando tus revistas…</div>
+          </div>
+        </section>
+
+        <section class="project-trash" id="projectTrashPanel" aria-labelledby="projectTrashTitle" hidden>
+          <div class="project-section-heading">
+            <div>
+              <p class="eyebrow">Recuperación</p>
+              <h2 id="projectTrashTitle">Papelera</h2>
+            </div>
+            <p>Restaura una edición o elimínala definitivamente.</p>
+          </div>
+          <div class="project-grid project-grid--trash" id="projectTrashList" aria-live="polite"></div>
+        </section>
+      </main>
+
+      <footer class="project-home__footer">
+        <span>Formato editorial A5 · 18 páginas</span>
+        <span>Guardado local en este dispositivo</span>
+      </footer>
+    </section>
+
+    <div class="studio-shell" id="studioShell" hidden inert>
+      <a class="skip-link" href="#workspace">Saltar a la vista previa</a>
+      <header class="topbar app-chrome">
+        <div class="topbar__brand">
+          <button class="icon-button mobile-only" id="menuButton" type="button" aria-label="Abrir estructura" aria-controls="sidebar" aria-expanded="false">
+            <span class="menu-glyph" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="button button--ghost project-back-button" id="backToProjectsButton">
+            <span aria-hidden="true">←</span>
+            <span>Mis revistas</span>
+          </button>
+          <img src="./assets/brand/logo-casco-historico.png" alt="Logo Casco Histórico" />
+          <div class="topbar__title-copy">
+            <p class="eyebrow">Taller editorial</p>
+            <h1>Revista Casco Histórico</h1>
+            <p class="current-project-name" id="currentProjectName">Edición piloto</p>
+          </div>
+        </div>
+
+        <div class="topbar__center" aria-label="Modo de vista">
+          <div class="segmented-control" role="group" aria-label="Vista de páginas">
+            <button type="button" data-view="single">Página</button>
+            <button type="button" data-view="spread" class="is-active">Doble página</button>
+            <button type="button" data-view="all">Todas</button>
+          </div>
+          <label class="zoom-control" for="zoomRange">
+            <span>Zoom</span>
+            <input id="zoomRange" type="range" min="45" max="110" value="78" />
+            <output id="zoomValue">78%</output>
+          </label>
+        </div>
+
+        <div class="topbar__actions">
+          <button type="button" class="button button--ghost button--supplemental" id="identityButton">Identidad</button>
+          <button type="button" class="button button--ghost button--supplemental" data-open-settings>Datos de edición</button>
+          <button type="button" class="button button--ghost" id="editButton" aria-pressed="false">Editar</button>
+          <button type="button" class="button button--review button--supplemental" data-open-preflight>Revisión final</button>
+          <button type="button" class="button button--primary" id="printButton">Guardar PDF</button>
+        </div>
+      </header>
+
+      <aside class="sidebar app-chrome" id="sidebar" aria-label="Estructura de la revista">
+        <section class="edition-card">
+          <div class="edition-card__top">
+            <span class="status-dot"></span>
+            <span id="editionLabel">Edición piloto</span>
+            <strong>Ultra · 18 páginas</strong>
+          </div>
+          <p>Formato A5 · 148 × 210 mm</p>
+          <div class="progress-track" role="progressbar" aria-label="Avance editorial" aria-valuemin="0" aria-valuemax="18" aria-valuenow="0">
+            <span id="progressBar"></span>
+          </div>
+          <div class="progress-meta">
+            <span id="progressLabel">Modelo preparado</span>
+            <span id="progressCount">0/18</span>
+          </div>
+        </section>
+
+        <div class="sidebar-heading">
+          <span>Estructura ramificada</span>
+          <button type="button" class="text-button" id="collapseAllButton">Cerrar</button>
+        </div>
+        <nav class="segment-tree" id="segmentTree"></nav>
+
+        <section class="sidebar-tools">
+          <p class="storage-scope-note" id="storageScopeNotice" role="note">Guardado sólo en este dispositivo · descarga copias editables</p>
+          <div class="sidebar-view" aria-label="Vista de páginas">
+            <span>Vista</span>
+            <div class="segmented-control" role="group" aria-label="Vista de páginas en pantalla reducida">
+              <button type="button" data-view="single">Página</button>
+              <button type="button" data-view="spread">Doble</button>
+              <button type="button" data-view="all">Todas</button>
+            </div>
+          </div>
+          <label class="sidebar-zoom" for="sidebarZoomRange">
+            <span>Zoom de vista previa</span>
+            <span class="sidebar-zoom__control">
+              <input id="sidebarZoomRange" type="range" min="45" max="110" value="78" />
+              <output id="sidebarZoomValue">78%</output>
+            </span>
+          </label>
+          <label class="switch-row">
+            <input type="checkbox" id="safeToggle" />
+            <span class="switch"></span>
+            <span>Mostrar margen seguro</span>
+          </label>
+          <button type="button" class="tool-row tool-row--featured" data-open-settings>
+            <span class="tool-code" aria-hidden="true">ED</span><span>Datos generales de edición</span>
+          </button>
+          <button type="button" class="tool-row tool-row--featured" data-open-preflight>
+            <span class="tool-code" aria-hidden="true">OK</span><span>Revisión final de imprenta</span>
+          </button>
+          <button type="button" class="tool-row" id="exportButton">
+            <span class="tool-code" aria-hidden="true">↓</span><span>Respaldar edición</span>
+          </button>
+          <button type="button" class="tool-row" id="importButton">
+            <span class="tool-code" aria-hidden="true">↑</span><span>Importar respaldo</span>
+          </button>
+          <button type="button" class="tool-row tool-row--danger" id="resetButton">
+            <span class="tool-code" aria-hidden="true">R</span><span>Reiniciar esta edición</span>
+          </button>
+          <input type="file" id="imageFile" accept="image/*" hidden />
+        </section>
+      </aside>
+
+      <button type="button" class="sidebar-scrim app-chrome" id="sidebarScrim" aria-label="Cerrar estructura" hidden></button>
+
+      <main class="workspace" id="workspace" tabindex="-1">
+        <div class="workspace__notice app-chrome">
+          <span class="notice-icon" aria-hidden="true"></span>
+          <p id="workspaceMessage">Vista de pliego: páginas enfrentadas como en la revista impresa.</p>
+          <span class="autosave" id="autosaveStatus">Guardado local</span>
+        </div>
+        <section class="page-stage" aria-label="Vista previa de la revista">
+          <div id="pageHost"></div>
+        </section>
+        <div class="page-nav app-chrome">
+          <button type="button" class="circle-button" id="prevButton" aria-label="Página anterior">‹</button>
+          <span id="pagePosition" aria-live="polite">Páginas 2–3 de 18</span>
+          <button type="button" class="page-nav-complete" id="pageCompleteButton" aria-pressed="false" hidden>Marcar como lista</button>
+          <button type="button" class="circle-button" id="nextButton" aria-label="Página siguiente">›</button>
+        </div>
+      </main>
+    </div>
+
+    <input type="file" id="importFile" accept="application/json" hidden />
+
+    <dialog class="settings-dialog project-dialog" id="newProjectDialog" aria-labelledby="newProjectDialogTitle" aria-describedby="newProjectDialogDescription">
+      <form id="newProjectForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Nuevo proyecto editorial</p>
+            <h2 id="newProjectDialogTitle">Crear una revista</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-new-project aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body">
+          <p class="dialog-intro" id="newProjectDialogDescription">La nueva revista usará la estructura patrimonial de 18 páginas. Podrás editar sus textos, fotografías y datos antes de generar el PDF.</p>
+          <div class="form-grid project-form-grid">
+            <label class="form-field form-field--wide" for="projectName">
+              <span>Nombre del proyecto <em>obligatorio</em></span>
+              <input id="projectName" name="projectName" type="text" maxlength="120" required autocomplete="off" aria-describedby="projectNameHelp" />
+              <small id="projectNameHelp">Sólo se usa para reconocer esta revista dentro del programa.</small>
+            </label>
+            <label class="form-field form-field--wide" for="projectEdition">
+              <span>Nombre público de la edición <em>obligatorio</em></span>
+              <input id="projectEdition" name="projectEdition" type="text" maxlength="120" required autocomplete="off" aria-describedby="projectEditionHelp" />
+              <small id="projectEditionHelp">Ejemplo: Edición N.° 2 · Octubre 2026. Este texto podrá aparecer en la revista.</small>
+            </label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" data-close-new-project>Cancelar</button>
+          <button type="submit" class="button button--primary">Crear y abrir</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="settings-dialog project-dialog" id="renameProjectDialog" aria-labelledby="renameProjectDialogTitle" aria-describedby="renameProjectDialogDescription">
+      <form id="renameProjectForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Organización local</p>
+            <h2 id="renameProjectDialogTitle">Renombrar revista</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-rename-project aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body">
+          <p class="dialog-intro" id="renameProjectDialogDescription">Este cambio sólo modifica el nombre con que identificas el proyecto en “Mis revistas”. No altera el contenido impreso.</p>
+          <div class="form-grid project-form-grid">
+            <label class="form-field form-field--wide" for="renameProjectName">
+              <span>Nombre del proyecto <em>obligatorio</em></span>
+              <input id="renameProjectName" name="renameProjectName" type="text" maxlength="120" required autocomplete="off" />
+            </label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" data-close-rename-project>Cancelar</button>
+          <button type="submit" class="button button--primary">Guardar nombre</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="identity-dialog" id="identityDialog" aria-labelledby="identityDialogTitle">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Documento de referencia</p>
+          <h2 id="identityDialogTitle">Guía de identidad visual</h2>
+        </div>
+        <button type="button" class="icon-button" id="closeIdentityButton" aria-label="Cerrar">×</button>
+      </div>
+      <div class="identity-grid">
+        <img src="./assets/brand/guia-identidad-visual.png" alt="Guía de identidad visual de la Agrupación Barrio Casco Histórico de Puente Alto" />
+        <div class="identity-notes">
+          <h3>Reglas aplicadas</h3>
+          <dl>
+            <div><dt>Base</dt><dd>Crema patrimonial y marfil envejecido</dd></div>
+            <div><dt>Contraste</dt><dd>Café casi negro, chocolate y madera</dd></div>
+            <div><dt>Acentos</dt><dd>Dorado mosaico, verde palmera y azul cerámica</dd></div>
+            <div><dt>Títulos</dt><dd>Cinzel o Georgia como alternativa local</dd></div>
+            <div><dt>Subtítulos</dt><dd>Cormorant Garamond o Garamond</dd></div>
+            <div><dt>Cuerpo</dt><dd>Source Sans 3 o Segoe UI</dd></div>
+          </dl>
+          <p>Los bordes, separadores y franjas de mosaico se repiten en todas las páginas para mantener unidad visual.</p>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="settings-dialog" id="settingsDialog" aria-labelledby="settingsDialogTitle">
+      <form id="settingsForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Configuración central</p>
+            <h2 id="settingsDialogTitle">Datos generales de la edición</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-settings aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body">
+          <p class="dialog-intro">Completa una vez estos datos. El sistema los aplica en portada, créditos, convocatoria y contraportada.</p>
+          <div class="form-grid">
+            <label class="form-field form-field--wide" for="issueEdition">
+              <span>Nombre de la edición <em>obligatorio</em></span>
+              <input id="issueEdition" name="edition" type="text" required autocomplete="off" />
+              <small>Ejemplo: Edición N.° 1 · Septiembre 2026</small>
+            </label>
+            <label class="form-field" for="issueResponsible">
+              <span>Responsable editorial</span>
+              <input id="issueResponsible" name="responsible" type="text" autocomplete="name" />
+            </label>
+            <label class="form-field" for="issueClosingDate">
+              <span>Fecha límite de aportes</span>
+              <input id="issueClosingDate" name="closingDate" type="date" />
+            </label>
+            <label class="form-field" for="issueEmail">
+              <span>Correo de la agrupación</span>
+              <input id="issueEmail" name="email" type="email" autocomplete="email" />
+            </label>
+            <label class="form-field" for="issueWhatsapp">
+              <span>Teléfono o WhatsApp</span>
+              <input id="issueWhatsapp" name="whatsapp" type="tel" autocomplete="tel" />
+            </label>
+            <label class="form-field form-field--wide" for="issueLocation">
+              <span>Ubicación</span>
+              <input id="issueLocation" name="location" type="text" autocomplete="address-level2" />
+            </label>
+            <label class="form-field form-field--wide" for="issueMotto">
+              <span>Frase institucional</span>
+              <input id="issueMotto" name="motto" type="text" autocomplete="off" />
+            </label>
+            <label class="form-confirmation form-field--wide" for="settingsVerified">
+              <input id="settingsVerified" name="verified" type="checkbox" required aria-describedby="settingsVerifiedHelp" />
+              <span>
+                <strong>Confirmo que estos datos institucionales son reales y vigentes</strong>
+                <small id="settingsVerifiedHelp">Cualquier cambio en estos datos deberá volver a confirmarse.</small>
+              </span>
+            </label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" data-close-settings>Cancelar</button>
+          <button type="submit" class="button button--primary">Guardar y aplicar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="image-meta-dialog" id="imageMetaDialog" aria-labelledby="imageMetaDialogTitle">
+      <form id="imageMetaForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Ficha fotográfica</p>
+            <h2 id="imageMetaDialogTitle">Datos y permiso de la fotografía</h2>
+          </div>
+          <button type="button" class="icon-button" data-close-image-meta aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body">
+          <p class="dialog-intro">Describe la fotografía para que pueda revisarse, acreditarse y publicarse de forma responsable.</p>
+          <div class="form-grid">
+            <label class="form-field form-field--wide" for="photoAlt">
+              <span>Descripción accesible <em>obligatorio</em></span>
+              <textarea id="photoAlt" name="photoAlt" rows="3" required aria-describedby="photoAltHelp"></textarea>
+              <small id="photoAltHelp">Cuenta brevemente qué aparece y qué información aporta la imagen.</small>
+            </label>
+            <label class="form-field form-field--wide" for="photoCredit">
+              <span>Crédito o fuente <em>obligatorio</em></span>
+              <input id="photoCredit" name="photoCredit" type="text" required autocomplete="off" />
+              <small>Indica el nombre de quien tomó o facilitó la fotografía.</small>
+            </label>
+            <label class="form-field form-field--wide" for="photoCaption">
+              <span>Pie de foto</span>
+              <textarea id="photoCaption" name="photoCaption" rows="2"></textarea>
+              <small>Texto opcional que se mostrará junto a la fotografía.</small>
+            </label>
+            <label class="form-confirmation form-field--wide" for="photoPermission">
+              <input id="photoPermission" name="photoPermission" type="checkbox" required />
+              <span>
+                <strong>Confirmo que la revista tiene permiso para publicar esta fotografía</strong>
+                <small>Verifica la autorización de la persona autora y de quienes aparecen cuando corresponda.</small>
+              </span>
+            </label>
+          </div>
+          <p class="dialog-cancel-note">Si cancelas, se conservará la fotografía anterior y no se reemplazará ningún dato.</p>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" data-close-image-meta>Cancelar</button>
+          <button type="submit" class="button button--primary" id="saveImageMetaButton">Guardar fotografía</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="preflight-dialog" id="preflightDialog" aria-labelledby="preflightDialogTitle">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Control editorial</p>
+          <h2 id="preflightDialogTitle">Revisión final de imprenta</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-preflight aria-label="Cerrar">×</button>
+      </div>
+      <div class="dialog-body preflight-body">
+        <div id="preflightSummary" aria-live="polite"></div>
+        <div id="preflightResults" class="preflight-results"></div>
+      </div>
+      <div class="dialog-actions dialog-actions--split">
+        <p class="dialog-helper">Las alertas no borran contenido ni impiden guardar un borrador.</p>
+        <div>
+          <button type="button" class="button button--ghost" data-close-preflight>Volver a editar</button>
+          <button type="button" class="button button--primary" id="preflightPrintButton">Continuar a PDF</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="print-dialog" id="printDialog" aria-labelledby="printDialogTitle">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">Salida final</p>
+          <h2 id="printDialogTitle">Guardar la revista en PDF</h2>
+        </div>
+        <button type="button" class="icon-button" data-close-print aria-label="Cerrar">×</button>
+      </div>
+      <div class="print-mode-notice" id="printModeNotice" role="status" aria-live="polite">
+        <strong>Salida A5 para revisión, oficina o uso digital</strong>
+        <p>Esta salida A5 está preparada para revisión, impresión de oficina y uso digital. Una imprenta profesional puede requerir un perfil acordado de sangrado, color y resolución.</p>
+      </div>
+      <ol>
+        <li>En la ventana de impresión elige <strong>Guardar como PDF</strong>.</li>
+        <li>Selecciona papel <strong>A5</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.</li>
+        <li>Activa <strong>gráficos de fondo</strong> para conservar marcos, colores y mosaicos.</li>
+      </ol>
+      <div class="dialog-actions">
+        <button type="button" class="button button--ghost" data-close-print>Cancelar</button>
+        <button type="button" class="button button--primary" id="confirmPrintButton">Abrir impresión</button>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="./segments/01_portada/segmento.js"></script>
+    <script src="./segments/02_sumario_creditos/segmento.js"></script>
+    <script src="./segments/03_carta_editorial/segmento.js"></script>
+    <script src="./segments/04_articulo_central/segmento.js"></script>
+    <script src="./segments/05_noticias_breves/segmento.js"></script>
+    <script src="./segments/06_entrevista/segmento.js"></script>
+    <script src="./segments/07_memoria_patrimonio/segmento.js"></script>
+    <script src="./segments/08_comunidad_servicios/segmento.js"></script>
+    <script src="./segments/09_comercio_local/segmento.js"></script>
+    <script src="./segments/10_cartas_director/segmento.js"></script>
+    <script src="./segments/11_agenda_datos/segmento.js"></script>
+    <script src="./segments/12_cultura_participacion/segmento.js"></script>
+    <script src="./segments/13_cierre_publicidad/segmento.js"></script>
+    <script src="./segments/14_contraportada/segmento.js"></script>
+    <script src="./assets/data-store.js"></script>
+    <script src="./assets/app.js"></script>
+  </body>
+</html>
