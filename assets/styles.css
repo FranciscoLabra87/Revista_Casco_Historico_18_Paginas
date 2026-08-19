@@ -3353,6 +3353,95 @@ button.project-card__preview {
   color: var(--tone-ink);
 }
 
+/* 10 · Logotipo en el cuadro de identidad --------------------- */
+
+.identity-logo {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.identity-logo img {
+  width: 64px;
+  height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  object-fit: contain;
+}
+
+.identity-logo h3 {
+  margin: 0 0 4px;
+}
+
+.identity-logo p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.identity-logo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 9 · Controles de lista ------------------------------------- */
+
+/* Sólo aparecen en modo edición y nunca se imprimen. */
+.list-controls {
+  position: absolute;
+  bottom: 5mm;
+  left: 8mm;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 8px;
+  border: 0.3mm solid var(--tone);
+  border-radius: 999px;
+  background: var(--cream);
+  box-shadow: 0 1mm 3mm rgba(29, 20, 13, 0.14);
+}
+
+.list-controls span {
+  color: var(--muted);
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.list-controls button {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0.3mm solid var(--tone);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--tone-ink);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.list-controls button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.list-controls button:not(:disabled):hover {
+  background: var(--tone);
+  color: var(--cream);
+}
+
 /* 7 · Fotografía a sangre en las aperturas ------------------- */
 
 /* Ninguna fotografía salía del margen: todas iban enmarcadas con aire

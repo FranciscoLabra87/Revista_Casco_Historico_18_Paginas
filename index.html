@@ -16,7 +16,7 @@
       <a class="skip-link" href="#projectHomeMain">Saltar a mis revistas</a>
       <header class="project-home__header">
         <div class="project-home__brand">
-          <img src="./assets/brand/logo-casco-historico.webp" alt="" />
+          <img data-brand-logo src="./assets/brand/logo-casco-historico.webp" alt="" />
           <div>
             <p class="eyebrow">Taller editorial local</p>
             <p class="project-home__brand-name">Revista Casco Histórico</p>
@@ -83,7 +83,7 @@
             <span aria-hidden="true">←</span>
             <span>Mis revistas</span>
           </button>
-          <img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" />
+          <img data-brand-logo src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" />
           <div class="topbar__title-copy">
             <p class="eyebrow">Taller editorial</p>
             <h1>Revista Casco Histórico</h1>
@@ -200,6 +200,7 @@
     </div>
 
     <input type="file" id="importFile" accept="application/json" hidden />
+    <input type="file" id="logoFile" accept="image/*" hidden />
 
     <dialog class="settings-dialog project-dialog" id="newProjectDialog" aria-labelledby="newProjectDialogTitle" aria-describedby="newProjectDialogDescription">
       <form id="newProjectForm">
@@ -268,6 +269,17 @@
       <div class="identity-grid">
         <img src="./assets/brand/guia-identidad-visual.webp" alt="Guía de identidad visual de la Agrupación Barrio Casco Histórico de Puente Alto" />
         <div class="identity-notes">
+          <div class="identity-logo">
+            <img id="identityLogoPreview" src="./assets/brand/logo-casco-historico.webp" alt="Logotipo en uso" />
+            <div>
+              <h3>Logotipo de la revista</h3>
+              <p>Se aplica en la portada, la contraportada y la barra superior. Usa un archivo cuadrado, con fondo claro y de al menos 600 píxeles.</p>
+              <div class="identity-logo__actions">
+                <button type="button" class="button button--ghost" id="replaceLogoButton">Reemplazar logotipo</button>
+                <button type="button" class="button button--ghost" id="restoreLogoButton" hidden>Restaurar el original</button>
+              </div>
+            </div>
+          </div>
           <h3>Reglas aplicadas</h3>
           <dl>
             <div><dt>Base</dt><dd>Crema patrimonial y marfil envejecido</dd></div>

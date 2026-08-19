@@ -36,6 +36,7 @@
     "image:p10.historic", "image:p11.memory", "image:p12.service", "image:p13.commerce", "image:p16.culture"
   ];
   const INTERNAL_ID_PATTERN = /^ed_[a-z0-9_-]{8,80}$/;
+  const IMAGE_IDENTIFIER_PATTERN = /^(?:p\d{2}|brand)\.[A-Za-z0-9_-]{1,80}$/;
   const RELATIVE_KEY_PATTERN = /^(text|image|image-meta|done|settings):([A-Za-z0-9._-]{1,180})$/;
   const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i;
   const DELETE_VALUE = Symbol("delete-record");
@@ -174,13 +175,13 @@
         throw new TypeError("El campo de texto no es válido.");
       }
     } else if (kind === "image") {
-      if (!/^p\d{2}\.[A-Za-z0-9_-]{1,80}$/.test(identifier)
+      if (!IMAGE_IDENTIFIER_PATTERN.test(identifier)
         || value.length > MAX_IMAGE_CHARACTERS
         || !DATA_IMAGE_PATTERN.test(value)) {
         throw new TypeError("La fotografía no es válida.");
       }
     } else if (kind === "image-meta") {
-      if (!/^p\d{2}\.[A-Za-z0-9_-]{1,80}$/.test(identifier) || value.length > 20_000) {
+      if (!IMAGE_IDENTIFIER_PATTERN.test(identifier) || value.length > 20_000) {
         throw new TypeError("La ficha fotográfica no es válida.");
       }
       let metadata;

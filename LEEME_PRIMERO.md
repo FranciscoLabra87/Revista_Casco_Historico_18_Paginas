@@ -52,6 +52,9 @@ Las carpetas de segmentos forman la plantilla común. El contenido de cada edici
    - Al pegar desde Word o desde el correo, el taller conserva sólo el texto: lo que ve en pantalla es lo que se va a imprimir.
    - **Deshacer** revierte el último cambio de texto. También funciona con Ctrl+Z cuando el cursor no está dentro de un campo.
    - Junto al número de página aparece cuántas palabras lleva la hoja y el rango que pide el programa editorial.
+   - Todos los textos son editables, incluidos los rótulos fijos y la cabecera de la portada.
+   - En noticias breves, avances, cartas y agenda, los botones **+** y **−** de la esquina inferior agregan o quitan elementos. Al quitar uno, su texto se conserva por si vuelves a agregarlo.
+   - En **Identidad** puedes reemplazar el logotipo de la revista y volver al original cuando quieras.
 5. Use **Respaldar edición** con frecuencia. El archivo v2 contiene sólo la revista activa.
 6. Ejecute **Revisión final** para detectar páginas pendientes, texto de muestra, marcadores, fotografías o fichas incompletas, baja resolución y contenido fuera del marco A5.
 7. Si todavía hay observaciones, genere sólo un PDF de revisión. El sistema añade automáticamente la marca **BORRADOR · NO DISTRIBUIR**. Los problemas críticos bloquean la salida hasta corregirse.

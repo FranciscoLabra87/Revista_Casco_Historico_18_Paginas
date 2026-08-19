@@ -54,6 +54,8 @@ La revisión final analiza las 18 páginas, aunque en pantalla se vea una sola o
 
 Cada observación incluye un botón para ir directamente a la página que debe corregirse. Los desbordes de texto también aparecen como una alerta sobre la hoja y bloquean su aprobación hasta corregirlos.
 
+La cabecera de la portada es editable, y la revisión avisa si se aparta de la identidad institucional: no lo impide, sólo pide confirmarlo, porque esa cabecera identifica a la revista de un número al siguiente.
+
 La detección de texto de muestra compara cada campo con el valor del modelo: si el texto sigue igual, aparece en la lista con el nombre del campo. Por eso el control sigue funcionando aunque se edite un archivo `segmento.js`.
 
 Las observaciones de extensión y de resolución de imprenta son informativas: avisan, pero no bloquean la aprobación de la página.

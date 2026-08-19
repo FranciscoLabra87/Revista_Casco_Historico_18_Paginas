@@ -95,7 +95,8 @@
     "p11.memory",
     "p12.service",
     "p13.commerce",
-    "p16.culture"
+    "p16.culture",
+    "brand.logo"
   ]);
   const WORD_BUDGET_EXCLUDED = new Set([
     "title", "subtitle", "ribbon", "kicker", "headline", "edition", "label", "contact",
@@ -205,6 +206,80 @@
       window.setTimeout(terminar, FRAME_WAIT_TIMEOUT);
       requestAnimationFrame(() => requestAnimationFrame(terminar));
     });
+  }
+
+  const LIST_SPECS = {
+    "p04.briefs":     { parts: 3, min: 2, max: 6, uno: "noticia",    varias: "noticias" },
+    "p05.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
+    "p14.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
+    "p15.agenda":     { parts: 4, min: 1, max: 6, uno: "actividad",  varias: "actividades" }
+  };
+
+  function listCountKey(pageId, listName) {
+    return `${pageId}.${listName}.count`;
+  }
+
+  function listCount(page, listName, defaults) {
+    const spec = LIST_SPECS[`${page.id}.${listName}`];
+    const stored = Number(projectStorage.getItem(storageKey("text", listCountKey(page.id, listName))));
+    const base = Number.isInteger(stored) && stored > 0 ? stored : (defaults?.length || 0);
+    if (!spec) return base;
+    return Math.min(spec.max, Math.max(spec.min, base));
+  }
+
+  function listControls(page, listName, total) {
+    const spec = LIST_SPECS[`${page.id}.${listName}`];
+    if (!state.editing || !spec) return "";
+    const clave = `${page.id}.${listName}`;
+    return `<div class="list-controls app-chrome">
+      <span>${total} ${total === 1 ? spec.uno : spec.varias}</span>
+      <button type="button" data-list-remove="${clave}"${total <= spec.min ? " disabled" : ""} aria-label="Quitar ${escapeHtml(spec.uno)}">−</button>
+      <button type="button" data-list-add="${clave}"${total >= spec.max ? " disabled" : ""} aria-label="Agregar ${escapeHtml(spec.uno)}">+</button>
+    </div>`;
+  }
+
+  function changeListCount(listKey, delta) {
+    const spec = LIST_SPECS[listKey];
+    if (!spec) return;
+    const [pageId, listName] = String(listKey).split(".");
+    const page = pages.find((item) => item.id === pageId);
+    if (!page) return;
+    const defaults = page.lists?.[listName] || [];
+    const actual = listCount(page, listName, defaults);
+    const siguiente = Math.min(spec.max, Math.max(spec.min, actual + delta));
+    if (siguiente === actual) return;
+    try {
+      projectStorage.setItem(storageKey("text", listCountKey(pageId, listName)), String(siguiente));
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      showToast("No se pudo guardar el cambio. Respalda la edición antes de continuar.");
+      return;
+    }
+    markPageDirty(pageId);
+    renderTree();
+    renderMagazine();
+    showToast(delta > 0
+      ? `Se agregó ${spec.uno}. Quedan ${siguiente} en la página ${page.number}.`
+      : `Se quitó ${spec.uno}. Su texto se conserva por si vuelves a agregarla.`);
+  }
+
+  const LOGO_FILE = "./assets/brand/logo-casco-historico.webp";
+  const LOGO_KEY = "brand.logo";
+
+  function brandLogoSource() {
+    const guardado = projectStorage.getItem(storageKey("image", LOGO_KEY));
+    return isValidImageData(guardado) ? guardado : LOGO_FILE;
+  }
+
+  function refreshBrandLogo() {
+    const origen = brandLogoSource();
+    const propio = origen !== LOGO_FILE;
+    document.querySelectorAll("[data-brand-logo]").forEach((image) => { image.src = origen; });
+    const vista = document.getElementById("identityLogoPreview");
+    if (vista) vista.src = origen;
+    const restaurar = document.getElementById("restoreLogoButton");
+    if (restaurar) restaurar.hidden = !propio;
   }
 
   const SECTION_TONES = {
@@ -634,7 +709,7 @@
       ${imageSlot(page, "hero", "Agregar fotografía principal", "cover-hero")}
       <div class="cover-content">
         <div class="cover-masthead">
-          <img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" />
+          <img src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" />
           <div>
             ${editableLabel(page, "mastheadTitle", MASTHEAD_DEFAULTS.title, "h2", "preline")}
             ${editableLabel(page, "mastheadTagline", MASTHEAD_DEFAULTS.tagline, "p")}
@@ -760,8 +835,10 @@
   }
 
   function renderBriefs(page) {
-    const cards = (page.lists?.briefs || []).map((item, index) => {
-      const [title, body, meta] = splitItem(item, 3);
+    const defaults = page.lists?.briefs || [];
+    const total = listCount(page, "briefs", defaults);
+    const cards = Array.from({ length: total }, (unused, index) => {
+      const [title, body, meta] = splitItem(defaults[index], 3);
       const wide = index === 4 ? "brief-card--wide" : "";
       return `<article class="brief-card ${wide}">
         <h3>${editableList(page, "briefs", index, "title", title)}</h3>
@@ -769,13 +846,15 @@
         <span class="brief-meta">${editableList(page, "briefs", index, "meta", meta)}</span>
       </article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="brief-grid page-fill">${cards}</div>`;
+    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="brief-grid page-fill">${cards}</div>${listControls(page, "briefs", total)}`;
     return pageFrame(page, content);
   }
 
   function renderAdvances(page) {
-    const milestones = (page.lists?.milestones || []).map((item, index) => {
-      const [date, title, detail, status] = splitItem(item, 4);
+    const defaults = page.lists?.milestones || [];
+    const total = listCount(page, "milestones", defaults);
+    const milestones = Array.from({ length: total }, (unused, index) => {
+      const [date, title, detail, status] = splitItem(defaults[index], 4);
       return `<article class="milestone-card">
         <div class="milestone-meta">
           <span class="milestone-date">${editableList(page, "milestones", index, "date", date)}</span>
@@ -794,7 +873,7 @@
         ${imageSlot(page, "progress", "Agregar fotografía de una gestión o actividad", "advances-photo")}
         <p class="body-copy lead-copy">${editable(page, "body")}</p>
       </div>
-      <div class="milestone-grid page-fill">${milestones}</div>
+      <div class="milestone-grid page-fill">${milestones}</div>${listControls(page, "milestones", total)}
       <div class="contact-card advances-next"><h3>${editable(page, "nextTitle")}</h3><p>${editable(page, "nextBody")}</p></div>`;
     return pageFrame(page, content);
   }
@@ -918,20 +997,24 @@
   }
 
   function renderLetters(page) {
-    const cards = (page.lists?.letters || []).map((item, index) => {
-      const [title, body, author] = splitItem(item, 3);
+    const defaults = page.lists?.letters || [];
+    const total = listCount(page, "letters", defaults);
+    const cards = Array.from({ length: total }, (unused, index) => {
+      const [title, body, author] = splitItem(defaults[index], 3);
       return `<article class="letter-card"><h3>${editableList(page, "letters", index, "title", title)}</h3><p>${editableList(page, "letters", index, "body", body)}</p><span class="letter-author">${editableList(page, "letters", index, "author", author)}</span></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div>${editableLabel(page, "disclaimer", "Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.", "p", "caption")}`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div>${listControls(page, "letters", total)}${editableLabel(page, "disclaimer", "Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.", "p", "caption")}`;
     return pageFrame(page, content);
   }
 
   function renderAgenda(page) {
-    const items = (page.lists?.agenda || []).map((item, index) => {
-      const [day, month, title, detail] = splitItem(item, 4);
+    const defaults = page.lists?.agenda || [];
+    const total = listCount(page, "agenda", defaults);
+    const items = Array.from({ length: total }, (unused, index) => {
+      const [day, month, title, detail] = splitItem(defaults[index], 4);
       return `<article class="agenda-item"><div class="agenda-date"><strong>${editableList(page, "agenda", index, "day", day)}</strong><span>${editableList(page, "agenda", index, "month", month)}</span></div><div class="agenda-detail"><h3>${editableList(page, "agenda", index, "title", title)}</h3><p>${editableList(page, "agenda", index, "detail", detail)}</p></div></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div><div style="height:4mm"></div><div class="contact-card">${editableLabel(page, "noticeLabel", "Antes de asistir", "h3")}${editableLabel(page, "noticeBody", "Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.", "p")}</div>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div>${listControls(page, "agenda", total)}<div style="height:4mm"></div><div class="contact-card">${editableLabel(page, "noticeLabel", "Antes de asistir", "h3")}${editableLabel(page, "noticeBody", "Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.", "p")}</div>`;
     return pageFrame(page, content);
   }
 
@@ -967,7 +1050,7 @@
   }
 
   function renderBack(page) {
-    const content = `<div class="back-inner"><img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
+    const content = `<div class="back-inner"><img src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
     return pageFrame(page, content, "back-page");
   }
 
@@ -1211,6 +1294,12 @@
       node.addEventListener("click", () => {
         state.activeImageKey = node.dataset.imageKey;
         els.imageFile.click();
+      });
+    });
+    els.host.querySelectorAll("[data-list-add], [data-list-remove]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const agregar = button.dataset.listAdd;
+        changeListCount(agregar || button.dataset.listRemove, agregar ? 1 : -1);
       });
     });
     els.host.querySelectorAll("[data-page-complete]").forEach((button) => {
@@ -1849,7 +1938,7 @@
          <button type="button" class="project-menu-button" data-project-archive="${id}" aria-label="Mover ${name} a la papelera" title="Mover a la papelera">⌫</button>`;
     return `<article class="project-card" data-project-card="${id}">
       <button type="button" class="project-card__preview" ${trashed ? `data-project-restore="${id}"` : `data-project-open="${id}"`} aria-label="${trashed ? "Restaurar" : "Abrir"} ${name}">
-        <img src="./assets/brand/logo-casco-historico.webp" alt="" />
+        <img data-brand-logo src="./assets/brand/logo-casco-historico.webp" alt="" />
       </button>
       <div class="project-card__body">
         <h3>${name}</h3>
@@ -1906,6 +1995,7 @@
     els.studioShell.inert = false;
     els.currentProjectName.textContent = project.name;
     setAutosaveStatus(savedNowLabel());
+    refreshBrandLogo();
     renderTree();
     renderMagazine();
     if (compactQuery.matches) els.sidebar.inert = true;
@@ -2228,7 +2318,55 @@
   els.prev.addEventListener("click", () => navigate(-1));
   els.next.addEventListener("click", () => navigate(1));
   els.navComplete.addEventListener("click", () => togglePageCompletion(pages[state.current].id));
-  document.getElementById("identityButton").addEventListener("click", () => els.identity.showModal());
+  const logoFileInput = document.getElementById("logoFile");
+
+  async function applyBrandLogo(file) {
+    try {
+      if (!/^image\/(?:jpeg|png|webp)$/i.test(file.type) || file.size > MAX_SOURCE_IMAGE_BYTES) {
+        throw new Error("Selecciona una imagen JPG, PNG o WebP de hasta 20 MB.");
+      }
+      showToast("Preparando el logotipo…");
+      const resultado = await resizeImage(file);
+      if (!isValidImageData(resultado.data)) throw new Error("El archivo procesado no es válido.");
+      projectStorage.setItem(storageKey("image", LOGO_KEY), resultado.data);
+      projectStorage.setItem(storageKey("image-meta", LOGO_KEY), JSON.stringify({
+        width: resultado.width,
+        height: resultado.height,
+        originalWidth: resultado.originalWidth,
+        originalHeight: resultado.originalHeight,
+        originalName: String(file.name).slice(0, 180),
+        alt: "Logotipo de la revista",
+        credit: "Identidad institucional",
+        permission: true
+      }));
+      setAutosaveStatus("Guardando…");
+      refreshBrandLogo();
+      renderMagazine();
+      showToast("Logotipo reemplazado en portada, contraportada y barra superior.");
+    } catch (error) {
+      setAutosaveStatus("Error al guardar", true);
+      showToast(error?.message || "No se pudo reemplazar el logotipo.");
+    }
+  }
+
+  document.getElementById("replaceLogoButton")?.addEventListener("click", () => logoFileInput?.click());
+  logoFileInput?.addEventListener("change", () => {
+    const archivo = logoFileInput.files?.[0];
+    if (archivo) applyBrandLogo(archivo);
+    logoFileInput.value = "";
+  });
+  document.getElementById("restoreLogoButton")?.addEventListener("click", () => {
+    projectStorage.removeItem(storageKey("image", LOGO_KEY));
+    projectStorage.removeItem(storageKey("image-meta", LOGO_KEY));
+    setAutosaveStatus("Guardando…");
+    refreshBrandLogo();
+    renderMagazine();
+    showToast("Se restauró el logotipo original de la agrupación.");
+  });
+  document.getElementById("identityButton").addEventListener("click", () => {
+    refreshBrandLogo();
+    els.identity.showModal();
+  });
   document.getElementById("closeIdentityButton").addEventListener("click", () => els.identity.close());
   document.querySelectorAll("[data-open-settings]").forEach((button) => button.addEventListener("click", openSettingsDialog));
   document.querySelectorAll("[data-close-settings]").forEach((button) => button.addEventListener("click", () => els.settings.close()));
