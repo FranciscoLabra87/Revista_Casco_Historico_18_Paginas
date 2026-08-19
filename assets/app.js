@@ -151,6 +151,29 @@
     els.wordBudget.title = budget.label;
   }
 
+  // El justificado sólo se ve bien si el navegador puede partir palabras. Chrome
+  // necesita el diccionario del idioma y no siempre lo tiene; si falta, el texto
+  // justificado abre ríos de espacio en columnas estrechas. Se comprueba una vez.
+  function hyphenationAvailable() {
+    try {
+      const probe = document.createElement("div");
+      probe.lang = "es";
+      probe.textContent = "responsabilidad";
+      probe.style.cssText = "position:absolute;left:-9999px;top:0;width:40px;font:12px serif;";
+      document.body.appendChild(probe);
+      const anchoSinPartir = probe.scrollWidth;
+      probe.style.hyphens = "auto";
+      probe.style.webkitHyphens = "auto";
+      const anchoPartido = probe.scrollWidth;
+      probe.remove();
+      return anchoPartido < anchoSinPartir;
+    } catch {
+      return false;
+    }
+  }
+
+  document.documentElement.classList.toggle("sin-particion", !hyphenationAvailable());
+
   const FRAME_WAIT_TIMEOUT = 400;
   const FONT_WAIT_TIMEOUT = 3_000;
 

@@ -1113,6 +1113,8 @@ button.project-card__preview {
 }
 
 .mag-page {
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures contextual;
   position: relative;
   width: 148mm;
   height: 210mm;
@@ -1302,6 +1304,7 @@ button.project-card__preview {
 }
 
 .page-title {
+  text-wrap: balance;
   margin: 0 0 3mm;
   color: var(--chocolate);
   font-family: var(--font-title);
@@ -1316,6 +1319,7 @@ button.project-card__preview {
 }
 
 .page-deck {
+  text-wrap: pretty;
   margin: 0 0 5mm;
   color: var(--palm);
   font-family: var(--font-subtitle);
@@ -1326,8 +1330,15 @@ button.project-card__preview {
 
 .body-copy {
   margin: 0 0 3mm;
-  font-size: 8.6pt;
-  line-height: 1.52;
+  font-size: 9pt;
+  line-height: 1.5;
+  text-align: justify;
+  text-wrap: pretty;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  orphans: 2;
+  widows: 2;
 }
 
 .preline {
@@ -1341,6 +1352,12 @@ button.project-card__preview {
   font-family: var(--font-title);
   font-size: 34pt;
   line-height: 0.78;
+}
+
+/* Sin diccionario de partición, el justificado se sustituye por bandera
+   a la derecha: es preferible un borde irregular a ríos de espacio. */
+.sin-particion .body-copy {
+  text-align: left;
 }
 
 .two-columns {
@@ -1545,8 +1562,11 @@ button.project-card__preview {
 .ad-card p,
 .contact-card p {
   margin: 0;
-  font-size: 7.6pt;
-  line-height: 1.42;
+  font-size: 8pt;
+  line-height: 1.44;
+  text-wrap: pretty;
+  hyphens: auto;
+  -webkit-hyphens: auto;
 }
 
 .brief-card--wide,
@@ -1898,8 +1918,13 @@ button.project-card__preview {
 
 .qa p {
   margin: 0;
-  font-size: 8.1pt;
-  line-height: 1.45;
+  font-size: 8.5pt;
+  line-height: 1.46;
+  text-wrap: pretty;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  orphans: 2;
+  widows: 2;
 }
 
 .heritage-grid {
