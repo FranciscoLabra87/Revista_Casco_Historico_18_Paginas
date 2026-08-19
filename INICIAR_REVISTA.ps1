@@ -66,44 +66,73 @@ if (-not (Test-CascoServer $selectedPort)) {
 # El taller se abre como ventana de aplicacion: sin barra de direcciones, sin
 # pestanas y con su propio icono en la barra de tareas.
 #
-# Se usa el navegador predeterminado del equipo y su perfil habitual. Es
-# deliberado: el navegador guarda las revistas por perfil, asi que cambiar de
-# navegador o abrir un perfil aparte dejaria las ediciones anteriores fuera de
-# la vista. Si no hay un navegador compatible con el modo aplicacion, se abre
-# de la forma corriente.
+# El navegador guarda las revistas por perfil, no por equipo. Abrir otro
+# navegador, u otro perfil del mismo navegador, muestra Mis revistas vacio
+# aunque las ediciones sigan intactas. Por eso el lanzador busca primero donde
+# estan realmente guardadas y abre ahi.
 $appUrl = "http://127.0.0.1:$selectedPort/"
 
-function Get-NavegadorPredeterminado {
-    try {
-        $clave = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice"
-        return (Get-ItemProperty -Path $clave -ErrorAction Stop).ProgId
-    } catch {
-        return ""
-    }
+function Get-RutaExistente([string[]]$Rutas) {
+    return $Rutas | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 }
 
-$chrome = @(
+$chromeExe = Get-RutaExistente @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
     "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
     "$env:LocalAppData\Google\Chrome\Application\chrome.exe"
-) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+)
 
-$edge = @(
+$edgeExe = Get-RutaExistente @(
     "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
     "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
-) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+)
 
-$progId = Get-NavegadorPredeterminado
-if ($progId -like "*Edge*") {
-    $navegador = if ($edge) { $edge } else { $chrome }
-} elseif ($progId -like "*Chrome*") {
-    $navegador = if ($chrome) { $chrome } else { $edge }
-} else {
-    $navegador = $null
+# Busca el perfil de navegador que ya contiene ediciones del taller.
+function Find-PerfilConEdiciones {
+    $encontrados = @()
+    $navegadores = @(
+        @{ Exe = $chromeExe; Raiz = "$env:LocalAppData\Google\Chrome\User Data" },
+        @{ Exe = $edgeExe;   Raiz = "$env:LocalAppData\Microsoft\Edge\User Data" }
+    )
+    foreach ($nav in $navegadores) {
+        if (-not $nav.Exe -or -not (Test-Path $nav.Raiz)) { continue }
+        foreach ($perfil in (Get-ChildItem $nav.Raiz -Directory -ErrorAction SilentlyContinue)) {
+            $baseDatos = Join-Path $perfil.FullName "IndexedDB"
+            if (-not (Test-Path $baseDatos)) { continue }
+            $taller = Get-ChildItem $baseDatos -Directory -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -like "*127.0.0.1_$selectedPort*" }
+            if ($taller) {
+                $encontrados += [pscustomobject]@{
+                    Exe    = $nav.Exe
+                    Perfil = $perfil.Name
+                    Fecha  = ($taller | Sort-Object LastWriteTime -Descending | Select-Object -First 1).LastWriteTime
+                }
+            }
+        }
+    }
+    return $encontrados | Sort-Object Fecha -Descending | Select-Object -First 1
 }
 
-if ($navegador) {
-    Start-Process -FilePath $navegador -ArgumentList @("--app=$appUrl", "--window-size=1280,920")
+$destino = Find-PerfilConEdiciones
+
+if (-not $destino) {
+    # Primera vez: no hay ediciones todavia. Se usa el navegador predeterminado.
+    try {
+        $clave = "HKCU:\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice"
+        $progId = (Get-ItemProperty -Path $clave -ErrorAction Stop).ProgId
+    } catch {
+        $progId = ""
+    }
+    $exe = if ($progId -like "*Edge*" -and $edgeExe) { $edgeExe } elseif ($chromeExe) { $chromeExe } else { $edgeExe }
+    if ($exe) { $destino = [pscustomobject]@{ Exe = $exe; Perfil = "Default" } }
+}
+
+if ($destino) {
+    Start-Process -FilePath $destino.Exe -ArgumentList @(
+        "--app=$appUrl",
+        "--profile-directory=`"$($destino.Perfil)`"",
+        "--window-size=1280,920"
+    )
 } else {
     Start-Process $appUrl
 }
