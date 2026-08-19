@@ -151,6 +151,43 @@
     els.wordBudget.title = budget.label;
   }
 
+  const FRAME_WAIT_TIMEOUT = 400;
+  const FONT_WAIT_TIMEOUT = 3_000;
+
+  // Si la pestaña está en segundo plano, el navegador puede no resolver nunca la
+  // carga de fuentes ni disparar el dibujo. Estas esperas siempre terminan.
+  function withTimeout(promise, milliseconds) {
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise((resolve) => window.setTimeout(resolve, milliseconds))
+    ]);
+  }
+
+  async function waitForFonts() {
+    try {
+      if (document.fonts?.ready) await withTimeout(document.fonts.ready, FONT_WAIT_TIMEOUT);
+    } catch {
+      // La composición continúa con las tipografías alternativas locales.
+    }
+  }
+
+  function afterNextFrames() {
+    return new Promise((resolve) => {
+      let listo = false;
+      const terminar = () => {
+        if (listo) return;
+        listo = true;
+        resolve();
+      };
+      window.setTimeout(terminar, FRAME_WAIT_TIMEOUT);
+      requestAnimationFrame(() => requestAnimationFrame(terminar));
+    });
+  }
+
+  const MASTHEAD_DEFAULTS = {
+    title: "Casco" + String.fromCharCode(10) + "Histórico",
+    tagline: "Patrimonio · Comunidad · Historia · Comercio local"
+  };
   const MODEL_TEXT_SAMPLE = 3;
   const modelDefaults = new Map();
 
@@ -164,7 +201,10 @@
     else modelDefaults.delete(editKey);
   }
 
+  const labelKeys = new Set();
+
   function isModelText(editKey, value) {
+    if (labelKeys.has(editKey)) return false;
     const model = modelDefaults.get(editKey);
     if (!model) return false;
     return normalizeComparableText(value) === model;
@@ -466,6 +506,11 @@
     return `<${tag} class="editable ${className}" data-edit-key="${escapeHtml(page.id)}.${escapeHtml(key)}"${editAttributes}>${escapeHtml(value)}</${tag}>`;
   }
 
+  function editableLabel(page, key, fallback, tag = "span", className = "") {
+    labelKeys.add(`${page.id}.${key}`);
+    return editableValue(page, key, fallback, tag, className);
+  }
+
   function editable(page, key, tag = "span", className = "") {
     return editableValue(page, key, page.fields?.[key] ?? "", tag, className);
   }
@@ -538,7 +583,7 @@
   }
 
   function runningHead(page, label) {
-    return `<div class="page-running-head">${escapeHtml(label || page.segmentTitle)}</div>`;
+    return editableLabel(page, "runningHead", label || page.segmentTitle, "div", "page-running-head");
   }
 
   function renderCover(page) {
@@ -548,8 +593,8 @@
         <div class="cover-masthead">
           <img src="./assets/brand/logo-casco-historico.webp" alt="Logo Casco Histórico" />
           <div>
-            <h2>Casco<br />Histórico</h2>
-            <p>Patrimonio · Comunidad · Historia · Comercio local</p>
+            ${editableLabel(page, "mastheadTitle", MASTHEAD_DEFAULTS.title, "h2", "preline")}
+            ${editableLabel(page, "mastheadTagline", MASTHEAD_DEFAULTS.tagline, "p")}
           </div>
         </div>
         <div class="cover-edition">${editable(page, "edition")}</div>
@@ -596,10 +641,10 @@
       <div class="index-grid">
         <div class="contents-list">${rows}</div>
         <aside class="credits-box">
-          <h3>Quiénes hacemos esta revista</h3>
+          ${editableLabel(page, "creditsLabel", "Quiénes hacemos esta revista", "h3")}
           <p class="preline">${editable(page, "credits")}</p>
-          <h3>Participa</h3>
-          <p>Envía noticias, fotografías y cartas para el próximo número.</p>
+          ${editableLabel(page, "participateLabel", "Participa", "h3")}
+          ${editableLabel(page, "participateBody", "Envía noticias, fotografías y cartas para el próximo número.", "p")}
           <p><strong>${editable(page, "contact")}</strong></p>
         </aside>
       </div>`;
@@ -609,7 +654,7 @@
   function renderEditorial(page) {
     const content = `
       ${runningHead(page)}
-      <span class="section-ribbon">Carta editorial</span>
+      ${editableLabel(page, "ribbon", "Carta editorial", "span", "section-ribbon")}
       <h2 class="page-title">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
       <div class="feature-grid">
@@ -621,7 +666,7 @@
         </div>
         <aside class="feature-aside">
           ${imageSlot(page, "portrait", "Agregar retrato de quien firma", "portrait-slot")}
-          <div class="contact-card"><h3>Nuestra invitación</h3><p>Esta revista se construye con las voces y aportes de la comunidad.</p></div>
+          <div class="contact-card">${editableLabel(page, "inviteLabel", "Nuestra invitación", "h3")}${editableLabel(page, "inviteBody", "Esta revista se construye con las voces y aportes de la comunidad.", "p")}</div>
         </aside>
       </div>`;
     return pageFrame(page, content);
@@ -699,7 +744,7 @@
     }).join("");
     const content = `
       ${runningHead(page)}
-      <span class="section-ribbon">Gestión y avances</span>
+      ${editableLabel(page, "ribbon", "Gestión y avances", "span", "section-ribbon")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
       <div class="advances-top">
@@ -766,7 +811,7 @@
         <div>
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
-          <div class="contact-card"><h3>Fuentes</h3><p>${editable(page, "source")}</p></div>
+          <div class="contact-card">${editableLabel(page, "sourceLabel", "Fuentes", "h3")}<p>${editable(page, "source")}</p></div>
         </div>
       </div>`;
     return pageFrame(page, content);
@@ -787,7 +832,7 @@
         </div>
         <aside>
           <div class="quote-card">${editable(page, "quote")}</div>
-          <div class="contact-card heritage-source"><h3>Fuentes y memoria oral</h3><p>${editable(page, "source")}</p></div>
+          <div class="contact-card heritage-source">${editableLabel(page, "sourceLabel", "Fuentes y memoria oral", "h3")}<p>${editable(page, "source")}</p></div>
         </aside>
       </div>`;
     return pageFrame(page, content);
@@ -803,7 +848,7 @@
       <div class="community-grid page-fill">${blocks}</div>
       <div style="height:4mm"></div>
       <p class="body-copy">${editable(page, "body")}</p>
-      <div class="contact-card"><h3>Información práctica</h3><p><strong>${editable(page, "contact")}</strong></p></div>`;
+      <div class="contact-card">${editableLabel(page, "contactLabel", "Información práctica", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
   }
 
@@ -823,7 +868,7 @@
           <p class="body-copy">${editable(page, "body2")}</p>
           <div class="quote-card">${editable(page, "quote")}</div>
           <div style="height:3mm"></div>
-          <div class="contact-card"><h3>Visítalo</h3><p>${editable(page, "contact")}</p></div>
+          <div class="contact-card">${editableLabel(page, "contactLabel", "Visítalo", "h3")}<p>${editable(page, "contact")}</p></div>
         </div>
       </div>`;
     return pageFrame(page, content);
@@ -834,7 +879,7 @@
       const [title, body, author] = splitItem(item, 3);
       return `<article class="letter-card"><h3>${editableList(page, "letters", index, "title", title)}</h3><p>${editableList(page, "letters", index, "body", body)}</p><span class="letter-author">${editableList(page, "letters", index, "author", author)}</span></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div><p class="caption">Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.</p>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div>${editableLabel(page, "disclaimer", "Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.", "p", "caption")}`;
     return pageFrame(page, content);
   }
 
@@ -843,7 +888,7 @@
       const [day, month, title, detail] = splitItem(item, 4);
       return `<article class="agenda-item"><div class="agenda-date"><strong>${editableList(page, "agenda", index, "day", day)}</strong><span>${editableList(page, "agenda", index, "month", month)}</span></div><div class="agenda-detail"><h3>${editableList(page, "agenda", index, "title", title)}</h3><p>${editableList(page, "agenda", index, "detail", detail)}</p></div></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div><div style="height:4mm"></div><div class="contact-card"><h3>Antes de asistir</h3><p>Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.</p></div>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div><div style="height:4mm"></div><div class="contact-card">${editableLabel(page, "noticeLabel", "Antes de asistir", "h3")}${editableLabel(page, "noticeBody", "Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.", "p")}</div>`;
     return pageFrame(page, content);
   }
 
@@ -869,12 +914,12 @@
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
       <div class="ad-grid page-fill">
-        <article class="ad-card ad-card--primary"><span class="ad-label">Publicidad</span><h3>${editable(page, "primaryTitle")}</h3><p>${editable(page, "primaryBody")}</p></article>
-        <article class="ad-card"><span class="ad-label">Publicidad</span><h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
-        <article class="ad-card"><span class="ad-label">Publicidad</span><h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>
+        <article class="ad-card ad-card--primary">${editableLabel(page, "primaryLabel", "Publicidad", "span", "ad-label")}<h3>${editable(page, "primaryTitle")}</h3><p>${editable(page, "primaryBody")}</p></article>
+        <article class="ad-card">${editableLabel(page, "ad1Label", "Publicidad", "span", "ad-label")}<h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
+        <article class="ad-card">${editableLabel(page, "ad2Label", "Publicidad", "span", "ad-label")}<h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>
       </div>
       <div style="height:4mm"></div>
-      <div class="contact-card"><h3>Envía tu material</h3><p><strong>${editable(page, "contact")}</strong></p></div>`;
+      <div class="contact-card">${editableLabel(page, "materialLabel", "Envía tu material", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
   }
 
@@ -1256,6 +1301,21 @@
         detail: `Completa ${missingSettings.join(", ")} para evitar datos incompletos en varias páginas.`
       });
     }
+    const mastheadChanges = [
+      ["mastheadTitle", "el nombre de cabecera", MASTHEAD_DEFAULTS.title],
+      ["mastheadTagline", "la línea de descriptores", MASTHEAD_DEFAULTS.tagline]
+    ].filter(([key, , reference]) => normalizeComparableText(savedText("p01", key, reference)) !== normalizeComparableText(reference))
+      .map(([, label]) => label);
+    if (mastheadChanges.length) {
+      issues.push({
+        severity: "review",
+        type: "identity",
+        pageId: "p01",
+        pageIndex: 0,
+        title: "La cabecera de portada difiere de la identidad institucional",
+        detail: `Se modificó ${mastheadChanges.join(" y ")}. Confirma que el cambio está acordado: la cabecera identifica a la revista de un número al siguiente.`
+      });
+    }
     if (settings.verified !== true) {
       issues.push({
         severity: "warning",
@@ -1507,12 +1567,8 @@
 
   async function runPreflight() {
     showToast(`Revisando las ${MAGAZINE_SIZE_LABEL}…`);
-    try {
-      if (document.fonts?.ready) await document.fonts.ready;
-    } catch {
-      // La revisión continúa con las fuentes alternativas locales.
-    }
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await waitForFonts();
+    await afterNextFrames();
     const issues = collectPreflightIssues();
     renderPreflightReport(issues);
     if (!els.preflight.open) els.preflight.showModal();
@@ -1944,13 +2000,12 @@
   async function preparePrint() {
     if (els.print.open) els.print.close();
     mountPrintLayout();
-    try {
-      if (document.fonts?.ready) await document.fonts.ready;
-    } catch {
-      // La impresión continúa con las fuentes alternativas locales.
-    }
-    await Promise.all([...document.images].map((image) => image.decode?.().catch(() => undefined)));
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await waitForFonts();
+    await withTimeout(
+      Promise.all([...document.images].map((image) => image.decode?.().catch(() => undefined))),
+      FONT_WAIT_TIMEOUT
+    );
+    await afterNextFrames();
     window.print();
   }
 
