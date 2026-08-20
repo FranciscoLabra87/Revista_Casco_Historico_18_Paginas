@@ -527,6 +527,17 @@
       </div>
     </dialog>
 
+    <div class="save-alert app-chrome" id="saveAlert" role="alert" hidden>
+      <div>
+        <strong>Los cambios no se están guardando</strong>
+        <p id="saveAlertDetail">Sigue escribiendo y nada se conservará. Descarga un respaldo ahora para no perder el trabajo.</p>
+      </div>
+      <div class="save-alert__actions">
+        <button type="button" class="button button--primary" id="saveAlertBackup">Descargar respaldo ahora</button>
+        <button type="button" class="button button--ghost" id="saveAlertRetry">Reintentar</button>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script src="./segments/01_portada/segmento.js"></script>

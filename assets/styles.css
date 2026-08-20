@@ -3535,6 +3535,54 @@ body.print-press .safe-line {
   display: none !important;
 }
 
+/* 15 · Aviso de fallo de guardado ----------------------------- */
+
+.save-alert {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 120;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 3px solid var(--danger);
+  background: var(--danger-soft);
+  color: var(--ink);
+}
+
+.save-alert strong {
+  display: block;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+.save-alert p {
+  margin: 3px 0 0;
+  max-width: 82ch;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.save-alert__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.has-save-alert .topbar {
+  margin-top: 74px;
+}
+
+@media print {
+  .save-alert {
+    display: none !important;
+  }
+}
+
 /* 14 · Panel de formato -------------------------------------- */
 
 .formato {

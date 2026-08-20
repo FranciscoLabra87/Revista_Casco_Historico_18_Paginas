@@ -622,9 +622,34 @@
     return `${kind}:${key}`;
   }
 
+  // Un fallo de guardado no puede avisarse con un mensaje que se va solo: la
+  // persona sigue escribiendo media hora sobre texto que no se conserva. Se
+  // muestra una franja fija que no se cierra hasta que un guardado tenga éxito.
+  function mostrarFalloDeGuardado(detalle) {
+    const franja = document.getElementById("saveAlert");
+    if (!franja) return;
+    const texto = document.getElementById("saveAlertDetail");
+    if (texto && detalle) texto.textContent = detalle;
+    franja.hidden = false;
+    document.body.classList.add("has-save-alert");
+  }
+
+  function ocultarFalloDeGuardado() {
+    const franja = document.getElementById("saveAlert");
+    if (!franja || franja.hidden) return;
+    franja.hidden = true;
+    document.body.classList.remove("has-save-alert");
+  }
+
   function setAutosaveStatus(message, error = false) {
     els.autosave.textContent = message;
     els.autosave.classList.toggle("is-error", error);
+    els.autosave.setAttribute("aria-live", error ? "assertive" : "polite");
+    // La franja no se retira porque llegue un "Guardado" de otra escritura que
+    // sí funcionó: eso la hacía desaparecer sola a los pocos cientos de
+    // milisegundos y devolvía el problema al terreno del aviso fugaz. Se retira
+    // únicamente cuando el reintento explícito termina bien.
+    if (error) mostrarFalloDeGuardado();
   }
 
   function savedNowLabel() {
@@ -664,6 +689,33 @@
     updates.set(key, normalized || null);
   }
 
+  // Los datos de la edición se copian a varias páginas. Antes se escribían sin
+  // condición, así que un texto que alguien había redactado a mano en la
+  // contraportada volvía al modelo por cambiar una fecha en el formulario, y un
+  // campo vacío del formulario lo borraba. Ahora se recuerda lo que se aplicó la
+  // vez anterior: si el texto actual coincide, se actualiza; si no, se respeta y
+  // se informa.
+  const APLICADO_SUFIJO = "__aplicado";
+
+  function valorAplicado(pageId, key) {
+    return projectStorage.getItem(storageKey("text", `${pageId}.${key}.${APLICADO_SUFIJO}`));
+  }
+
+  function puedeSobrescribir(pageId, key, modelo) {
+    const actual = savedText(pageId, key, modelo ?? "");
+    const anterior = valorAplicado(pageId, key);
+    if (anterior === null) {
+      // Nunca se aplicó: sólo se escribe si el campo sigue con el texto del modelo.
+      return normalizeComparableText(actual) === normalizeComparableText(modelo ?? "");
+    }
+    return normalizeComparableText(actual) === normalizeComparableText(anterior);
+  }
+
+  function textoDeModelo(pageId, key) {
+    const page = pages.find((entry) => entry.id === pageId);
+    return page?.fields?.[key] ?? "";
+  }
+
   async function applyIssueSettings(settings) {
     const normalized = {
       ...ISSUE_DEFAULTS,
@@ -672,10 +724,23 @@
       verifiedAt: settings.verified === true ? new Date().toISOString() : ""
     };
     const updates = new Map([[storageKey("settings", "issue"), JSON.stringify(normalized)]]);
+    const respetados = [];
+
+    // Escribe el valor sólo si nadie lo cambió a mano desde la última vez.
+    function aplicarDato(pageId, key, valor) {
+      if (!puedeSobrescribir(pageId, key, textoDeModelo(pageId, key))) {
+        respetados.push(`P${pageId.slice(1)} · ${humanFieldLabel(key)}`);
+        return false;
+      }
+      setTextOverride(updates, pageId, key, valor);
+      updates.set(storageKey("text", `${pageId}.${key}.${APLICADO_SUFIJO}`), String(valor || ""));
+      return true;
+    }
 
     const contact = [normalized.email, normalized.whatsapp].filter(Boolean).join(" · ");
     const closing = localizedDate(normalized.closingDate);
-    setTextOverride(updates, "p01", "edition", normalized.edition);
+    const tocadas = new Set();
+    if (aplicarDato("p01", "edition", normalized.edition)) tocadas.add("p01");
     const indexPage = pages.find((page) => page.id === "p02");
     const currentCredits = savedText("p02", "credits", indexPage?.fields?.credits || "");
     const creditLines = currentCredits.split(/\r?\n/);
@@ -683,17 +748,19 @@
     const responsibleIndex = creditLines.findIndex((line) => /^Direcci[oó]n editorial\s*:/i.test(line));
     if (responsibleIndex >= 0) creditLines[responsibleIndex] = responsibleLine;
     else creditLines.unshift(responsibleLine);
-    setTextOverride(updates, "p02", "credits", creditLines.join("\n"));
-    setTextOverride(updates, "p02", "contact", contact ? `Contacto editorial: ${contact}` : "");
-    setTextOverride(updates, "p03", "signature", normalized.responsible);
-    setTextOverride(updates, "p16", "deadline", closing || contact ? `Recepción de aportes: ${[closing, contact].filter(Boolean).join(" · ")}` : "");
-    setTextOverride(updates, "p17", "contact", contact || closing ? `Reserva de avisos y recepción de contenidos: ${[contact, closing].filter(Boolean).join(" · ")}` : "");
-    setTextOverride(updates, "p18", "tagline", normalized.motto);
-    setTextOverride(updates, "p18", "contact1", normalized.email);
-    setTextOverride(updates, "p18", "contact2", normalized.whatsapp);
-    setTextOverride(updates, "p18", "contact3", normalized.location);
-    ["p01", "p02", "p03", "p16", "p17", "p18"].forEach((pageId) => updates.set(storageKey("done", pageId), null));
+    if (aplicarDato("p02", "credits", creditLines.join(String.fromCharCode(10)))) tocadas.add("p02");
+    if (aplicarDato("p02", "contact", contact ? `Contacto editorial: ${contact}` : "")) tocadas.add("p02");
+    if (aplicarDato("p03", "signature", normalized.responsible)) tocadas.add("p03");
+    if (aplicarDato("p16", "deadline", closing || contact ? `Recepción de aportes: ${[closing, contact].filter(Boolean).join(" · ")}` : "")) tocadas.add("p16");
+    if (aplicarDato("p17", "contact", contact || closing ? `Reserva de avisos y recepción de contenidos: ${[contact, closing].filter(Boolean).join(" · ")}` : "")) tocadas.add("p17");
+    if (aplicarDato("p18", "tagline", normalized.motto)) tocadas.add("p18");
+    if (aplicarDato("p18", "contact1", normalized.email)) tocadas.add("p18");
+    if (aplicarDato("p18", "contact2", normalized.whatsapp)) tocadas.add("p18");
+    if (aplicarDato("p18", "contact3", normalized.location)) tocadas.add("p18");
+    // Sólo vuelven a pendiente las páginas que realmente cambiaron.
+    tocadas.forEach((pageId) => updates.set(storageKey("done", pageId), null));
     await projectStorage.putMany(updates);
+    return { respetados, tocadas: [...tocadas] };
   }
 
   function savedText(pageId, key, fallback) {
@@ -2729,20 +2796,29 @@
       motto: String(formData.get("motto") || "").trim(),
       verified: formData.has("verified")
     };
+    let resultado;
     try {
       setAutosaveStatus("Guardando…");
-      await applyIssueSettings(settings);
+      resultado = await applyIssueSettings(settings);
       setAutosaveStatus(savedNowLabel());
     } catch (error) {
       setAutosaveStatus("Error al guardar", true);
-      showToast(error?.message || "No se pudieron guardar los datos generales.");
+      showToast(error?.message || "No se pudieron guardar los datos de la edición.");
       return;
     }
     invalidatePreflight();
     els.settings.close();
     renderTree();
     renderMagazine();
-    showToast("Datos generales guardados y aplicados.");
+    const respetados = resultado?.respetados || [];
+    const tocadas = resultado?.tocadas || [];
+    if (respetados.length) {
+      showToast(`Datos guardados. ${respetados.length === 1 ? "Un texto que escribiste a mano se conservó" : `${respetados.length} textos que escribiste a mano se conservaron`}: ${respetados.slice(0, 3).join(", ")}${respetados.length > 3 ? "…" : ""}.`);
+    } else if (tocadas.length) {
+      showToast(`Datos guardados y aplicados. ${tocadas.length === 1 ? "Una página vuelve" : `${tocadas.length} páginas vuelven`} a estado pendiente para revisarla${tocadas.length === 1 ? "" : "s"}.`);
+    } else {
+      showToast("Datos de la edición guardados.");
+    }
   });
   document.querySelectorAll("[data-open-preflight]").forEach((button) => button.addEventListener("click", runPreflight));
   document.querySelectorAll("[data-close-preflight]").forEach((button) => button.addEventListener("click", () => els.preflight.close()));
@@ -2967,6 +3043,18 @@
   });
   window.addEventListener("beforeprint", mountPrintLayout);
   window.addEventListener("afterprint", restoreAfterPrint);
+  document.getElementById("saveAlertBackup")?.addEventListener("click", () => exportDraft());
+  document.getElementById("saveAlertRetry")?.addEventListener("click", async () => {
+    try {
+      await projectStorage.flush();
+      ocultarFalloDeGuardado();
+      setAutosaveStatus(savedNowLabel());
+      showToast("Los cambios se guardaron correctamente.");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      showToast("Sigue sin poder guardarse. Descarga un respaldo antes de continuar.");
+    }
+  });
   els.undo?.addEventListener("click", undoLastEdit);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
