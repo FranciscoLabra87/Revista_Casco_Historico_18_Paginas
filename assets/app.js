@@ -110,16 +110,33 @@
     "source", "caption", "stat", "statLabel", "deadline", "tagline", "section", "page",
     "day", "month", "date", "status", "meta", "author", "teaser1", "teaser2", "nextTitle"
   ]);
+  // Presupuesto de texto por página.
+  //
+  // Antes eran cifras calibradas a ojo para A5 y multiplicadas por la
+  // superficie del formato. Eso daba números imposibles: en A4 la página de
+  // noticias pedía 672 palabras y sólo caben 502, porque al crecer el formato
+  // también creció el cuerpo de lectura y las fotografías no encogieron.
+  //
+  // Estos valores son la capacidad real de cada maqueta en A4, medida
+  // llenándolas con texto hasta que desbordan. El mínimo deja la página
+  // razonablemente llena; el máximo se queda por debajo del desborde.
   const PAGE_WORD_BUDGETS = {
-    p03: { min: 250, max: 350, label: "Carta editorial: 250 a 350 palabras" },
-    p04: { min: 240, max: 700, label: "Noticias breves: 3 a 5 noticias de 80 a 140 palabras" },
-    p06: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
-    p07: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
-    p05: { min: 250, max: 400, label: "Información institucional: 250 a 400 palabras" },
-    p08: { min: 80, max: 260, label: "Entrevista: 80 a 120 palabras de presentación más las respuestas" },
-    p12: { min: 350, max: 500, label: "Comunidad y servicios: 350 a 500 palabras" },
-    p13: { min: 300, max: 450, label: "Comercio local: 300 a 450 palabras" },
-    p14: { min: 120, max: 720, label: "Cartas: máximo 180 palabras por carta" }
+    p02: { min: 110, max: 220, nombre: "Sumario y créditos" },
+    p03: { min: 260, max: 370, nombre: "Carta editorial" },
+    p04: { min: 380, max: 500, nombre: "Noticias breves" },
+    p05: { min: 280, max: 480, nombre: "Avances de la agrupación" },
+    p06: { min: 200, max: 255, nombre: "Reportaje · apertura" },
+    p07: { min: 330, max: 410, nombre: "Reportaje · continuación" },
+    p08: { min: 340, max: 470, nombre: "Entrevista · presentación" },
+    p09: { min: 450, max: 620, nombre: "Entrevista · conversación" },
+    p10: { min: 260, max: 330, nombre: "Memoria · apertura" },
+    p11: { min: 380, max: 500, nombre: "Memoria · continuación" },
+    p12: { min: 450, max: 590, nombre: "Comunidad y servicios" },
+    p13: { min: 230, max: 295, nombre: "Comercio local" },
+    p14: { min: 360, max: 600, nombre: "Cartas al director" },
+    p15: { min: 90, max: 180, nombre: "Agenda comunitaria" },
+    p16: { min: 250, max: 320, nombre: "Observatorio de datos" },
+    p17: { min: 90, max: 200, nombre: "Publicidad y colaboradores" }
   };
 
   function countWords(value) {
@@ -142,41 +159,59 @@
   }
 
   // Rango por elemento para las páginas cuyo número de elementos es variable.
+  // Rangos por elemento, también en palabras de A4.
   const RANGO_POR_ELEMENTO = {
-    p04: { lista: "briefs", min: 80, max: 140 },
-    p14: { lista: "letters", min: 30, max: 180 },
-    p15: { lista: "agenda", min: 12, max: 45 }
+    p04: { lista: "briefs", min: 95, max: 125 },
+    p14: { lista: "letters", min: 90, max: 150 },
+    p15: { lista: "agenda", min: 18, max: 45 }
   };
 
-  function factorSuperficie() {
-    return FORMATOS[formatoActual()]?.superficie || 1;
+  // Los presupuestos están medidos en A4. Para los otros formatos se ajustan
+  // por dos cosas a la vez: la superficie de la caja y el cuerpo de lectura,
+  // que crece con el formato y por tanto reduce las palabras por milímetro.
+  function factorFormato() {
+    const base = FORMATOS.a4;
+    const f = FORMATOS[formatoActual()] || base;
+    const superficie = (f.superficie || 1) / (base.superficie || 1);
+    const cuerpo = Math.pow((base.cuerpo || 10) / (f.cuerpo || 10), 2);
+    return superficie * cuerpo;
   }
 
   function wordBudgetState(pageId, pageElement) {
     const budget = PAGE_WORD_BUDGETS[pageId];
     if (!budget) return null;
-    const factor = factorSuperficie();
+    const factor = factorFormato();
+    const words = countPageWords(pageElement);
     const porElemento = RANGO_POR_ELEMENTO[pageId];
+
     if (porElemento) {
       const page = pages.find((entry) => entry.id === pageId);
       const defaults = page?.lists?.[porElemento.lista] || [];
       const total = listCount(page, porElemento.lista, defaults);
-      const words = countPageWords(pageElement);
-      const min = Math.round(total * porElemento.min * factor);
-      const max = Math.round(total * porElemento.max * factor);
+      const unidadMin = Math.round(porElemento.min * factor);
+      const unidadMax = Math.round(porElemento.max * factor);
+      const min = total * unidadMin;
+      const max = total * unidadMax;
       return {
         min,
         max,
-        label: `${total} ${total === 1 ? "elemento" : "elementos"} · entre ${porElemento.min} y ${porElemento.max} palabras cada uno`,
+        // El rótulo mostraba las cifras sin ajustar mientras el semáforo usaba
+        // las ajustadas, así que decía una cosa y medía otra.
+        label: `${total} ${total === 1 ? "elemento" : "elementos"} · entre ${unidadMin} y ${unidadMax} palabras cada uno`,
         words,
         status: words < min ? "short" : words > max ? "long" : "ok"
       };
     }
-    const words = countPageWords(pageElement);
+
     const min = Math.round(budget.min * factor);
     const max = Math.round(budget.max * factor);
-    const status = words < min ? "short" : words > max ? "long" : "ok";
-    return { ...budget, min, max, words, status };
+    return {
+      min,
+      max,
+      label: `${budget.nombre}: ${min} a ${max} palabras`,
+      words,
+      status: words < min ? "short" : words > max ? "long" : "ok"
+    };
   }
 
   function updateWordBudget() {
