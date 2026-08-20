@@ -471,6 +471,7 @@
     if (ALINEACIONES.some((a) => a.valor === estilo.alineacion)) partes.push(`text-align:${estilo.alineacion}`);
     if (estilo.negrita === true) partes.push("font-weight:700");
     if (estilo.cursiva === true) partes.push("font-style:italic");
+    if (estilo.subrayado === true) partes.push("text-decoration:underline");
     return partes.join(";");
   }
 
@@ -3024,6 +3025,25 @@
   }
   els.zoom.addEventListener("input", () => updateZoom(els.zoom.value));
   els.sidebarZoom.addEventListener("input", () => updateZoom(els.sidebarZoom.value));
+  const marcasToggle = document.getElementById("marksToggle");
+  if (marcasToggle) {
+    const aplicarMarcas = () => {
+      document.body.classList.toggle("sin-marcas-edicion", !marcasToggle.checked);
+      try {
+        window.localStorage.setItem("taller:marcas-edicion", marcasToggle.checked ? "1" : "0");
+      } catch {
+        // Recordar la preferencia es una comodidad, no un dato de la revista.
+      }
+    };
+    try {
+      if (window.localStorage.getItem("taller:marcas-edicion") === "0") marcasToggle.checked = false;
+    } catch {
+      // Sin preferencia guardada se dejan visibles.
+    }
+    aplicarMarcas();
+    marcasToggle.addEventListener("change", aplicarMarcas);
+  }
+
   els.safe.addEventListener("change", () => {
     state.safe = els.safe.checked;
     renderMagazine();
@@ -3704,6 +3724,7 @@
       <div class="fmt-group"><h3>Énfasis</h3><div class="fmt-row">
         ${formatoBoton("Negrita", "negrita", "1", estilo.negrita === true)}
         ${formatoBoton("Cursiva", "cursiva", "1", estilo.cursiva === true)}
+        ${formatoBoton("Subrayado", "subrayado", "1", estilo.subrayado === true)}
       </div></div>`;
   }
 
@@ -3824,7 +3845,7 @@
       formatoGuardar({ alineacion: estilo.alineacion === valor ? null : valor }, false);
       return;
     }
-    if (accion === "negrita" || accion === "cursiva") {
+    if (accion === "negrita" || accion === "cursiva" || accion === "subrayado") {
       const estilo = estiloTexto(pageId, key) || {};
       formatoGuardar({ [accion]: estilo[accion] === true ? null : true }, false);
       return;
