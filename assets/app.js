@@ -176,6 +176,25 @@
 
   document.documentElement.classList.toggle("sin-particion", !hyphenationAvailable());
 
+  const TRIM_LABEL = "148 × 210 mm";
+  const PRESS_BLEED_LABEL = "3 mm";
+  const PAGE_RULES = {
+    office: "@page { size: 148mm 210mm; margin: 0; }",
+    press: "@page { size: 210mm 297mm; margin: 0; }"
+  };
+
+  // El tamaño de hoja no se puede elegir con una clase: @page es una regla de
+  // documento. Se inyecta la que corresponde justo antes de imprimir.
+  function applyPageRule(nombre) {
+    let hoja = document.getElementById("pageSizeRule");
+    if (!hoja) {
+      hoja = document.createElement("style");
+      hoja.id = "pageSizeRule";
+      document.head.appendChild(hoja);
+    }
+    hoja.textContent = PAGE_RULES[nombre] || PAGE_RULES.office;
+  }
+
   const FRAME_WAIT_TIMEOUT = 400;
   const FONT_WAIT_TIMEOUT = 3_000;
 
@@ -411,6 +430,7 @@
     restoreViewAfterPrint: null,
     originalTitle: document.title,
     printMode: "review",
+    pressOutput: false,
     preflightByPage: new Map(),
     lastPreflight: null,
     renamingProjectId: null
@@ -742,7 +762,8 @@
     const completeButton = `<button type="button" class="page-complete-toggle app-chrome ${complete ? "is-complete" : ""}" data-page-complete="${page.id}" aria-pressed="${complete}">${complete ? "Página lista" : "Marcar como lista"}</button>`;
     const overflowBadge = `<span class="page-overflow-badge app-chrome" hidden>Texto fuera del marco</span>`;
     const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} page--tone-${page.tone || "gold"}`;
-    return `<article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article>`;
+    const sheetLabel = escapeHtml(`P${String(page.number).padStart(2, "0")} · ${issueSettings().edition} · corte ${TRIM_LABEL} · sangrado ${PRESS_BLEED_LABEL}`);
+    return `<div class="page-sheet" data-sheet="${sheetLabel}"><article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article></div>`;
   }
 
   // El faldón se ofrece en las páginas impares: en un cuadernillo son las de la
@@ -2237,6 +2258,9 @@
 
   function printDocumentTitle() {
     if (state.printMode === "review") return "BORRADOR_Revista_Casco_Historico";
+    if (state.pressOutput === true) {
+      return `IMPRENTA_Revista_Casco_Historico_${editionSlug()}`;
+    }
     const edition = String(issueSettings().edition || "Edicion_final")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -2244,6 +2268,15 @@
       .replace(/^_+|_+$/g, "")
       .slice(0, 70);
     return `Revista_Casco_Historico_${edition || "Edicion_final"}`;
+  }
+
+  function editionSlug() {
+    return String(issueSettings().edition || "Edicion_final")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 70) || "Edicion_final";
   }
 
   function mountPrintLayout() {
@@ -2262,6 +2295,8 @@
     state.view = "all";
     state.editing = false;
     document.body.classList.add("is-printing");
+    document.body.classList.toggle("print-press", state.pressOutput === true);
+    applyPageRule(state.pressOutput === true ? "press" : "office");
     document.body.classList.toggle("print-review", state.printMode === "review");
     document.body.classList.toggle("print-final", state.printMode === "final");
     document.title = printDocumentTitle();
@@ -2288,7 +2323,8 @@
     state.current = restored.current;
     state.editing = restored.editing;
     state.restoreViewAfterPrint = null;
-    document.body.classList.remove("is-printing", "print-review", "print-final");
+    document.body.classList.remove("is-printing", "print-review", "print-final", "print-press");
+    applyPageRule("office");
     document.title = state.originalTitle;
     syncEditButton();
     document.querySelectorAll("[data-view]").forEach((button) => {
@@ -2561,6 +2597,32 @@
     if (els.preflight.open) els.preflight.close();
     openPrintDialog();
   });
+  const PRINT_STEPS = {
+    office: [
+      "En la ventana de impresión elige <strong>Guardar como PDF</strong>.",
+      "Selecciona papel <strong>A5</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.",
+      "Activa <strong>gráficos de fondo</strong> para conservar marcos, colores y mosaicos."
+    ],
+    press: [
+      "En la ventana de impresión elige <strong>Guardar como PDF</strong>.",
+      "Selecciona papel <strong>A4</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.",
+      "Activa <strong>gráficos de fondo</strong>: sin eso no se imprimen ni el sangrado ni las marcas.",
+      "Entrega ese PDF a la imprenta indicando corte de <strong>148 × 210 mm</strong> y sangrado de <strong>3 mm</strong>."
+    ]
+  };
+
+  function syncPrintOutput() {
+    const elegido = document.querySelector("[name='printOutput']:checked")?.value === "press" ? "press" : "office";
+    state.pressOutput = elegido === "press";
+    const pasos = document.getElementById("printSteps");
+    if (pasos) pasos.innerHTML = PRINT_STEPS[elegido].map((paso) => `<li>${paso}</li>`).join("");
+  }
+
+  document.querySelectorAll("[name='printOutput']").forEach((opcion) => {
+    opcion.addEventListener("change", syncPrintOutput);
+  });
+  syncPrintOutput();
+
   document.getElementById("confirmPrintButton").addEventListener("click", preparePrint);
   document.querySelectorAll("[data-close-print]").forEach((button) => button.addEventListener("click", () => els.print.close()));
   document.getElementById("exportButton").addEventListener("click", async () => {

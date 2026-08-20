@@ -1113,13 +1113,20 @@ button.project-card__preview {
 }
 
 .mag-page {
+  /* --bleed es 0 en pantalla y en el PDF de oficina. En el archivo de imprenta
+     pasa a 3 mm y la página crece hacia fuera: el corte sigue cayendo en los
+     mismos 148 x 210 mm, y lo que se imprime de más es lo que la guillotina
+     se lleva. */
+  --bleed: 0mm;
+  --trim-w: 148mm;
+  --trim-h: 210mm;
   font-kerning: normal;
   font-variant-ligatures: common-ligatures contextual;
   position: relative;
-  width: 148mm;
-  height: 210mm;
+  width: calc(var(--trim-w) + var(--bleed) * 2);
+  height: calc(var(--trim-h) + var(--bleed) * 2);
   flex: 0 0 auto;
-  padding: 13mm 11mm 11mm;
+  padding: calc(13mm + var(--bleed)) calc(11mm + var(--bleed)) calc(11mm + var(--bleed));
   background:
     radial-gradient(circle at 18% 12%, rgba(184, 138, 69, 0.07), transparent 32%),
     repeating-linear-gradient(0deg, rgba(87, 56, 29, 0.018) 0, rgba(87, 56, 29, 0.018) 1px, transparent 1px, transparent 4px),
@@ -1713,7 +1720,7 @@ button.project-card__preview {
 
 .cover-page,
 .back-page {
-  padding: 8mm;
+  padding: calc(8mm + var(--bleed));
   background:
     linear-gradient(180deg, rgba(29, 20, 13, 0.05), rgba(29, 20, 13, 0.54)),
     radial-gradient(circle at 50% 10%, rgba(55, 134, 175, 0.25), transparent 48%),
@@ -3353,6 +3360,169 @@ button.project-card__preview {
   color: var(--tone-ink);
 }
 
+.print-output {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.print-output legend {
+  padding: 0 6px;
+  color: var(--wood);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.print-output__option {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 7px 0;
+  cursor: pointer;
+}
+
+.print-output__option input {
+  margin-top: 3px;
+}
+
+.print-output__option strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.print-output__option small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   ARCHIVO DE IMPRENTA
+
+   La salida A5 de oficina se imprime tal cual. Una imprenta necesita otra cosa:
+   la página con sangrado alrededor y marcas que indiquen dónde cortar.
+
+   Aquí cada página A5 se centra en una hoja A4 con 3 mm de sangrado y sus
+   marcas de corte y de registro. Convenciones de artes gráficas:
+
+   - Sangrado 3 mm por lado: el corte real nunca cae exacto, y sin sangrado
+     aparecería una línea blanca en el borde.
+   - Marcas de corte de 5 mm, separadas del corte por los mismos 3 mm del
+     sangrado, para que no invadan la zona que sí se imprime.
+   - Filete de 0,25 mm, el mínimo que un equipo digital reproduce con nitidez.
+   - Cruces de registro al centro de cada lado, para alinear las tintas.
+   ============================================================ */
+
+.page-sheet {
+  display: contents;
+}
+
+body.print-press .page-sheet {
+  --sheet-w: 210mm;
+  --sheet-h: 297mm;
+  --trim-w: 148mm;
+  --trim-h: 210mm;
+  --bleed: 3mm;
+  --mark: 5mm;
+  --rule: 0.25mm;
+  --mark-ink: #1d140d;
+
+  /* Esquina superior izquierda del corte dentro de la hoja. */
+  --x: calc((var(--sheet-w) - var(--trim-w)) / 2);
+  --y: calc((var(--sheet-h) - var(--trim-h)) / 2);
+  --x2: calc(var(--x) + var(--trim-w));
+  --y2: calc(var(--y) + var(--trim-h));
+  --out: calc(var(--bleed) + var(--mark));
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--sheet-w);
+  height: var(--sheet-h);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: white;
+  break-after: page;
+  page-break-after: always;
+}
+
+body.print-press .page-sheet:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+/* Ocho segmentos: dos por esquina, marcando dónde cae la cuchilla. */
+body.print-press .page-sheet::before {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  content: "";
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink)),
+    linear-gradient(var(--mark-ink), var(--mark-ink));
+  background-size:
+    var(--mark) var(--rule),
+    var(--mark) var(--rule),
+    var(--mark) var(--rule),
+    var(--mark) var(--rule),
+    var(--rule) var(--mark),
+    var(--rule) var(--mark),
+    var(--rule) var(--mark),
+    var(--rule) var(--mark);
+  background-position:
+    calc(var(--x) - var(--out)) var(--y),
+    calc(var(--x2) + var(--bleed)) var(--y),
+    calc(var(--x) - var(--out)) var(--y2),
+    calc(var(--x2) + var(--bleed)) var(--y2),
+    var(--x) calc(var(--y) - var(--out)),
+    var(--x2) calc(var(--y) - var(--out)),
+    var(--x) calc(var(--y2) + var(--bleed)),
+    var(--x2) calc(var(--y2) + var(--bleed));
+}
+
+/* Pie técnico fuera del corte: identifica la hoja en la mesa de la imprenta. */
+body.print-press .page-sheet::after {
+  position: absolute;
+  right: 0;
+  bottom: 6mm;
+  left: 0;
+  z-index: 40;
+  content: attr(data-sheet);
+  color: var(--mark-ink);
+  font-family: var(--font-body);
+  font-size: 6pt;
+  letter-spacing: 0.04em;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* La página declara su propio --bleed: 0mm, que tapa el heredado de la hoja.
+   Aquí se le da el valor de imprenta de forma explícita. */
+body.print-press .mag-page {
+  --bleed: 3mm;
+  box-shadow: none;
+}
+
+/* En esta salida no corresponde ninguna marca de trabajo. */
+body.print-press .page-overflow-badge,
+body.print-press .safe-line {
+  display: none !important;
+}
+
 /* 13 · Asistente editorial ----------------------------------- */
 
 .assistant {
@@ -3804,9 +3974,9 @@ button.project-card__preview {
 
 .page--opener .feature-image,
 .page--opener .culture-hero {
-  width: calc(100% + 22mm);
-  margin-right: -11mm;
-  margin-left: -11mm;
+  width: calc(100% + 22mm + var(--bleed) * 2);
+  margin-right: calc(-11mm - var(--bleed));
+  margin-left: calc(-11mm - var(--bleed));
   border-radius: 0;
 }
 
@@ -3826,10 +3996,11 @@ button.project-card__preview {
 .cover-masthead {
   grid-template-columns: 22mm 1fr;
   gap: 3.5mm;
+  --masthead-bleed: var(--bleed);
   /* La cabecera cruza la portada de corte a corte: descuenta los 8 mm de
      margen de la portada más el de la caja de contenido (4 mm / 5 mm). */
-  margin: -12mm -13mm 0;
-  padding: 6mm 8mm 4mm;
+  margin: calc(-12mm - var(--masthead-bleed)) calc(-13mm - var(--masthead-bleed)) 0;
+  padding: calc(6mm + var(--masthead-bleed)) calc(8mm + var(--masthead-bleed)) 4mm;
   border: 0;
   border-bottom: 0.9mm solid var(--gold);
 }
@@ -3958,5 +4129,42 @@ button.project-card__preview {
     text-align: center;
     text-transform: uppercase;
     pointer-events: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Archivo de imprenta: la hoja pasa a A4 y el salto de página lo manda la hoja,
+   no la página de la revista, porque cada A5 va centrada dentro de su A4.
+   --------------------------------------------------------------------------- */
+@media print {
+  body.print-press,
+  body.print-press html {
+    width: 210mm;
+  }
+
+  body.print-press .studio-shell,
+  body.print-press .workspace,
+  body.print-press .page-stage,
+  body.print-press #pageHost,
+  body.print-press .page-group,
+  body.print-press .page-group--all {
+    width: 210mm;
+  }
+
+  body.print-press .mag-page {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  body.print-press .page-sheet {
+    break-after: page;
+    page-break-after: always;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.print-press .page-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
   }
 }

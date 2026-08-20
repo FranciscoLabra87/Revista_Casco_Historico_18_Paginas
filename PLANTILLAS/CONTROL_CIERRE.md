@@ -26,5 +26,7 @@
 - [ ] El PDF A5 de 18 páginas para oficina o distribución digital fue revisado a escala 100 %, sin márgenes y con gráficos de fondo.
 - [ ] Si se producirá un cuadernillo doblado y corcheteado, se consultó a la imprenta si exige ampliar la edición a 20 páginas para completar un múltiplo de cuatro.
 - [ ] Si se usará imprenta profesional, la imprenta confirmó imposición, sangrado, marcas de corte, perfil de color, resolución y demás requisitos.
-- [ ] Se confirmó que la salida A5 actual no agrega imposición, sangrado, marcas de corte ni un perfil de color de imprenta.
+- [ ] Para el tiraje se usó la salida **Archivo de imprenta**: A4 con la página centrada, 3 mm de sangrado y marcas de corte y registro.
+- [ ] Se confirmó con la imprenta el corte de 148 × 210 mm y el sangrado de 3 mm indicados en el pie de cada hoja.
+- [ ] Se confirmó que esa salida no incluye imposición de pliegos ni perfil de color de imprenta: ambos los aplica el taller gráfico.
 - [ ] Se guardaron la copia JSON editable y los PDF aprobados para el uso que corresponde.

@@ -80,7 +80,7 @@ El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y
 - **PDF de revisión:** puede contener pendientes; el sistema incorpora la marca visible **BORRADOR · NO DISTRIBUIR** y no se usa como archivo final.
 - **PDF A5 de oficina o digital:** las 18 páginas sirven para revisión en pantalla, distribución digital o impresión común en A5 después del control de cierre.
 - **Cuadernillo doblado y corcheteado:** suele necesitar una cantidad de páginas múltiplo de cuatro. Consulte a la imprenta si debe ampliar la edición a 20 páginas antes de diseñar los pliegos.
-- **Imprenta profesional:** consulte primero sus requisitos. La salida actual es A5 y no agrega sangrado, marcas de corte, imposición ni un perfil de color de imprenta. Si la imprenta exige esos elementos, debe preparar y validar una salida distinta.
+- **Archivo de imprenta:** al guardar el PDF puede elegir esta salida. Coloca cada página A5 centrada en una hoja A4, con 3 mm de sangrado y marcas de corte y de registro, y un pie técnico que indica página, edición, medida de corte y sangrado. Es lo que un taller gráfico necesita para el tiraje. No incluye imposición de pliegos ni perfil de color: eso lo aplica la imprenta con sus propios equipos.
 
 ## Asistente editorial
 

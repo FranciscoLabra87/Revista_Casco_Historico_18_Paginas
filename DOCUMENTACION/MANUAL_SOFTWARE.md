@@ -169,7 +169,32 @@ En el cuadro de impresión seleccione:
 - márgenes **ninguno**;
 - gráficos de fondo activados.
 
-La salida incluida sirve para distribución digital o impresión de oficina. No agrega por sí sola sangrado, marcas de corte, imposición ni perfil de color profesional. Además, 18 no es múltiplo de cuatro; para un cuadernillo doblado y corcheteado, consulte a la imprenta si debe ampliar la edición a 20 páginas.
+### Las dos salidas
+
+Al guardar el PDF, el cuadro ofrece dos archivos distintos:
+
+**PDF A5 de oficina y uso digital.** Las 18 páginas al tamaño final, 148 × 210 mm.
+Para leer en pantalla, distribuir por correo o mensajería, o imprimir en una
+impresora común. Elija papel A5, escala 100 %, márgenes ninguno.
+
+**Archivo de imprenta.** Cada página A5 centrada en una hoja A4, con 3 mm de
+sangrado alrededor y marcas de corte y de registro. Elija papel **A4**, escala
+100 %, márgenes ninguno, y active los gráficos de fondo: sin eso no se imprimen
+ni el sangrado ni las marcas.
+
+El sangrado es la franja que se imprime de más y que la guillotina se lleva.
+Existe porque el corte real nunca cae exacto: sin él aparecería una línea blanca
+en el borde de las fotografías que llegan al canto. Por eso las imágenes de
+apertura se extienden 3 mm fuera del corte, mientras el texto se mantiene dentro.
+
+El pie de cada hoja indica página, edición, medida de corte y sangrado, para que
+en la mesa de la imprenta no haya dudas sobre qué archivo es.
+
+Esta salida **no** incluye imposición de pliegos ni perfil de color de imprenta.
+Ambas cosas las aplica el taller gráfico con sus propios equipos, y hacerlas mal
+arruina el tiraje completo. Además, 18 no es múltiplo de cuatro; para un
+cuadernillo doblado y corcheteado, consulte si debe ampliar la edición a 20
+páginas.
 
 ## 8. Límites de esta versión
 

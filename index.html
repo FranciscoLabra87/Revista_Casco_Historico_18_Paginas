@@ -482,7 +482,25 @@
         <strong>Salida A5 para revisión, oficina o uso digital</strong>
         <p>Esta salida A5 está preparada para revisión, impresión de oficina y uso digital. Una imprenta profesional puede requerir un perfil acordado de sangrado, color y resolución.</p>
       </div>
-      <ol>
+      <fieldset class="print-output">
+        <legend>Qué archivo necesitas</legend>
+        <label class="print-output__option" for="outputOffice">
+          <input type="radio" id="outputOffice" name="printOutput" value="office" checked />
+          <span>
+            <strong>PDF A5 de oficina y uso digital</strong>
+            <small>Las 18 páginas al tamaño final. Para leer en pantalla, distribuir o imprimir en una impresora común.</small>
+          </span>
+        </label>
+        <label class="print-output__option" for="outputPress">
+          <input type="radio" id="outputPress" name="printOutput" value="press" />
+          <span>
+            <strong>Archivo de imprenta</strong>
+            <small>Cada A5 centrada en una hoja A4, con 3 mm de sangrado y marcas de corte y registro. Es lo que pide un taller para hacer el tiraje.</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <ol id="printSteps">
         <li>En la ventana de impresión elige <strong>Guardar como PDF</strong>.</li>
         <li>Selecciona papel <strong>A5</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.</li>
         <li>Activa <strong>gráficos de fondo</strong> para conservar marcos, colores y mosaicos.</li>
