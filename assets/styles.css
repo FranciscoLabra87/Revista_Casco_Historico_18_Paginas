@@ -1168,6 +1168,9 @@ button.project-card__preview {
   --c4: calc(var(--c1) * 4 + var(--gut) * 3);
   --c5: calc(var(--c1) * 5 + var(--gut) * 4);
   --c6: var(--caja);
+  /* Reparto texto/apoyo y medida objetivo, declarados por formato. */
+  --texto: var(--ancho-texto, var(--c4));
+  --apoyo: var(--ancho-apoyo, var(--c2));
   font-kerning: normal;
   font-variant-ligatures: common-ligatures contextual;
   position: relative;
@@ -1411,9 +1414,10 @@ button.project-card__preview {
   text-align: left;
 }
 
-/* Sólo a ancho de caja: (125 - 4) / 2 = 60,5 mm, unos 40 caracteres. */
+/* A ancho de caja, la medida objetivo decide cuántas columnas caben. */
 .two-columns {
-  column-count: 2;
+  column-count: auto;
+  column-width: var(--medida-corta, 60mm);
   column-gap: var(--gut);
   column-rule: 0.3mm solid var(--sand);
 }
@@ -1582,7 +1586,7 @@ button.project-card__preview {
 .heritage-grid,
 .interview-grid {
   display: grid;
-  grid-template-columns: var(--c2) var(--c4);
+  grid-template-columns: var(--apoyo) var(--texto);
   gap: var(--gut);
 }
 
@@ -1712,7 +1716,7 @@ button.project-card__preview {
 }
 
 .index-grid {
-  grid-template-columns: var(--c4) var(--c2);
+  grid-template-columns: var(--texto) var(--apoyo);
   gap: var(--gut);
 }
 
@@ -1915,17 +1919,19 @@ button.project-card__preview {
   line-height: 1.35;
 }
 
-/* Dentro de la columna de 82 mm no caben dos columnas legibles: se compone a
-   una sola, que da unos 54 caracteres por línea. */
+/* El número de columnas lo decide la medida objetivo, no un número fijo: en A5
+   el bloque cabe en una sola columna de 82 mm; en tabloide se parte en dos de
+   80 mm. En ambos casos la línea se queda entre 45 y 58 caracteres. */
 .feature-grid .two-columns,
 .editorial-main .two-columns,
 .heritage-close-grid .two-columns {
-  column-count: 1;
+  column-count: auto;
+  column-width: var(--medida-texto, 82mm);
 }
 
 /* 4 columnas de texto (82 mm, unos 54 caracteres) y 2 de apoyo. */
 .feature-grid {
-  grid-template-columns: var(--c4) var(--c2);
+  grid-template-columns: var(--texto) var(--apoyo);
   gap: var(--gut);
   align-items: start;
 }
@@ -2010,7 +2016,7 @@ button.project-card__preview {
 
 .heritage-close-grid {
   display: grid;
-  grid-template-columns: var(--c4) var(--c2);
+  grid-template-columns: var(--texto) var(--apoyo);
   align-items: start;
   gap: 4mm;
   margin-top: 4mm;

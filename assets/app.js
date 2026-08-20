@@ -148,17 +148,22 @@
     p15: { lista: "agenda", min: 12, max: 45 }
   };
 
+  function factorSuperficie() {
+    return FORMATOS[formatoActual()]?.superficie || 1;
+  }
+
   function wordBudgetState(pageId, pageElement) {
     const budget = PAGE_WORD_BUDGETS[pageId];
     if (!budget) return null;
+    const factor = factorSuperficie();
     const porElemento = RANGO_POR_ELEMENTO[pageId];
     if (porElemento) {
       const page = pages.find((entry) => entry.id === pageId);
       const defaults = page?.lists?.[porElemento.lista] || [];
       const total = listCount(page, porElemento.lista, defaults);
       const words = countPageWords(pageElement);
-      const min = total * porElemento.min;
-      const max = total * porElemento.max;
+      const min = Math.round(total * porElemento.min * factor);
+      const max = Math.round(total * porElemento.max * factor);
       return {
         min,
         max,
@@ -168,8 +173,10 @@
       };
     }
     const words = countPageWords(pageElement);
-    const status = words < budget.min ? "short" : words > budget.max ? "long" : "ok";
-    return { ...budget, words, status };
+    const min = Math.round(budget.min * factor);
+    const max = Math.round(budget.max * factor);
+    const status = words < min ? "short" : words > max ? "long" : "ok";
+    return { ...budget, min, max, words, status };
   }
 
   function updateWordBudget() {
@@ -225,21 +232,24 @@
       descripcion: "Revista de bolsillo. Es el formato con el que nació esta publicación.",
       ancho: 148, alto: 210,
       cabeza: 13.5, pie: 16.5, interior: 13, exterior: 10,
-      medianil: 4, base: 4.5, cuerpo: 9
+      medianil: 4, base: 4.5, cuerpo: 9,
+      texto: 82, apoyo: 39, medida: 82, medidaCorta: 60, superficie: 1
     },
     a4: {
       etiqueta: "A4 · 210 × 297 mm",
       descripcion: "El doble de superficie. Cabe más texto y la fotografía respira.",
       ancho: 210, alto: 297,
       cabeza: 16, pie: 20, interior: 16, exterior: 13,
-      medianil: 5, base: 5, cuerpo: 10
+      medianil: 5, base: 5, cuerpo: 10,
+      texto: 98, apoyo: 78, medida: 98, medidaCorta: 86, superficie: 2.1
     },
     tabloide: {
       etiqueta: "Tabloide · 280 × 400 mm",
       descripcion: "Formato de diario. Titulares grandes y varias noticias por página.",
       ancho: 280, alto: 400,
       cabeza: 18, pie: 22, interior: 18, exterior: 15,
-      medianil: 5, base: 5.5, cuerpo: 10.5
+      medianil: 5, base: 5.5, cuerpo: 10.5,
+      texto: 165, apoyo: 77, medida: 78, medidaCorta: 78, superficie: 3.9
     }
   };
 
@@ -261,6 +271,10 @@
     raiz.setProperty("--medianil", `${f.medianil}mm`);
     raiz.setProperty("--linea-base", `${f.base}mm`);
     raiz.setProperty("--cuerpo-texto", `${f.cuerpo}pt`);
+    raiz.setProperty("--ancho-texto", `${f.texto}mm`);
+    raiz.setProperty("--ancho-apoyo", `${f.apoyo}mm`);
+    raiz.setProperty("--medida-texto", `${f.medida}mm`);
+    raiz.setProperty("--medida-corta", `${f.medidaCorta}mm`);
     document.body.dataset.formato = clave;
     applyPageRule(state.pressOutput === true ? "press" : "office");
   }
