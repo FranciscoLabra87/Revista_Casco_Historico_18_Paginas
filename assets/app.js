@@ -75,7 +75,8 @@
     location: "Puente Alto · Chile",
     motto: "Un barrio con historia es un barrio con futuro",
     verified: false,
-    verifiedAt: ""
+    verifiedAt: "",
+    formato: "a5"
   };
   const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i;
   const MAX_IMAGE_CHARACTERS = 6_300_000;
@@ -209,12 +210,91 @@
 
   document.documentElement.classList.toggle("sin-particion", !hyphenationAvailable());
 
-  const TRIM_LABEL = "148 × 210 mm";
-  const PRESS_BLEED_LABEL = "3 mm";
-  const PAGE_RULES = {
-    office: "@page { size: 148mm 210mm; margin: 0; }",
-    press: "@page { size: 210mm 297mm; margin: 0; }"
+
+  // ---------------------------------------------------------------------------
+  // Formato de página
+  //
+  // El tamaño estaba clavado en 148 x 210 mm en el CSS, en la regla @page y en
+  // la salida de imprenta. Ahora es un dato de la edición: la retícula, los
+  // márgenes, la línea base y el cuerpo de lectura se derivan de él.
+  // ---------------------------------------------------------------------------
+
+  const FORMATOS = {
+    a5: {
+      etiqueta: "A5 · 148 × 210 mm",
+      descripcion: "Revista de bolsillo. Es el formato con el que nació esta publicación.",
+      ancho: 148, alto: 210,
+      cabeza: 13.5, pie: 16.5, interior: 13, exterior: 10,
+      medianil: 4, base: 4.5, cuerpo: 9
+    },
+    a4: {
+      etiqueta: "A4 · 210 × 297 mm",
+      descripcion: "El doble de superficie. Cabe más texto y la fotografía respira.",
+      ancho: 210, alto: 297,
+      cabeza: 16, pie: 20, interior: 16, exterior: 13,
+      medianil: 5, base: 5, cuerpo: 10
+    },
+    tabloide: {
+      etiqueta: "Tabloide · 280 × 400 mm",
+      descripcion: "Formato de diario. Titulares grandes y varias noticias por página.",
+      ancho: 280, alto: 400,
+      cabeza: 18, pie: 22, interior: 18, exterior: 15,
+      medianil: 5, base: 5.5, cuerpo: 10.5
+    }
   };
+
+  function formatoActual() {
+    const guardado = issueSettings().formato;
+    return FORMATOS[guardado] ? guardado : "a5";
+  }
+
+  function aplicarFormato() {
+    const clave = formatoActual();
+    const f = FORMATOS[clave];
+    const raiz = document.documentElement.style;
+    raiz.setProperty("--formato-ancho", `${f.ancho}mm`);
+    raiz.setProperty("--formato-alto", `${f.alto}mm`);
+    raiz.setProperty("--margen-cabeza", `${f.cabeza}mm`);
+    raiz.setProperty("--margen-pie", `${f.pie}mm`);
+    raiz.setProperty("--margen-int", `${f.interior}mm`);
+    raiz.setProperty("--margen-ext", `${f.exterior}mm`);
+    raiz.setProperty("--medianil", `${f.medianil}mm`);
+    raiz.setProperty("--linea-base", `${f.base}mm`);
+    raiz.setProperty("--cuerpo-texto", `${f.cuerpo}pt`);
+    document.body.dataset.formato = clave;
+    applyPageRule(state.pressOutput === true ? "press" : "office");
+  }
+
+  async function cambiarFormato(clave) {
+    if (!FORMATOS[clave] || clave === formatoActual()) return;
+    try {
+      const ajustes = { ...issueSettings(), formato: clave };
+      await projectStorage.putMany(new Map([[storageKey("settings", "issue"), JSON.stringify(ajustes)]]));
+    } catch (error) {
+      showToast(error?.message || "No se pudo cambiar el formato.");
+      return;
+    }
+    aplicarFormato();
+    invalidatePreflight();
+    renderTree();
+    renderMagazine();
+    const f = FORMATOS[clave];
+    showToast(`Formato ${f.etiqueta}. Revisa las páginas: el contenido se recompone y puede sobrar o faltar texto.`);
+  }
+
+  const TRIM_LABEL = "148 × 210 mm";
+  function etiquetaCorte() {
+    const f = FORMATOS[formatoActual()];
+    return `${f.ancho} × ${f.alto} mm`;
+  }
+  const PRESS_BLEED_LABEL = "3 mm";
+  // La hoja de imprenta lleva la página centrada con sangrado y marcas: necesita
+  // margen alrededor, así que crece 62 x 87 mm respecto del corte.
+  function reglaPagina(modo) {
+    const f = FORMATOS[formatoActual()];
+    if (modo === "press") return `@page { size: ${f.ancho + 62}mm ${f.alto + 87}mm; margin: 0; }`;
+    return `@page { size: ${f.ancho}mm ${f.alto}mm; margin: 0; }`;
+  }
 
   // El tamaño de hoja no se puede elegir con una clase: @page es una regla de
   // documento. Se inyecta la que corresponde justo antes de imprimir.
@@ -225,7 +305,7 @@
       hoja.id = "pageSizeRule";
       document.head.appendChild(hoja);
     }
-    hoja.textContent = PAGE_RULES[nombre] || PAGE_RULES.office;
+    hoja.textContent = reglaPagina(nombre);
   }
 
   const FRAME_WAIT_TIMEOUT = 400;
@@ -404,7 +484,9 @@
   const TIPOGRAFIAS = {
     titulo: { etiqueta: "Título", valor: "var(--font-title)" },
     subtitulo: { etiqueta: "Subtítulo", valor: "var(--font-subtitle)" },
-    texto: { etiqueta: "Texto", valor: "var(--font-body)" }
+    texto: { etiqueta: "Texto", valor: "var(--font-body)" },
+    serif: { etiqueta: "Serif de lectura", valor: "var(--font-serif)" },
+    condensada: { etiqueta: "Condensada", valor: "var(--font-condensed)" }
   };
 
   const COLORES_IDENTIDAD = [
@@ -1032,7 +1114,7 @@
     // pares cae dentro del lomo, que es el único sitio donde no sirve.
     const sideClass = page.number % 2 === 1 ? "page--recto" : "page--verso";
     const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} ${sideClass} page--tone-${page.tone || "gold"}`;
-    const sheetLabel = escapeHtml(`P${String(page.number).padStart(2, "0")} · ${issueSettings().edition} · corte ${TRIM_LABEL} · sangrado ${PRESS_BLEED_LABEL}`);
+    const sheetLabel = escapeHtml(`P${String(page.number).padStart(2, "0")} · ${issueSettings().edition} · corte ${etiquetaCorte()} · sangrado ${PRESS_BLEED_LABEL}`);
     return `<div class="page-sheet" data-sheet="${sheetLabel}"><article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article></div>`;
   }
 
@@ -1878,7 +1960,27 @@
     showToast.timer = setTimeout(() => els.toast.classList.remove("is-visible"), 2600);
   }
 
+  function pintarOpcionesFormato() {
+    const caja = document.getElementById("formatoOpciones");
+    if (!caja) return;
+    const actual = formatoActual();
+    caja.innerHTML = Object.entries(FORMATOS).map(([clave, f]) => `
+      <label class="formato-opcion${clave === actual ? " is-active" : ""}" for="formato-${clave}">
+        <input type="radio" id="formato-${clave}" name="formatoPagina" value="${clave}"${clave === actual ? " checked" : ""} />
+        <span>
+          <strong>${escapeHtml(f.etiqueta)}</strong>
+          <small>${escapeHtml(f.descripcion)}</small>
+        </span>
+      </label>`).join("");
+    caja.querySelectorAll("[name='formatoPagina']").forEach((opcion) => {
+      opcion.addEventListener("change", () => {
+        if (opcion.checked) cambiarFormato(opcion.value);
+      });
+    });
+  }
+
   function openSettingsDialog() {
+    pintarOpcionesFormato();
     const settings = issueSettings();
     Object.entries(settings).forEach(([name, value]) => {
       const control = els.settingsForm.elements.namedItem(name);
@@ -2669,6 +2771,7 @@
     els.currentProjectName.textContent = project.name;
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
+    aplicarFormato();
     const huerfanas = migrarSumarioAntiguo();
     if (huerfanas) showToast(`Se actualizó el sumario de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
     // De la edición dependían las fotos, los botones de lista, el faldón, el

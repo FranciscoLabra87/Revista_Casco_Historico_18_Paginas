@@ -51,7 +51,7 @@ con **Ocultar** y el taller recuerda la preferencia.
 
 1. Cree o abra una revista desde **Mis revistas**.
 2. Use el árbol lateral para recorrer los segmentos y las 18 páginas.
-3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. El sistema la reutiliza en las páginas correspondientes.
+3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. Ahí se elige también el **formato**: A5 de bolsillo, A4, o tabloide de 280 × 400 mm, que es tamaño de diario. Cambiar el formato recompone las 18 páginas, así que conviene decidirlo antes de escribir. El sistema la reutiliza en las páginas correspondientes.
 4. Presione **Editar** para cambiar textos y fotografías. Cada foto exige descripción accesible, crédito y confirmación de permiso. Si modifica una página aprobada, vuelve automáticamente a estado pendiente.
    - Al pegar desde Word o desde el correo, el taller conserva sólo el texto: lo que ve en pantalla es lo que se va a imprimir.
    - **Deshacer** revierte el último cambio de texto. También funciona con Ctrl+Z cuando el cursor no está dentro de un campo.
