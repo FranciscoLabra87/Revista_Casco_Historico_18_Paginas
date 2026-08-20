@@ -1500,6 +1500,7 @@
     // sí necesita medir, y por eso espera al siguiente cuadro.
     updateWordBudget();
     asistenteRefrescar();
+    guiaRefrescar();
     if (els.format && !els.format.hidden) {
       const objetivo = formatoObjetivo();
       if (objetivo) formatoSeleccionar(objetivo.tipo, objetivo.clave);
@@ -3609,6 +3610,98 @@
       if (boton) formatoAccion(boton.dataset.fmt, boton.dataset.valor);
     });
   }
+
+
+  // ---------------------------------------------------------------------------
+  // Guía de primer uso
+  //
+  // No había ninguna orientación dentro del programa: el orden correcto sólo
+  // estaba en LEEME_PRIMERO.md, y el lanzador abre una ventana sin barra de
+  // direcciones desde la que no se puede llegar a la documentación. Los cinco
+  // pasos se marcan solos según el avance real, y el panel se recuerda plegado
+  // por edición para no estorbar a quien ya sabe.
+  // ---------------------------------------------------------------------------
+
+  const GUIA_PLEGADA = "taller:guia-plegada";
+
+  function guiaEstado() {
+    const settings = issueSettings();
+    const datosListos = settings.verified === true
+      && ["edition", "responsible", "email", "whatsapp", "closingDate", "location"]
+        .every((clave) => String(settings[clave] || "").trim());
+
+    let conMuestra = 0;
+    let sinFoto = 0;
+    pages.forEach((page) => {
+      const elemento = els.host.querySelector(`[data-page-id="${page.id}"]`);
+      if (!elemento) return;
+      if ([...elemento.querySelectorAll("[data-edit-key]")].some((n) => isModelText(n.dataset.editKey, n.textContent))) conMuestra += 1;
+    });
+    [...IMAGE_SLOTS].forEach((slotKey) => {
+      if (slotKey === LOGO_KEY) return;
+      const [pageId, slot] = slotKey.split(".");
+      if (slot === "ad") return;
+      if (!imageData(pageId, slot)) sinFoto += 1;
+    });
+
+    const listas = pages.filter((page) => projectStorage.getItem(storageKey("done", page.id)) === "1").length;
+    return {
+      datos: datosListos,
+      textos: conMuestra === 0,
+      fotos: sinFoto === 0,
+      listas: listas === pages.length,
+      pdf: false,
+      listasCuantas: listas
+    };
+  }
+
+  function guiaRefrescar() {
+    const panel = document.getElementById("guidePanel");
+    if (!panel || panel.hidden) return;
+    const estado = guiaEstado();
+    let hechos = 0;
+    panel.querySelectorAll("[data-guide]").forEach((paso) => {
+      const hecho = estado[paso.dataset.guide] === true;
+      paso.classList.toggle("is-done", hecho);
+      if (hecho) hechos += 1;
+    });
+    const progreso = document.getElementById("guideProgress");
+    if (progreso) {
+      progreso.textContent = hechos === 0
+        ? "Cinco pasos, en este orden."
+        : `${hechos} de 5 pasos completos · ${estado.listasCuantas} de ${pages.length} páginas listas.`;
+    }
+  }
+
+  function guiaPlegar(plegar) {
+    const pasos = document.getElementById("guideSteps");
+    const boton = document.getElementById("guideToggle");
+    const pie = document.querySelector(".guia__foot");
+    if (!pasos || !boton) return;
+    pasos.hidden = plegar;
+    if (pie) pie.hidden = plegar;
+    boton.textContent = plegar ? "Mostrar" : "Ocultar";
+    boton.setAttribute("aria-expanded", String(!plegar));
+    try {
+      window.localStorage.setItem(GUIA_PLEGADA, plegar ? "1" : "0");
+    } catch {
+      // Recordar el pliegue es una comodidad, no un dato de la revista.
+    }
+  }
+
+  document.getElementById("guideToggle")?.addEventListener("click", () => {
+    guiaPlegar(!document.getElementById("guideSteps")?.hidden === true);
+  });
+
+  (function restaurarPliegueGuia() {
+    let plegada = false;
+    try {
+      plegada = window.localStorage.getItem(GUIA_PLEGADA) === "1";
+    } catch {
+      plegada = false;
+    }
+    if (plegada) guiaPlegar(true);
+  })();
 
   if (compactQuery.matches) els.sidebar.inert = true;
   syncEditButton();

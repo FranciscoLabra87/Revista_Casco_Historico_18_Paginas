@@ -3549,6 +3549,121 @@ body.assistant-open.format-open .studio-shell {
   padding-right: min(330px, 92vw);
 }
 
+/* 17 · Guía de primer uso ------------------------------------- */
+
+.guia {
+  margin: 0 0 14px;
+  padding: 15px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.guia__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.guia__head h2 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.guia__head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.guia__steps {
+  display: grid;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: guia;
+}
+
+.guia__steps li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 11px;
+  align-items: start;
+  counter-increment: guia;
+}
+
+.guia__mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--gold-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.guia__mark::before {
+  content: counter(guia);
+}
+
+.guia__steps li.is-done .guia__mark {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--cream);
+}
+
+.guia__steps li.is-done .guia__mark::before {
+  content: "✓";
+}
+
+.guia__steps li.is-done strong {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.guia__steps strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.guia__steps small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.guia__steps .button {
+  margin-top: 7px;
+}
+
+.guia__foot {
+  margin: 14px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.guia__foot code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--surface-2, rgba(29, 20, 13, 0.07));
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 11px;
+}
+
 /* 16 · Revisión final agrupada -------------------------------- */
 
 .preflight-steps {

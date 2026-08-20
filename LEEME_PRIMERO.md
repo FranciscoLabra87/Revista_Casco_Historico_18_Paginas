@@ -45,6 +45,10 @@ Las carpetas de segmentos forman la plantilla común. El contenido de cada edici
 
 ## Uso recomendado
 
+El taller muestra estos mismos pasos en pantalla, en el panel **Cómo hacer esta
+revista**, y los va marcando según el avance real de la edición. Se puede plegar
+con **Ocultar** y el taller recuerda la preferencia.
+
 1. Cree o abra una revista desde **Mis revistas**.
 2. Use el árbol lateral para recorrer los segmentos y las 18 páginas.
 3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. El sistema la reutiliza en las páginas correspondientes.

@@ -244,6 +244,55 @@
           <p id="workspaceMessage">Doble página: se ven dos páginas juntas, como al abrir la revista.</p>
           <span class="autosave" id="autosaveStatus">Guardado local</span>
         </div>
+        <section class="guia app-chrome" id="guidePanel" aria-label="Cómo hacer la revista">
+          <header class="guia__head">
+            <div>
+              <h2>Cómo hacer esta revista</h2>
+              <p id="guideProgress">Cinco pasos, en este orden.</p>
+            </div>
+            <button type="button" class="text-button" id="guideToggle" aria-expanded="true" aria-controls="guideSteps">Ocultar</button>
+          </header>
+          <ol class="guia__steps" id="guideSteps">
+            <li data-guide="datos">
+              <span class="guia__mark" aria-hidden="true"></span>
+              <div>
+                <strong>Completa los datos de la edición</strong>
+                <small>Nombre, responsable, contacto y fecha límite. El taller los copia a la portada, los créditos y la contraportada.</small>
+                <button type="button" class="button button--small button--ghost" data-open-settings>Abrir datos de la edición</button>
+              </div>
+            </li>
+            <li data-guide="textos">
+              <span class="guia__mark" aria-hidden="true"></span>
+              <div>
+                <strong>Reemplaza el texto de muestra</strong>
+                <small>Las 18 páginas vienen con texto de ejemplo. Pulsa sobre cualquier texto y escribe encima. El contador de la barra inferior te dice cuánto falta.</small>
+              </div>
+            </li>
+            <li data-guide="fotos">
+              <span class="guia__mark" aria-hidden="true"></span>
+              <div>
+                <strong>Coloca las fotografías</strong>
+                <small>Pulsa un recuadro de foto y elige el archivo. Cada una pide descripción, crédito y confirmación de permiso.</small>
+              </div>
+            </li>
+            <li data-guide="listas">
+              <span class="guia__mark" aria-hidden="true"></span>
+              <div>
+                <strong>Marca cada página como lista</strong>
+                <small>Cuando el contenido de una página esté confirmado, pulsa “Marcar como lista” en su esquina superior derecha.</small>
+              </div>
+            </li>
+            <li data-guide="pdf">
+              <span class="guia__mark" aria-hidden="true"></span>
+              <div>
+                <strong>Revisa y exporta el PDF</strong>
+                <small>“Revisión final” te dice qué falta. Después elige la salida de oficina o el archivo de imprenta.</small>
+              </div>
+            </li>
+          </ol>
+          <p class="guia__foot">Respalda tu trabajo al terminar cada jornada: <strong>Respaldar edición</strong>, en la lista de la izquierda. El manual completo está en la carpeta <code>DOCUMENTACION</code>.</p>
+        </section>
+
         <section class="page-stage" aria-label="Vista previa de la revista">
           <div id="pageHost"></div>
         </section>
