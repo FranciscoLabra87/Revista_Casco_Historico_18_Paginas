@@ -1499,7 +1499,9 @@
       ${imageSlot(page, "service", "Agregar fotografía de la iniciativa", "feature-image")}
       <div class="community-grid page-fill">${blocks}</div>
       <div class="two-columns community-body">
-        <p class="body-copy">${editable(page, "body")}</p>
+        <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+        <p class="body-copy">${editable(page, "body2")}</p>
+        <p class="body-copy">${editable(page, "body3")}</p>
       </div>
       <div class="contact-card">${editableLabel(page, "contactLabel", "Información práctica", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
@@ -2856,7 +2858,7 @@
 
   // La página 16 dejó de ser una convocatoria a colaborar y pasó a ser el
   // observatorio de datos. Dos campos de la maqueta anterior ya no se leen.
-  const CAMPOS_RETIRADOS = ["p16.callout", "p16.deadline"];
+  const CAMPOS_RETIRADOS = ["p16.callout", "p16.deadline", "p12.body"];
 
   function limpiarCamposRetirados() {
     const prefijos = CAMPOS_RETIRADOS.flatMap((campo) => [
@@ -2887,7 +2889,11 @@
     refreshBrandLogo();
     aplicarFormato();
     const huerfanas = migrarSumarioAntiguo() + limpiarCamposRetirados();
-    if (huerfanas) showToast(`Se actualizó la estructura de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
+    if (huerfanas) {
+      showToast(huerfanas === 1
+        ? "Se actualizó la estructura de esta revista y se retiró un dato que ya no se usaba."
+        : `Se actualizó la estructura de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
+    }
     // De la edición dependían las fotos, los botones de lista, el faldón, el
     // contador y la aprobación de páginas. Quien abría la revista veía un
     // recuadro que decía "Agregar fotografía", lo pulsaba y no ocurría nada.

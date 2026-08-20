@@ -19,7 +19,9 @@ window.MAGAZINE_SEGMENTS.push({
         block3Title: "¿Cómo participar?",
         block3Body: "Entregar fecha, lugar, horario, contacto e instrucciones concretas.",
         contact: "Contacto verificado: [teléfono · correo · dirección]",
-        body: "El texto principal puede explicar antecedentes, resultados esperados y próximos pasos en 350 a 500 palabras."
+        body1: "Primer párrafo: qué es esta iniciativa o este servicio y por qué le importa a quien vive en el barrio."
+        ,body2: "Segundo párrafo: cómo funciona, con los datos concretos, los organismos responsables y la fuente de cada cifra."
+        ,body3: "Tercer párrafo: qué puede hacer quien lee esta página, en qué plazo y dónde confirmar la información."
       }
     }
   ]
