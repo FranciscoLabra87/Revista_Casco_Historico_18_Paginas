@@ -992,7 +992,11 @@
     const folio = page.number === 1 || page.number === pages.length ? "" : `<span class="page-folio">${page.number}</span>`;
     const completeButton = `<button type="button" class="page-complete-toggle app-chrome ${complete ? "is-complete" : ""}" data-page-complete="${page.id}" aria-pressed="${complete}">${complete ? "Página lista" : "Marcar como lista"}</button>`;
     const overflowBadge = `<span class="page-overflow-badge app-chrome" hidden>Texto fuera del marco</span>`;
-    const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} page--tone-${page.tone || "gold"}`;
+    // En un cuadernillo la impar va a la derecha y la par a la izquierda. Con
+    // márgenes simétricos el lomo se lee como un canal doble y el folio de las
+    // pares cae dentro del lomo, que es el único sitio donde no sirve.
+    const sideClass = page.number % 2 === 1 ? "page--recto" : "page--verso";
+    const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} ${sideClass} page--tone-${page.tone || "gold"}`;
     const sheetLabel = escapeHtml(`P${String(page.number).padStart(2, "0")} · ${issueSettings().edition} · corte ${TRIM_LABEL} · sangrado ${PRESS_BLEED_LABEL}`);
     return `<div class="page-sheet" data-sheet="${sheetLabel}"><article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article></div>`;
   }
@@ -1340,8 +1344,9 @@
       <p class="page-deck">${editable(page, "deck")}</p>
       ${imageSlot(page, "service", "Agregar fotografía de la iniciativa", "feature-image")}
       <div class="community-grid page-fill">${blocks}</div>
-      <div style="height:4mm"></div>
-      <p class="body-copy">${editable(page, "body")}</p>
+      <div class="two-columns community-body">
+        <p class="body-copy">${editable(page, "body")}</p>
+      </div>
       <div class="contact-card">${editableLabel(page, "contactLabel", "Información práctica", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
   }
