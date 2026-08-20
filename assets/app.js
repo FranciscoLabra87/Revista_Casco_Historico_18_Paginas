@@ -3967,13 +3967,14 @@
   });
 
   (function restaurarPliegueGuia() {
-    let plegada = false;
+    let preferencia = null;
     try {
-      plegada = window.localStorage.getItem(GUIA_PLEGADA) === "1";
+      preferencia = window.localStorage.getItem(GUIA_PLEGADA);
     } catch {
-      plegada = false;
+      preferencia = null;
     }
-    if (plegada) guiaPlegar(true);
+    // Plegada por omisión: el área de trabajo es para trabajar.
+    guiaPlegar(preferencia !== "0");
   })();
 
   if (compactQuery.matches) els.sidebar.inert = true;
