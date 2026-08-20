@@ -344,6 +344,105 @@
     return normalizeComparableText(value) === model;
   }
 
+
+  // ---------------------------------------------------------------------------
+  // Formato por elemento
+  //
+  // Cada texto y cada fotografía pueden llevar ajustes propios: tipografía,
+  // cuerpo, color, alineación, interlineado; encuadre, altura y tratamiento.
+  // Se guardan como un registro aparte de su contenido, de modo que cambiar el
+  // texto no borra su formato ni al revés.
+  // ---------------------------------------------------------------------------
+
+  const ESTILO_SUFIJO = "__estilo";
+  const MARCO_SUFIJO = "__marco";
+
+  const TIPOGRAFIAS = {
+    titulo: { etiqueta: "Título", valor: "var(--font-title)" },
+    subtitulo: { etiqueta: "Subtítulo", valor: "var(--font-subtitle)" },
+    texto: { etiqueta: "Texto", valor: "var(--font-body)" }
+  };
+
+  const COLORES_IDENTIDAD = [
+    { etiqueta: "Tinta", valor: "#1d140d" },
+    { etiqueta: "Chocolate", valor: "#391e14" },
+    { etiqueta: "Madera", valor: "#57381d" },
+    { etiqueta: "Dorado", valor: "#79501d" },
+    { etiqueta: "Palmera", valor: "#365448" },
+    { etiqueta: "Cerámica", valor: "#2f6e92" },
+    { etiqueta: "Ladrillo", valor: "#8a3025" }
+  ];
+
+  const ALINEACIONES = [
+    { etiqueta: "Izquierda", valor: "left" },
+    { etiqueta: "Centro", valor: "center" },
+    { etiqueta: "Derecha", valor: "right" },
+    { etiqueta: "Justificado", valor: "justify" }
+  ];
+
+  const TRATAMIENTOS = [
+    { etiqueta: "Color", valor: "color" },
+    { etiqueta: "Blanco y negro", valor: "bn" },
+    { etiqueta: "Sepia", valor: "sepia" }
+  ];
+
+  const CUERPO_MIN = 5;
+  const CUERPO_MAX = 48;
+  const ALTURA_MIN = 18;
+  const ALTURA_MAX = 190;
+
+  function leerRegistro(pageId, key, sufijo) {
+    try {
+      const crudo = projectStorage.getItem(storageKey("text", `${pageId}.${key}.${sufijo}`));
+      if (!crudo) return null;
+      const dato = JSON.parse(crudo);
+      return dato && typeof dato === "object" && !Array.isArray(dato) ? dato : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function guardarRegistro(pageId, key, sufijo, dato) {
+    const clave = storageKey("text", `${pageId}.${key}.${sufijo}`);
+    const limpio = dato && Object.keys(dato).length ? dato : null;
+    if (!limpio) projectStorage.removeItem(clave);
+    else projectStorage.setItem(clave, JSON.stringify(limpio));
+  }
+
+  function estiloTexto(pageId, key) {
+    return leerRegistro(pageId, key, ESTILO_SUFIJO);
+  }
+
+  function marcoImagen(pageId, slot) {
+    return leerRegistro(pageId, slot, MARCO_SUFIJO);
+  }
+
+  function declaracionesTexto(estilo) {
+    if (!estilo) return "";
+    const partes = [];
+    if (TIPOGRAFIAS[estilo.familia]) partes.push(`font-family:${TIPOGRAFIAS[estilo.familia].valor}`);
+    if (Number.isFinite(estilo.cuerpo)) partes.push(`font-size:${estilo.cuerpo}pt`);
+    if (Number.isFinite(estilo.interlineado)) partes.push(`line-height:${estilo.interlineado}`);
+    if (typeof estilo.color === "string" && /^#[0-9a-f]{6}$/i.test(estilo.color)) partes.push(`color:${estilo.color}`);
+    if (ALINEACIONES.some((a) => a.valor === estilo.alineacion)) partes.push(`text-align:${estilo.alineacion}`);
+    if (estilo.negrita === true) partes.push("font-weight:700");
+    if (estilo.cursiva === true) partes.push("font-style:italic");
+    return partes.join(";");
+  }
+
+  function declaracionesMarco(marco) {
+    if (!marco) return "";
+    const partes = [];
+    if (Number.isFinite(marco.altura)) partes.push(`min-height:${marco.altura}mm`);
+    return partes.join(";");
+  }
+
+  function claseTratamiento(marco) {
+    if (marco?.tratamiento === "bn") return " trata-bn";
+    if (marco?.tratamiento === "sepia") return " trata-sepia";
+    return "";
+  }
+
   const UNDO_LIMIT = 60;
   const undoStack = [];
   const editSnapshots = new WeakMap();
@@ -646,10 +745,12 @@
   function editableValue(page, key, fallback, tag = "span", className = "") {
     rememberModelDefault(`${page.id}.${key}`, fallback);
     const value = savedText(page.id, key, fallback);
+    const declaraciones = declaracionesTexto(estiloTexto(page.id, key));
+    const atributoEstilo = declaraciones ? ` style="${escapeHtml(declaraciones)}"` : "";
     const editAttributes = state.editing
       ? ` tabindex="0" role="textbox" aria-multiline="true" aria-label="${escapeHtml(`${page.title}: ${humanFieldLabel(key)}`)}"`
       : "";
-    return `<${tag} class="editable ${className}" data-edit-key="${escapeHtml(page.id)}.${escapeHtml(key)}"${editAttributes}>${escapeHtml(value)}</${tag}>`;
+    return `<${tag} class="editable ${className}" data-edit-key="${escapeHtml(page.id)}.${escapeHtml(key)}"${atributoEstilo}${editAttributes}>${escapeHtml(value)}</${tag}>`;
   }
 
   function editableLabel(page, key, fallback, tag = "span", className = "") {
@@ -1583,6 +1684,7 @@
       issues.push({
         severity: "review",
         type: "identity",
+        advisory: true,
         pageId: "p01",
         pageIndex: 0,
         title: "La cabecera de portada difiere de la identidad institucional",
@@ -1690,6 +1792,7 @@
           issues.push({
             severity: "review",
             type: "image-fit",
+            advisory: true,
             pageId: page.id,
             pageIndex,
             title: recortadas.length === 1 ? "Una imagen se está recortando mucho" : `${recortadas.length} imágenes se están recortando mucho`,
@@ -1716,6 +1819,7 @@
           issues.push({
             severity: "review",
             type: "image-print",
+            advisory: true,
             pageId: page.id,
             pageIndex,
             title: printResolution.length === 1 ? "Una fotografía no alcanza calidad de imprenta" : `${printResolution.length} fotografías no alcanzan calidad de imprenta`,
@@ -1754,6 +1858,7 @@
           issues.push({
             severity: "review",
             type: "word-budget",
+            advisory: true,
             pageId: page.id,
             pageIndex,
             title: budget.status === "short" ? "El texto queda bajo la extensión prevista" : "El texto supera la extensión prevista",
@@ -1779,6 +1884,7 @@
         issues.push({
           severity: "review",
           type: "originals",
+          advisory: true,
           pageId: null,
           pageIndex: null,
           title: `Guarda ${originals.length === 1 ? "el archivo original" : `los ${originals.length} archivos originales`} fuera del navegador`,
@@ -1798,6 +1904,13 @@
       warning: issues.filter((issue) => issue.severity === "warning").length,
       review: issues.filter((issue) => issue.severity === "review").length
     };
+    // Las observaciones informativas -extensión, resolución de imprenta, encuadre,
+    // identidad, recordatorio de originales- no se pueden "resolver": avisan de algo
+    // que el equipo decide. Si contaran para el cierre, bastaría cargar una fotografía
+    // para que el PDF final fuera inalcanzable y todo saliera marcado como borrador.
+    // Bloquean sólo los problemas corregibles y las páginas sin aprobar.
+    counts.advisory = issues.filter((issue) => issue.advisory === true).length;
+    counts.review = issues.filter((issue) => issue.severity === "review" && issue.advisory !== true).length;
     const ready = counts.critical === 0 && counts.warning === 0 && counts.review === 0;
     const statusClass = counts.critical ? "is-blocked" : ready ? "is-ready" : "has-pending";
     const statusTitle = counts.critical ? "Hay correcciones de formato" : ready ? "Edición lista para PDF" : "La maqueta funciona, pero quedan pendientes";
@@ -1824,10 +1937,11 @@
       </section>
       <div class="preflight-summary-grid" aria-label="Resumen de la revisión">
         <div><strong>${counts.critical}</strong><span>Críticos</span></div>
-        <div><strong>${counts.warning}</strong><span>Advertencias</span></div>
+        <div><strong>${counts.warning}</strong><span>Por corregir</span></div>
         <div><strong>${counts.review}</strong><span>Por aprobar</span></div>
-        <div><strong>${pages.length}</strong><span>Páginas A5</span></div>
-      </div>`;
+        <div><strong>${counts.advisory}</strong><span>Informativas</span></div>
+      </div>
+      <p class="preflight-advisory-note">Las informativas no impiden cerrar la edición: avisan de algo que decide el equipo.</p>`;
 
     if (!issues.length) {
       els.preflightResults.innerHTML = `<div class="preflight-empty"><strong>Sin observaciones</strong><p>La edición está preparada para la salida PDF.</p></div>`;
