@@ -106,7 +106,7 @@
 
         <div class="topbar__actions">
           <button type="button" class="button button--ghost button--supplemental" id="identityButton">Identidad</button>
-          <button type="button" class="button button--ghost button--supplemental" data-open-settings>Datos de edición</button>
+          <button type="button" class="button button--ghost button--supplemental" data-open-settings>Datos de la edición</button>
           <button type="button" class="button button--ghost" id="editButton" aria-pressed="false">Editar</button>
           <button type="button" class="button button--ghost button--supplemental" id="undoButton" hidden disabled>Deshacer</button>
           <button type="button" class="button button--ghost button--supplemental" id="formatButton" aria-expanded="false" aria-controls="formatPanel">Formato</button>
@@ -134,13 +134,13 @@
         </section>
 
         <div class="sidebar-heading">
-          <span>Estructura ramificada</span>
-          <button type="button" class="text-button" id="collapseAllButton">Cerrar</button>
+          <span>Secciones y páginas</span>
+          <button type="button" class="text-button" id="collapseAllButton">Contraer todo</button>
         </div>
         <nav class="segment-tree" id="segmentTree"></nav>
 
         <section class="sidebar-tools">
-          <p class="storage-scope-note" id="storageScopeNotice" role="note">Guardado sólo en este dispositivo · descarga copias editables</p>
+          <p class="storage-scope-note" id="storageScopeNotice" role="note">Guardado sólo en este computador · descarga respaldos con frecuencia</p>
           <div class="sidebar-view" aria-label="Vista de páginas">
             <span>Vista</span>
             <div class="segmented-control" role="group" aria-label="Vista de páginas en pantalla reducida">
@@ -162,7 +162,7 @@
             <span>Mostrar margen seguro</span>
           </label>
           <button type="button" class="tool-row tool-row--featured" data-open-settings>
-            <span class="tool-code" aria-hidden="true">ED</span><span>Datos generales de edición</span>
+            <span class="tool-code" aria-hidden="true">ED</span><span>Datos de la edición</span>
           </button>
           <button type="button" class="tool-row tool-row--featured" data-open-preflight>
             <span class="tool-code" aria-hidden="true">OK</span><span>Revisión final de imprenta</span>
@@ -241,7 +241,7 @@
       <main class="workspace" id="workspace" tabindex="-1">
         <div class="workspace__notice app-chrome">
           <span class="notice-icon" aria-hidden="true"></span>
-          <p id="workspaceMessage">Vista de pliego: páginas enfrentadas como en la revista impresa.</p>
+          <p id="workspaceMessage">Doble página: se ven dos páginas juntas, como al abrir la revista.</p>
           <span class="autosave" id="autosaveStatus">Guardado local</span>
         </div>
         <section class="page-stage" aria-label="Vista previa de la revista">
@@ -264,7 +264,7 @@
       <form id="newProjectForm">
         <div class="dialog-header">
           <div>
-            <p class="eyebrow">Nuevo proyecto editorial</p>
+            <p class="eyebrow">Nueva revista</p>
             <h2 id="newProjectDialogTitle">Crear una revista</h2>
           </div>
           <button type="button" class="icon-button" data-close-new-project aria-label="Cerrar">×</button>
@@ -273,7 +273,7 @@
           <p class="dialog-intro" id="newProjectDialogDescription">La nueva revista usará la estructura patrimonial de 18 páginas. Podrás editar sus textos, fotografías y datos antes de generar el PDF.</p>
           <div class="form-grid project-form-grid">
             <label class="form-field form-field--wide" for="projectName">
-              <span>Nombre del proyecto <em>obligatorio</em></span>
+              <span>Nombre de la revista <em>obligatorio</em></span>
               <input id="projectName" name="projectName" type="text" maxlength="120" required autocomplete="off" aria-describedby="projectNameHelp" />
               <small id="projectNameHelp">Sólo se usa para reconocer esta revista dentro del programa.</small>
             </label>
@@ -301,10 +301,10 @@
           <button type="button" class="icon-button" data-close-rename-project aria-label="Cerrar">×</button>
         </div>
         <div class="dialog-body">
-          <p class="dialog-intro" id="renameProjectDialogDescription">Este cambio sólo modifica el nombre con que identificas el proyecto en “Mis revistas”. No altera el contenido impreso.</p>
+          <p class="dialog-intro" id="renameProjectDialogDescription">Este cambio sólo modifica el nombre con que reconoces la revista en tu lista. No altera nada de lo que se imprime.</p>
           <div class="form-grid project-form-grid">
             <label class="form-field form-field--wide" for="renameProjectName">
-              <span>Nombre del proyecto <em>obligatorio</em></span>
+              <span>Nombre de la revista <em>obligatorio</em></span>
               <input id="renameProjectName" name="renameProjectName" type="text" maxlength="120" required autocomplete="off" />
             </label>
           </div>
@@ -357,7 +357,7 @@
         <div class="dialog-header">
           <div>
             <p class="eyebrow">Configuración central</p>
-            <h2 id="settingsDialogTitle">Datos generales de la edición</h2>
+            <h2 id="settingsDialogTitle">Datos de la edición</h2>
           </div>
           <button type="button" class="icon-button" data-close-settings aria-label="Cerrar">×</button>
         </div>

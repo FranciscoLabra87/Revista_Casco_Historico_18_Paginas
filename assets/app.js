@@ -3,7 +3,7 @@
 
   const LEGACY_STORAGE_PREFIX = "casco-revista:";
   const projectStorage = window.MagazineData;
-  if (!projectStorage) throw new Error("No se pudo iniciar el almacenamiento editorial.");
+  if (!projectStorage) throw new Error("El taller no pudo iniciar su almacenamiento.");
   async function acquireWriterLock() {
     if (!navigator.locks?.request) return true;
     return new Promise((resolve) => {
@@ -491,7 +491,7 @@
       setAutosaveStatus("Guardando…");
     } catch {
       setAutosaveStatus("Error al guardar", true);
-      showToast("No se pudo deshacer el cambio. Respalda la edición antes de continuar.");
+      showToast("No se pudo deshacer el cambio. Descarga un respaldo antes de continuar.");
       return;
     }
     const pageId = String(entry.key).split(".")[0];
@@ -976,12 +976,12 @@
       if (!state.editing) return "";
       return `<button type="button" class="ad-strip-placeholder app-chrome" data-ad-strip="${page.id}" aria-pressed="false">
         <span class="ad-strip-placeholder__plus" aria-hidden="true">+</span>
-        <span><strong>Agregar faldón publicitario</strong><small>Aviso al pie con título, contacto e imagen. Disponible en las páginas impares.</small></span>
+        <span><strong>Agregar un aviso al pie</strong><small>Con título, contacto e imagen, en la franja inferior. Disponible en las páginas impares.</small></span>
       </button>`;
     }
 
     const quitar = state.editing
-      ? `<button type="button" class="ad-strip-remove app-chrome" data-ad-strip="${page.id}" aria-pressed="true">Quitar faldón</button>`
+      ? `<button type="button" class="ad-strip-remove app-chrome" data-ad-strip="${page.id}" aria-pressed="true">Quitar el aviso</button>`
       : "";
     return `<aside class="page-ad-strip">
       ${editableLabel(page, "adLabel", "Publicidad", "span", "ad-label")}
@@ -1012,8 +1012,8 @@
     renderTree();
     renderMagazine();
     showToast(activo
-      ? `Faldón publicitario retirado de la página ${page.number}. Su contenido se conserva.`
-      : `Faldón publicitario agregado al pie de la página ${page.number}.`);
+      ? `El aviso al pie se quitó de la página ${page.number}. Su contenido se conserva.`
+      : `Se agregó un aviso al pie de la página ${page.number}.`);
   }
 
   function runningHead(page, label) {
@@ -1434,11 +1434,11 @@
     if (badge) badge.hidden = !overflowing;
     if (completeButton) {
       completeButton.disabled = overflowing;
-      completeButton.title = overflowing ? "Corrige el contenido fuera del marco antes de aprobar la página." : "";
+      completeButton.title = overflowing ? "No se puede marcar como lista: hay texto que no cabe en la página." : "";
     }
     if (state.view === "single" && pages[state.current]?.id === pageElement.dataset.pageId) {
       els.navComplete.disabled = overflowing;
-      els.navComplete.title = overflowing ? "Corrige el contenido fuera del marco antes de aprobar la página." : "";
+      els.navComplete.title = overflowing ? "No se puede marcar como lista: hay texto que no cabe en la página." : "";
     }
     return overflowing;
   }
@@ -1611,7 +1611,7 @@
           setAutosaveStatus("Guardando…");
         } catch {
           setAutosaveStatus("Error al guardar", true);
-          showToast("No se pudo guardar el cambio. Guarda una copia editable antes de continuar.");
+          showToast("No se pudo guardar el cambio. Descarga un respaldo antes de continuar.");
         }
         const pageElement = node.closest(".mag-page");
         markPageDirty(pageElement?.dataset.pageId);
@@ -1771,7 +1771,7 @@
         type: "settings",
         pageId: null,
         pageIndex: null,
-        title: "Faltan datos generales de la edición",
+        title: "Faltan datos de la edición",
         detail: `Completa ${missingSettings.join(", ")} para evitar datos incompletos en varias páginas.`
       });
     }
@@ -1797,8 +1797,8 @@
         type: "settings",
         pageId: null,
         pageIndex: null,
-        title: "Los datos institucionales no están confirmados",
-        detail: "Una persona responsable debe comprobar nombre, edición, contactos, fecha y lugar, y marcar la confirmación en Datos generales."
+        title: "Los datos de la edición no están confirmados",
+        detail: "Una persona responsable debe comprobar nombre, edición, contactos, fecha y lugar, y marcar la confirmación en “Datos de la edición”."
       });
     }
 
@@ -1807,7 +1807,7 @@
     measure.setAttribute("aria-hidden", "true");
     const scopedIds = Array.isArray(options.pageIds) && options.pageIds.length ? new Set(options.pageIds) : null;
     const measuredPages = scopedIds ? pages.filter((page) => scopedIds.has(page.id)) : pages;
-    // El recuadro "Agregar faldón publicitario" ocupa altura real y sólo existe
+    // El recuadro "Agregar un aviso al pie" ocupa altura real y sólo existe
     // en modo edición: medir con él encendido inventaba desbordes críticos que
     // desaparecían al apagar Editar. Se mide siempre la página tal como se
     // imprime.
@@ -1829,8 +1829,8 @@
             type: "completion",
             pageId: page.id,
             pageIndex,
-            title: "Página aún no aprobada",
-            detail: "Revísala y usa “Marcar como lista” cuando el contenido esté confirmado."
+            title: "Página aún no marcada como lista",
+            detail: "Revísala y pulsa “Marcar como lista” cuando su contenido esté confirmado."
           });
         }
 
@@ -1930,7 +1930,7 @@
             pageId: page.id,
             pageIndex,
             title: printResolution.length === 1 ? "Una fotografía no alcanza calidad de imprenta" : `${printResolution.length} fotografías no alcanzan calidad de imprenta`,
-            detail: `El archivo original rinde ${Math.min(...printResolution)} ppp en el tamaño en que se publica. Una imprenta profesional suele pedir ${PRINT_TARGET_PPI} ppp: sirve para pantalla y oficina, no para un tiraje.`
+            detail: `El archivo original rinde ${Math.min(...printResolution)} puntos por pulgada, que es la medida de nitidez al imprimir, en el tamaño en que se publica. Una imprenta suele pedir ${PRINT_TARGET_PPI}: sirve para pantalla y oficina, no para un tiraje.`
           });
         }
 
@@ -2045,7 +2045,7 @@
       <div class="preflight-summary-grid" aria-label="Resumen de la revisión">
         <div><strong>${counts.critical}</strong><span>Críticos</span></div>
         <div><strong>${counts.warning}</strong><span>Por corregir</span></div>
-        <div><strong>${counts.review}</strong><span>Por aprobar</span></div>
+        <div><strong>${counts.review}</strong><span>Por marcar</span></div>
         <div><strong>${counts.advisory}</strong><span>Informativas</span></div>
       </div>
       <p class="preflight-advisory-note">Las informativas no impiden cerrar la edición: avisan de algo que decide el equipo.</p>`;
@@ -2063,7 +2063,7 @@
 
       const tarjeta = (issue) => {
         const action = issue.type === "settings"
-          ? `<button type="button" class="button button--small button--ghost" data-preflight-settings>Completar datos</button>`
+          ? `<button type="button" class="button button--small button--ghost" data-preflight-settings>Completar los datos</button>`
           : issue.pageIndex === null
             ? ""
             : `<button type="button" class="button button--small button--ghost" data-preflight-page="${issue.pageIndex}" data-issue-type="${issue.type}">Ir a la página</button>`;
@@ -2257,7 +2257,7 @@
   }
 
   function validatedBackupEntries(storage, options = {}) {
-    if (!storage || typeof storage !== "object" || Array.isArray(storage)) throw new Error("La copia editable no contiene datos válidos.");
+    if (!storage || typeof storage !== "object" || Array.isArray(storage)) throw new Error("El respaldo no contiene datos válidos.");
     const sourceEntries = Object.entries(storage);
     const relativeEntries = sourceEntries.map(([rawKey, value]) => {
       if (typeof rawKey !== "string") throw new Error("La copia contiene una clave dañada.");
@@ -2268,7 +2268,7 @@
     const entries = pageProgram === 16
       ? relativeEntries.map(([key, value]) => [remapOld16Key(key), value])
       : relativeEntries;
-    if (entries.length > 1_000) throw new Error("La copia editable contiene demasiados elementos.");
+    if (entries.length > 1_000) throw new Error("El respaldo contiene demasiados elementos.");
     const pageIds = new Set(pages.map((page) => page.id));
     const seen = new Set();
     let totalCharacters = 0;
@@ -2278,7 +2278,7 @@
       if (seen.has(key)) throw new Error("La copia contiene campos editoriales duplicados.");
       seen.add(key);
       totalCharacters += key.length + value.length;
-      if (totalCharacters > MAX_BACKUP_CHARACTERS) throw new Error("La copia editable excede el tamaño permitido.");
+      if (totalCharacters > MAX_BACKUP_CHARACTERS) throw new Error("El respaldo excede el tamaño permitido.");
 
       const separator = key.indexOf(":");
       const kind = key.slice(0, separator);
@@ -2297,7 +2297,7 @@
       } else if (kind === "done") {
         if (!pageIds.has(identifier) || value !== "1") throw new Error("La copia contiene un estado de página no válido.");
       } else if (kind === "settings") {
-        if (identifier !== "issue" || !validateSettingsValue(value)) throw new Error("La copia contiene datos generales no válidos.");
+        if (identifier !== "issue" || !validateSettingsValue(value)) throw new Error("El respaldo contiene datos de edición no válidos.");
       } else {
         throw new Error("La copia incluye un tipo de dato no reconocido.");
       }
@@ -2307,7 +2307,7 @@
 
   async function importDraft(file) {
     try {
-      if (file.size > MAX_BACKUP_CHARACTERS) throw new Error("La copia editable excede el tamaño permitido.");
+      if (file.size > MAX_BACKUP_CHARACTERS) throw new Error("El respaldo excede el tamaño permitido.");
       const data = JSON.parse(await file.text());
       let name;
       let edition;
@@ -2333,7 +2333,8 @@
       showEditor();
       showToast("Respaldo importado como una revista independiente.");
     } catch (error) {
-      showToast(error instanceof SyntaxError ? "El archivo no es un respaldo válido." : error.message || "No se pudo abrir el respaldo.");
+      console.warn("Importación rechazada:", error);
+      showToast("Este archivo no se puede abrir: no es un respaldo completo de una revista de este taller. Usa el archivo .json que descargaste con “Respaldar edición”. Si es el único que tienes, avisa a quien administra el taller.");
     }
   }
 
@@ -2687,7 +2688,7 @@
       state.renamingProjectId = null;
       renderProjectHome();
       if (!els.studioShell.hidden) els.currentProjectName.textContent = projectStorage.active()?.name || "";
-      showToast("Nombre del proyecto actualizado.");
+      showToast("Nombre de la revista actualizado.");
     } catch (error) {
       showToast(error?.message || "No se pudo renombrar la revista.");
     } finally {
