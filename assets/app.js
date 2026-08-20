@@ -535,6 +535,7 @@
     originalTitle: document.title,
     printMode: "review",
     pressOutput: false,
+    formatTarget: null,
     preflightByPage: new Map(),
     lastPreflight: null,
     renamingProjectId: null
@@ -551,6 +552,10 @@
     edit: document.getElementById("editButton"),
     undo: document.getElementById("undoButton"),
     assistant: document.getElementById("assistantPanel"),
+    format: document.getElementById("formatPanel"),
+    formatButton: document.getElementById("formatButton"),
+    formatContext: document.getElementById("formatContext"),
+    formatBody: document.getElementById("formatBody"),
     assistantButton: document.getElementById("assistantButton"),
     assistantContext: document.getElementById("assistantContext"),
     assistantState: document.getElementById("assistantState"),
@@ -800,13 +805,17 @@
   function imageSlot(page, slot, label, className = "") {
     const data = imageData(page.id, slot);
     const imageKey = `${page.id}.${slot}`;
+    const marco = marcoImagen(page.id, slot);
+    const marcoCss = declaracionesMarco(marco);
+    const atributoMarco = marcoCss ? ` style="${escapeHtml(marcoCss)}"` : "";
+    const tratamiento = claseTratamiento(marco);
     const metadata = imageMetadata(imageKey);
     const description = String(metadata?.alt || label).trim();
     const actionLabel = data ? `Cambiar fotografía. ${description}` : label;
     if (state.editing) {
-      return `<button type="button" class="image-slot ${data ? "has-image" : ""} ${className}" data-image-key="${imageKey}" aria-label="${escapeHtml(actionLabel)}"><span>${escapeHtml(data ? "Cambiar foto" : label)}</span></button>`;
+      return `<button type="button" class="image-slot ${data ? "has-image" : ""} ${className}${tratamiento}" data-image-key="${imageKey}"${atributoMarco} aria-label="${escapeHtml(actionLabel)}"><span>${escapeHtml(data ? "Cambiar foto" : label)}</span></button>`;
     }
-    return `<div class="image-slot ${data ? "has-image" : ""} ${className}" data-image-key="${imageKey}" role="img" aria-label="${escapeHtml(description)}"><span>${escapeHtml(label)}</span></div>`;
+    return `<div class="image-slot ${data ? "has-image" : ""} ${className}${tratamiento}" data-image-key="${imageKey}"${atributoMarco} role="img" aria-label="${escapeHtml(description)}"><span>${escapeHtml(label)}</span></div>`;
   }
 
   const FIT_CROP_LIMIT = 0.3;
@@ -847,7 +856,8 @@
       const data = imageData(pageId, imageSlotName);
       slot.style.backgroundImage = data ? `url("${data}")` : "";
       slot.style.backgroundRepeat = data ? "no-repeat" : "";
-      slot.style.backgroundPosition = data ? "center" : "";
+      const marcoGuardado = marcoImagen(pageId, imageSlotName);
+      slot.style.backgroundPosition = data ? (marcoGuardado?.encuadre || "center") : "";
       slot.style.backgroundSize = data ? imageFit(clave) : "";
       slot.classList.toggle("is-contained", Boolean(data) && imageFit(clave) === "contain");
     });
@@ -1423,6 +1433,10 @@
     // sí necesita medir, y por eso espera al siguiente cuadro.
     updateWordBudget();
     asistenteRefrescar();
+    if (els.format && !els.format.hidden) {
+      const objetivo = formatoObjetivo();
+      if (objetivo) formatoSeleccionar(objetivo.tipo, objetivo.clave);
+    }
     requestAnimationFrame(refreshVisibleOverflows);
   }
 
@@ -1498,6 +1512,7 @@
       node.contentEditable = state.editing ? "true" : "false";
       node.addEventListener("focusin", () => {
         editSnapshots.set(node, normalizeEditedText(node.innerText));
+        if (els.format && !els.format.hidden) formatoSeleccionar("texto", node.dataset.editKey);
       });
       node.addEventListener("focusout", () => {
         const before = editSnapshots.get(node);
@@ -1536,6 +1551,12 @@
     els.host.querySelectorAll("[data-image-key]").forEach((node) => {
       if (!(node instanceof HTMLButtonElement)) return;
       node.addEventListener("click", () => {
+        // Con el panel de formato abierto, pulsar una fotografía la selecciona
+        // para ajustarla; cambiar el archivo se hace desde el propio panel.
+        if (els.format && !els.format.hidden) {
+          formatoSeleccionar("imagen", node.dataset.imageKey);
+          return;
+        }
         state.activeImageKey = node.dataset.imageKey;
         els.imageFile.click();
       });
@@ -3163,6 +3184,250 @@
   document.querySelectorAll("[data-assistant]").forEach((boton) => {
     boton.addEventListener("click", () => asistenteEjecutar(boton.dataset.assistant));
   });
+
+
+  // ---------------------------------------------------------------------------
+  // Panel de formato
+  // ---------------------------------------------------------------------------
+
+  const ENCUADRES = [
+    ["left top", "Arriba izquierda"], ["center top", "Arriba"], ["right top", "Arriba derecha"],
+    ["left center", "Izquierda"], ["center center", "Centro"], ["right center", "Derecha"],
+    ["left bottom", "Abajo izquierda"], ["center bottom", "Abajo"], ["right bottom", "Abajo derecha"]
+  ];
+
+  function formatoObjetivo() {
+    return state.formatTarget || null;
+  }
+
+  function formatoElemento() {
+    const objetivo = formatoObjetivo();
+    if (!objetivo) return null;
+    const atributo = objetivo.tipo === "texto" ? "data-edit-key" : "data-image-key";
+    return els.host.querySelector(`[${atributo}="${CSS.escape(objetivo.clave)}"]`);
+  }
+
+  function formatoPartes(clave) {
+    const punto = String(clave).indexOf(".");
+    return { pageId: String(clave).slice(0, punto), key: String(clave).slice(punto + 1) };
+  }
+
+  function formatoSeleccionar(tipo, clave) {
+    state.formatTarget = clave ? { tipo, clave } : null;
+    els.host.querySelectorAll(".is-format-target").forEach((n) => n.classList.remove("is-format-target"));
+    const elemento = formatoElemento();
+    if (elemento) elemento.classList.add("is-format-target");
+    formatoRefrescar();
+  }
+
+  function formatoBoton(etiqueta, accion, valor, activo, titulo) {
+    return `<button type="button" class="fmt-chip${activo ? " is-active" : ""}" data-fmt="${accion}" data-valor="${escapeHtml(String(valor))}"${titulo ? ` title="${escapeHtml(titulo)}"` : ""}>${escapeHtml(etiqueta)}</button>`;
+  }
+
+  function formatoControlesTexto(pageId, key, elemento) {
+    const estilo = estiloTexto(pageId, key) || {};
+    const cuerpoActual = Math.round(parseFloat(getComputedStyle(elemento).fontSize) / (96 / 72) * 10) / 10;
+    const familias = Object.entries(TIPOGRAFIAS)
+      .map(([id, f]) => formatoBoton(f.etiqueta, "familia", id, estilo.familia === id)).join("");
+    const colores = COLORES_IDENTIDAD
+      .map((c) => `<button type="button" class="fmt-color${estilo.color === c.valor ? " is-active" : ""}" data-fmt="color" data-valor="${c.valor}" title="${escapeHtml(c.etiqueta)}" style="background:${c.valor}"><span class="sr-only">${escapeHtml(c.etiqueta)}</span></button>`).join("");
+    const alineaciones = ALINEACIONES
+      .map((a) => formatoBoton(a.etiqueta, "alineacion", a.valor, estilo.alineacion === a.valor)).join("");
+    return `
+      <div class="fmt-group"><h3>Tipografía</h3><div class="fmt-row">${familias}</div></div>
+      <div class="fmt-group"><h3>Cuerpo</h3><div class="fmt-row fmt-row--stepper">
+        <button type="button" class="fmt-step" data-fmt="cuerpo" data-valor="-0.5" aria-label="Reducir el cuerpo">−</button>
+        <output>${cuerpoActual} pt</output>
+        <button type="button" class="fmt-step" data-fmt="cuerpo" data-valor="0.5" aria-label="Aumentar el cuerpo">+</button>
+      </div></div>
+      <div class="fmt-group"><h3>Interlineado</h3><div class="fmt-row fmt-row--stepper">
+        <button type="button" class="fmt-step" data-fmt="interlineado" data-valor="-0.05" aria-label="Juntar las líneas">−</button>
+        <output>${(estilo.interlineado || Math.round(parseFloat(getComputedStyle(elemento).lineHeight) / parseFloat(getComputedStyle(elemento).fontSize) * 100) / 100).toFixed(2)}</output>
+        <button type="button" class="fmt-step" data-fmt="interlineado" data-valor="0.05" aria-label="Separar las líneas">+</button>
+      </div></div>
+      <div class="fmt-group"><h3>Color</h3><div class="fmt-row fmt-row--colors">${colores}</div></div>
+      <div class="fmt-group"><h3>Alineación</h3><div class="fmt-row">${alineaciones}</div></div>
+      <div class="fmt-group"><h3>Énfasis</h3><div class="fmt-row">
+        ${formatoBoton("Negrita", "negrita", "1", estilo.negrita === true)}
+        ${formatoBoton("Cursiva", "cursiva", "1", estilo.cursiva === true)}
+      </div></div>`;
+  }
+
+  function formatoControlesImagen(pageId, slot, elemento) {
+    const marco = marcoImagen(pageId, slot) || {};
+    const metadata = imageMetadata(`${pageId}.${slot}`);
+    const alturaActual = marco.altura || Math.round(elemento.getBoundingClientRect().height / (els.host.querySelector(".mag-page").getBoundingClientRect().height / 210));
+    const encuadres = ENCUADRES.map(([valor, etiqueta]) =>
+      `<button type="button" class="fmt-frame${(marco.encuadre || "center center") === valor ? " is-active" : ""}" data-fmt="encuadre" data-valor="${valor}" title="${escapeHtml(etiqueta)}"><span class="sr-only">${escapeHtml(etiqueta)}</span></button>`).join("");
+    const tratamientos = TRATAMIENTOS
+      .map((t) => formatoBoton(t.etiqueta, "tratamiento", t.valor, (marco.tratamiento || "color") === t.valor)).join("");
+    const encaje = [
+      formatoBoton("Llenar", "encaje", "cover", (metadata?.fit || "cover") === "cover", "Recorta lo que sobra. Para fotografías."),
+      formatoBoton("Completa", "encaje", "contain", metadata?.fit === "contain", "No recorta nada. Para logotipos y avisos.")
+    ].join("");
+    return `
+      <div class="fmt-group"><h3>Encaje</h3><div class="fmt-row">${encaje}</div></div>
+      <div class="fmt-group"><h3>Encuadre</h3><div class="fmt-frames">${encuadres}</div>
+        <p class="fmt-hint">Qué parte de la fotografía se conserva al recortar.</p></div>
+      <div class="fmt-group"><h3>Altura del espacio</h3><div class="fmt-row fmt-row--stepper">
+        <button type="button" class="fmt-step" data-fmt="altura" data-valor="-2" aria-label="Reducir la altura">−</button>
+        <output>${alturaActual} mm</output>
+        <button type="button" class="fmt-step" data-fmt="altura" data-valor="2" aria-label="Aumentar la altura">+</button>
+      </div></div>
+      <div class="fmt-group"><h3>Tratamiento</h3><div class="fmt-row">${tratamientos}</div></div>
+      <div class="fmt-group"><div class="fmt-row">
+        <button type="button" class="button button--small button--ghost" data-fmt="cambiar-foto">Cambiar fotografía</button>
+      </div></div>`;
+  }
+
+  function formatoRefrescar() {
+    if (!els.format || els.format.hidden) return;
+    const objetivo = formatoObjetivo();
+    const elemento = formatoElemento();
+    if (!objetivo || !elemento) {
+      els.formatContext.textContent = "Nada seleccionado";
+      els.formatBody.innerHTML = `<p class="fmt-empty">Pulsa un texto o una fotografía de la revista para darle formato. Necesitas estar en modo <strong>Editar</strong>.</p>`;
+      return;
+    }
+    const { pageId, key } = formatoPartes(objetivo.clave);
+    const page = pages.find((p) => p.id === pageId);
+    els.formatContext.textContent = objetivo.tipo === "texto"
+      ? `Página ${page ? page.number : "?"} · ${humanFieldLabel(key)}`
+      : `Página ${page ? page.number : "?"} · fotografía`;
+    els.formatBody.innerHTML = objetivo.tipo === "texto"
+      ? formatoControlesTexto(pageId, key, elemento)
+      : formatoControlesImagen(pageId, key, elemento);
+  }
+
+  function formatoGuardar(cambios, esImagen) {
+    const objetivo = formatoObjetivo();
+    if (!objetivo) return;
+    const { pageId, key } = formatoPartes(objetivo.clave);
+    const sufijo = esImagen ? MARCO_SUFIJO : ESTILO_SUFIJO;
+    const actual = leerRegistro(pageId, key, sufijo) || {};
+    const siguiente = { ...actual, ...cambios };
+    Object.keys(siguiente).forEach((k) => {
+      if (siguiente[k] === null || siguiente[k] === undefined) delete siguiente[k];
+    });
+    try {
+      guardarRegistro(pageId, key, sufijo, siguiente);
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      showToast("No se pudo guardar el formato.");
+      return;
+    }
+    markPageDirty(pageId);
+    renderMagazine();
+    requestAnimationFrame(() => formatoSeleccionar(objetivo.tipo, objetivo.clave));
+  }
+
+  function formatoAccion(accion, valor) {
+    const objetivo = formatoObjetivo();
+    if (!objetivo) return;
+    const { pageId, key } = formatoPartes(objetivo.clave);
+    const elemento = formatoElemento();
+
+    if (accion === "cambiar-foto") {
+      state.activeImageKey = objetivo.clave;
+      els.imageFile.click();
+      return;
+    }
+    if (accion === "encaje") {
+      const metadata = imageMetadata(objetivo.clave) || {};
+      try {
+        projectStorage.setItem(storageKey("image-meta", objetivo.clave), JSON.stringify({ ...metadata, fit: valor }));
+      } catch {
+        showToast("No se pudo guardar el encaje.");
+        return;
+      }
+      markPageDirty(pageId);
+      renderMagazine();
+      requestAnimationFrame(() => formatoSeleccionar(objetivo.tipo, objetivo.clave));
+      return;
+    }
+    if (accion === "encuadre") { formatoGuardar({ encuadre: valor }, true); return; }
+    if (accion === "tratamiento") { formatoGuardar({ tratamiento: valor === "color" ? null : valor }, true); return; }
+    if (accion === "altura") {
+      const marco = marcoImagen(pageId, key) || {};
+      const base = marco.altura || Math.round(elemento.getBoundingClientRect().height / (els.host.querySelector(".mag-page").getBoundingClientRect().height / 210));
+      const siguiente = Math.min(ALTURA_MAX, Math.max(ALTURA_MIN, base + Number(valor)));
+      formatoGuardar({ altura: siguiente }, true);
+      return;
+    }
+    if (accion === "familia") {
+      const estilo = estiloTexto(pageId, key) || {};
+      formatoGuardar({ familia: estilo.familia === valor ? null : valor }, false);
+      return;
+    }
+    if (accion === "color") {
+      const estilo = estiloTexto(pageId, key) || {};
+      formatoGuardar({ color: estilo.color === valor ? null : valor }, false);
+      return;
+    }
+    if (accion === "alineacion") {
+      const estilo = estiloTexto(pageId, key) || {};
+      formatoGuardar({ alineacion: estilo.alineacion === valor ? null : valor }, false);
+      return;
+    }
+    if (accion === "negrita" || accion === "cursiva") {
+      const estilo = estiloTexto(pageId, key) || {};
+      formatoGuardar({ [accion]: estilo[accion] === true ? null : true }, false);
+      return;
+    }
+    if (accion === "cuerpo") {
+      const estilo = estiloTexto(pageId, key) || {};
+      const base = estilo.cuerpo || parseFloat(getComputedStyle(elemento).fontSize) / (96 / 72);
+      const siguiente = Math.round(Math.min(CUERPO_MAX, Math.max(CUERPO_MIN, base + Number(valor))) * 10) / 10;
+      formatoGuardar({ cuerpo: siguiente }, false);
+      return;
+    }
+    if (accion === "interlineado") {
+      const estilo = estiloTexto(pageId, key) || {};
+      const cs = getComputedStyle(elemento);
+      const base = estilo.interlineado || (parseFloat(cs.lineHeight) / parseFloat(cs.fontSize));
+      const siguiente = Math.round(Math.min(2.6, Math.max(0.85, base + Number(valor))) * 100) / 100;
+      formatoGuardar({ interlineado: siguiente }, false);
+    }
+  }
+
+  function formatoRestablecer() {
+    const objetivo = formatoObjetivo();
+    if (!objetivo) return;
+    const { pageId, key } = formatoPartes(objetivo.clave);
+    guardarRegistro(pageId, key, objetivo.tipo === "texto" ? ESTILO_SUFIJO : MARCO_SUFIJO, null);
+    setAutosaveStatus("Guardando…");
+    markPageDirty(pageId);
+    renderMagazine();
+    requestAnimationFrame(() => formatoSeleccionar(objetivo.tipo, objetivo.clave));
+    showToast("Formato restablecido al de la maqueta.");
+  }
+
+  function formatoAbrir(abrir) {
+    if (!els.format) return;
+    els.format.hidden = !abrir;
+    if (els.formatButton) els.formatButton.setAttribute("aria-expanded", String(abrir));
+    document.body.classList.toggle("format-open", abrir);
+    if (abrir) {
+      if (!state.editing) setEditing(true, false);
+      formatoRefrescar();
+    } else {
+      state.formatTarget = null;
+      els.host.querySelectorAll(".is-format-target").forEach((n) => n.classList.remove("is-format-target"));
+    }
+  }
+
+  if (els.formatButton) els.formatButton.addEventListener("click", () => formatoAbrir(els.format.hidden));
+  const formatoCerrar = document.getElementById("formatClose");
+  if (formatoCerrar) formatoCerrar.addEventListener("click", () => formatoAbrir(false));
+  const formatoReset = document.getElementById("formatReset");
+  if (formatoReset) formatoReset.addEventListener("click", formatoRestablecer);
+  if (els.formatBody) {
+    els.formatBody.addEventListener("click", (evento) => {
+      const boton = evento.target.closest("[data-fmt]");
+      if (boton) formatoAccion(boton.dataset.fmt, boton.dataset.valor);
+    });
+  }
 
   if (compactQuery.matches) els.sidebar.inert = true;
   syncEditButton();

@@ -109,6 +109,7 @@
           <button type="button" class="button button--ghost button--supplemental" data-open-settings>Datos de edición</button>
           <button type="button" class="button button--ghost" id="editButton" aria-pressed="false">Editar</button>
           <button type="button" class="button button--ghost button--supplemental" id="undoButton" hidden disabled>Deshacer</button>
+          <button type="button" class="button button--ghost button--supplemental" id="formatButton" aria-expanded="false" aria-controls="formatPanel">Formato</button>
           <button type="button" class="button button--ghost button--supplemental" id="assistantButton" aria-expanded="false" aria-controls="assistantPanel">Asistente</button>
           <button type="button" class="button button--review button--supplemental" data-open-preflight>Revisión final</button>
           <button type="button" class="button button--primary" id="printButton">Guardar PDF</button>
@@ -180,6 +181,21 @@
       </aside>
 
       <button type="button" class="sidebar-scrim app-chrome" id="sidebarScrim" aria-label="Cerrar estructura" hidden></button>
+
+      <aside class="formato app-chrome" id="formatPanel" aria-label="Formato del elemento" hidden>
+        <header class="formato__head">
+          <div>
+            <p class="eyebrow">Formato</p>
+            <h2 id="formatContext">Nada seleccionado</h2>
+          </div>
+          <button type="button" class="icon-button" id="formatClose" aria-label="Cerrar el panel de formato">×</button>
+        </header>
+        <div class="formato__body" id="formatBody"></div>
+        <div class="formato__foot">
+          <button type="button" class="button button--small button--ghost" id="formatReset">Restablecer al de la maqueta</button>
+          <p>Los ajustes se guardan con la edición y salen en el PDF.</p>
+        </div>
+      </aside>
 
       <aside class="assistant app-chrome" id="assistantPanel" aria-label="Asistente editorial" hidden>
         <header class="assistant__head">
