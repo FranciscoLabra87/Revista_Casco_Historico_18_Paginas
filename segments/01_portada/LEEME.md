@@ -1,3 +1,3 @@
-# Segmento 01 · Portada
+# Segmento 1 · Portada
 
-Corresponde a la página 1. Reúne el logo, número de edición, fecha, fotografía principal, titular central, bajada y hasta dos llamados interiores. La fotografía debe tener autorización y calidad suficiente para ocupar toda la página. La portada debe representar fielmente el contenido de la edición.
+Corresponde a la página 1. Cabecera, número de edición, titular del tema principal con su bajada y dos llamados a páginas interiores. La fotografía manda: si no hay una imagen fuerte, la portada no funciona.

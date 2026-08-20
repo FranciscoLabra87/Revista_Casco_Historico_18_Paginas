@@ -1,7 +1,7 @@
 # Control de cierre de la edición
 
-- [ ] Las 18 páginas están presentes y numeradas correctamente, incluida la portada P01 y la contraportada P18.
-- [ ] El orden editorial coincide con `DOCUMENTACION/PROGRAMA_18_PAGINAS.md`.
+- [ ] Las 12 páginas están presentes y numeradas correctamente, incluida la portada P01 y la contraportada P18.
+- [ ] El orden editorial coincide con `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`.
 - [ ] Todos los nombres, cargos, fechas, teléfonos y direcciones fueron verificados.
 - [ ] Cada fotografía tiene archivo original identificado, autor, permiso de publicación, pie de foto y crédito exacto.
 - [ ] Los archivos originales completos están guardados en la carpeta `imagenes` del segmento, no sólo dentro del navegador.
@@ -23,7 +23,7 @@
 ## Salidas PDF
 
 - [ ] Si quedan observaciones, se usó el PDF de revisión con la marca automática **BORRADOR · NO DISTRIBUIR** y no se distribuyó como final.
-- [ ] El PDF A5 de 18 páginas para oficina o distribución digital fue revisado a escala 100 %, sin márgenes y con gráficos de fondo.
+- [ ] El PDF A5 de 12 páginas para oficina o distribución digital fue revisado a escala 100 %, sin márgenes y con gráficos de fondo.
 - [ ] Si se producirá un cuadernillo doblado y corcheteado, se consultó a la imprenta si exige ampliar la edición a 20 páginas para completar un múltiplo de cuatro.
 - [ ] Si se usará imprenta profesional, la imprenta confirmó imposición, sangrado, marcas de corte, perfil de color, resolución y demás requisitos.
 - [ ] Para el tiraje se usó la salida **Archivo de imprenta**: A4 con la página centrada, 3 mm de sangrado y marcas de corte y registro.

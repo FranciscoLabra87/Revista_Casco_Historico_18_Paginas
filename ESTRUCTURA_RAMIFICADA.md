@@ -1,6 +1,6 @@
 # Estructura ramificada
 
-La carpeta principal contiene el software local, su plantilla editorial y catorce carpetas de segmentos. La plantilla compone una revista A5 de 18 páginas, incluida la portada y la contraportada. Cada carpeta reúne una sección editorial y puede controlar una o dos páginas.
+La carpeta principal contiene el software local, su plantilla editorial y catorce carpetas de segmentos. La plantilla compone una revista A5 de 12 páginas, incluida la portada y la contraportada. Cada carpeta reúne una sección editorial y puede controlar una o dos páginas.
 
 El sistema tiene dos ramificaciones complementarias:
 
@@ -51,6 +51,6 @@ Dentro de cada segmento:
 
 Los cambios realizados desde el botón **Editar** se guardan automáticamente en la edición activa. Para conservar una copia trasladable, utilice **Respaldar edición**. Al importar un respaldo v1 o v2, el software crea un proyecto nuevo y no sobrescribe las demás revistas.
 
-El PDF de 18 páginas sirve para distribución digital o impresión de oficina. Si se desea un cuadernillo doblado y corcheteado, consulte a la imprenta: normalmente exige una cantidad de páginas múltiplo de cuatro, por lo que puede ser necesario ampliar esta edición a 20 páginas.
+El PDF de 12 páginas sirve para distribución digital o impresión de oficina. Si se desea un cuadernillo doblado y corcheteado, consulte a la imprenta: normalmente exige una cantidad de páginas múltiplo de cuatro, por lo que puede ser necesario ampliar esta edición a 20 páginas.
 
 La administración de ediciones, los respaldos y la salida PDF se explican en [`DOCUMENTACION/MANUAL_SOFTWARE.md`](DOCUMENTACION/MANUAL_SOFTWARE.md).

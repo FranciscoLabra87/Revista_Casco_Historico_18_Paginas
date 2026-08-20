@@ -70,7 +70,7 @@ hacer.
 ## 4. Coste
 
 Se paga por uso a Anthropic, según el texto enviado y recibido. Cada respuesta
-muestra cuántos tokens consumió. Para una edición de 18 páginas el gasto es de
+muestra cuántos tokens consumió. Para una edición de 12 páginas el gasto es de
 centavos de dólar, pero conviene revisarlo en la consola de Anthropic durante el
 primer número para tener una cifra propia.
 

@@ -5351,3 +5351,116 @@ body.has-save-alert .topbar {
     page-break-after: auto;
   }
 }
+
+/* ==================================================================
+   30 · Maquetas de la edición de doce páginas
+   ================================================================== */
+
+/* La carta editorial comparte página con el sumario: ocupa el tercio
+   inferior, separada por un filete para que se lea como otra voz. */
+.editorial-breve {
+  margin-top: var(--base);
+  padding-top: var(--base);
+  border-top: 0.5mm solid var(--tone, var(--sand));
+}
+
+.editorial-breve__titulo {
+  margin: var(--media-base) 0 var(--base);
+  font-family: var(--fuente-titulo, Georgia, serif);
+  font-size: calc(var(--cuerpo-texto, 9pt) * 1.55);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.editorial-breve .two-columns {
+  column-width: var(--medida-corta, 60mm);
+}
+
+.editorial-breve__firma {
+  margin: var(--media-base) 0 0;
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.95);
+}
+
+/* Voces del comercio: retrato y local en la columna de apoyo, la
+   conversación en la de texto. */
+.voces-grid {
+  display: grid;
+  grid-template-columns: var(--ancho-apoyo, 39mm) 1fr;
+  gap: var(--gut);
+  align-items: start;
+}
+
+.voces-apoyo {
+  display: grid;
+  gap: var(--media-base);
+}
+
+.voces-retrato { aspect-ratio: 3 / 4; }
+.voces-local { aspect-ratio: 4 / 3; }
+
+.voces-apoyo .contact-card h3 {
+  margin: 0 0 1mm;
+  font-size: calc(var(--cuerpo-texto, 9pt) * 1.1);
+}
+
+.voces-apoyo .contact-card h4 {
+  margin: var(--media-base) 0 0.5mm;
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.85);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.voces-texto { display: grid; gap: var(--media-base); }
+.voces-texto .qa { break-inside: avoid; }
+
+.voces-aviso {
+  margin-top: var(--media-base);
+  padding-top: var(--media-base);
+  border-top: 0.3mm solid var(--sand);
+}
+
+/* La agenda pierde su página y pasa al pie de comunidad y servicios:
+   una fila por fecha, sin tarjetas. */
+.agenda-breve {
+  margin-top: var(--base);
+  padding-top: var(--media-base);
+  border-top: 0.5mm solid var(--tone, var(--sand));
+}
+
+.agenda-breve__lista {
+  display: grid;
+  gap: var(--media-base);
+  margin: var(--media-base) 0;
+}
+
+.agenda-breve__item {
+  display: grid;
+  grid-template-columns: 14mm 1fr;
+  gap: var(--gut);
+  align-items: baseline;
+  break-inside: avoid;
+}
+
+.agenda-breve__fecha {
+  display: flex;
+  align-items: baseline;
+  gap: 1mm;
+  font-variant-numeric: tabular-nums;
+}
+
+.agenda-breve__fecha strong {
+  font-family: var(--fuente-titulo, Georgia, serif);
+  font-size: calc(var(--cuerpo-texto, 9pt) * 1.4);
+  line-height: 1;
+  color: var(--tone-ink, inherit);
+}
+
+.agenda-breve__fecha > span {
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.72);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.agenda-breve__texto { display: grid; gap: 0.5mm; }
+.agenda-breve__texto strong { font-size: calc(var(--cuerpo-texto, 9pt) * 0.95); }
+.agenda-breve__texto > span { font-size: calc(var(--cuerpo-texto, 9pt) * 0.85); }

@@ -1,3 +1,3 @@
-# Segmento 08 · Comunidad y servicios
+# Segmento 8 · Comunidad, servicios y agenda
 
-Corresponde a la página 12. Presenta un proyecto vecinal, taller, operativo, beneficio o servicio. Debe explicar quién lo organiza, a quién beneficia, requisitos, fecha, lugar, costo y contacto verificado.
+Corresponde a la página 10. Una iniciativa o un servicio explicado en tres bloques y tres párrafos, con contacto verificado, y al pie la agenda de las fechas que vienen. La agenda dejó de tener página propia.

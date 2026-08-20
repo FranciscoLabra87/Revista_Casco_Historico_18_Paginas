@@ -1,6 +1,6 @@
 # Guía de la versión Ultra
 
-La versión Ultra agrega una capa de control editorial al sistema ramificado de 18 páginas sin cambiar el formato A5 ni la identidad visual patrimonial.
+La versión Ultra agrega una capa de control editorial al sistema ramificado de 12 páginas sin cambiar el formato A5 ni la identidad visual patrimonial.
 
 Las familias Cinzel, Cormorant Garamond y Source Sans 3 se incluyen localmente en `assets/fonts`, en formato WOFF2 con el subconjunto latino completo y junto con sus licencias OFL. Por eso la composición no depende de que estén instaladas en el computador.
 
@@ -15,7 +15,7 @@ La edición incluye portada y contraportada:
 - P15 agenda y datos útiles; P16 cultura y participación.
 - P17 publicidad y colaboradores; P18 contraportada.
 
-Consulte el detalle en `PROGRAMA_18_PAGINAS.md`.
+Consulte el detalle en `PROGRAMA_12_PAGINAS.md`.
 
 ## 2. Datos generales de edición
 
@@ -33,13 +33,13 @@ La confirmación institucional registra que una persona responsable comprobó es
 
 ## 3. Estados por página
 
-Cada página se puede marcar como lista durante la edición sólo cuando no conserva advertencias ni problemas críticos. El árbol lateral muestra el avance de las 18 páginas. Si se cambia un texto o una fotografía, la aprobación de esa página se retira automáticamente.
+Cada página se puede marcar como lista durante la edición sólo cuando no conserva advertencias ni problemas críticos. El árbol lateral muestra el avance de las 12 páginas. Si se cambia un texto o una fotografía, la aprobación de esa página se retira automáticamente.
 
 ## 4. Revisión final
 
-La revisión final analiza las 18 páginas, aunque en pantalla se vea una sola o una doble página. Comprueba:
+La revisión final analiza las 12 páginas, aunque en pantalla se vea una sola o una doble página. Comprueba:
 
-- estructura y orden de las 18 páginas;
+- estructura y orden de las 12 páginas;
 - páginas aún no aprobadas;
 - fotografías faltantes;
 - descripción accesible, crédito y confirmación de permiso de cada fotografía incorporada;
@@ -64,7 +64,7 @@ El sistema exige registrar crédito y confirmar el permiso, pero no puede compro
 
 ## 5. Copia editable
 
-`Respaldar edición` descarga un archivo JSON v2 con textos, estados, datos generales, fotografías y sus fichas de la revista activa. Al importar una copia v1 o v2, el sistema valida su estructura y crea una revista nueva e independiente; no reemplaza ni mezcla la edición abierta. Las copias v1 del programa antiguo de 16 páginas se pueden redistribuir a la estructura actual de 18 páginas.
+`Respaldar edición` descarga un archivo JSON v2 con textos, estados, datos generales, fotografías y sus fichas de la revista activa. Al importar una copia v1 o v2, el sistema valida su estructura y crea una revista nueva e independiente; no reemplaza ni mezcla la edición abierta. Las copias v1 del programa antiguo de 16 páginas se pueden redistribuir a la estructura actual de 12 páginas.
 
 El guardado automático y las fotografías quedan sólo en el navegador de este dispositivo. No son un respaldo externo. Conviene usar archivos JPEG o WebP optimizados, descargar copias editables con frecuencia y guardarlas en otro lugar seguro.
 
@@ -74,7 +74,7 @@ Abra sólo copias JSON creadas por este sistema y entregadas por su propio equip
 
 `Guardar PDF` ejecuta primero la revisión final. Antes de imprimir, el sistema:
 
-- monta automáticamente las 18 páginas en orden;
+- monta automáticamente las 12 páginas en orden;
 - desactiva las marcas y controles de edición;
 - espera las fuentes disponibles y dos ciclos de dibujo del navegador;
 - usa páginas A5 de 148 × 210 mm sin márgenes añadidos.
@@ -85,7 +85,7 @@ Si quedan observaciones, el archivo es sólo para revisión y el sistema coloca 
 
 ### PDF A5 de oficina o digital
 
-Cuando el control de cierre esté completo, puede guardar las 18 páginas para pantalla o impresión común. En el cuadro del navegador, elija `Guardar como PDF`, papel A5, escala 100 %, márgenes ninguno y gráficos de fondo activados.
+Cuando el control de cierre esté completo, puede guardar las 12 páginas para pantalla o impresión común. En el cuadro del navegador, elija `Guardar como PDF`, papel A5, escala 100 %, márgenes ninguno y gráficos de fondo activados.
 
 ### Cuadernillo e imprenta profesional
 
@@ -95,7 +95,7 @@ Una revista doblada y corcheteada suele requerir un total de páginas múltiplo 
 
 - `Página`: una hoja para corregir detalles.
 - `Doble página`: dos páginas enfrentadas en orden de lectura. No es imposición de imprenta.
-- `Todas`: revisión continua de las 18 páginas.
+- `Todas`: revisión continua de las 12 páginas.
 
 En teléfonos, el sistema inicia en vista de una página y conserva acceso a edición, estructura y revisión final.
 

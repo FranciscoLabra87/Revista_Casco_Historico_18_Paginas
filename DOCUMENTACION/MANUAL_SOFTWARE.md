@@ -2,7 +2,7 @@
 
 ## 1. Qué es este sistema
 
-El Taller Editorial Casco Histórico es un software local para crear y conservar varias ediciones de una revista comunal. La aplicación administra cada revista como un proyecto independiente, permite componer sus 18 páginas, revisar el cierre editorial y, al final del proceso, exportar una salida PDF A5.
+El Taller Editorial Casco Histórico es un software local para crear y conservar varias ediciones de una revista comunal. La aplicación administra cada revista como un proyecto independiente, permite componer sus 12 páginas, revisar el cierre editorial y, al final del proceso, exportar una salida PDF A5.
 
 El PDF no es el archivo de trabajo. Es una salida final o de revisión. El contenido editable permanece en el software y puede trasladarse mediante un respaldo JSON.
 
@@ -32,7 +32,7 @@ El lanzador requiere Node.js para iniciar el servidor local. Si Node.js no está
 3. Escriba el nombre público de la edición, tal como debe aparecer en la revista.
 4. Presione **Crear y abrir**.
 
-La nueva revista parte de la plantilla editorial de 18 páginas. Sus cambios no afectan a las demás ediciones.
+La nueva revista parte de la plantilla editorial de 12 páginas. Sus cambios no afectan a las demás ediciones.
 
 ### Abrir una revista
 
@@ -46,7 +46,7 @@ Use **Renombrar** para cambiar el nombre con el que el proyecto se identifica en
 
 Use **Duplicar** cuando quiera comenzar un número nuevo a partir de otro existente. Se copian los textos, las fotografías y sus fichas, pero se reinician:
 
-- las aprobaciones de las 18 páginas;
+- las aprobaciones de las 12 páginas;
 - la confirmación de que los datos generales fueron comprobados;
 - la fecha de esa comprobación.
 
@@ -96,7 +96,7 @@ Abra solamente respaldos creados por este software y obtenidos de una fuente con
 
 ### Compatibilidad de una revista antigua de 16 páginas
 
-Al importar un respaldo v1, el sistema detecta si pertenece al programa antiguo de 16 páginas. Cuando lo reconoce, redistribuye el contenido a la plantilla actual de 18 páginas:
+Al importar un respaldo v1, el sistema detecta si pertenece al programa antiguo de 16 páginas. Cuando lo reconoce, redistribuye el contenido a la plantilla actual de 12 páginas:
 
 | Página antigua | Página actual | Página antigua | Página actual |
 | --- | --- | --- | --- |
@@ -109,7 +109,7 @@ Al importar un respaldo v1, el sistema detecta si pertenece al programa antiguo 
 | P07 | P08 | P15 | P17 |
 | P08 | P09 | P16 | P18 |
 
-Las nuevas P05 y P11 conservan el contenido inicial de la plantilla de 18 páginas hasta que el equipo las complete. Si una copia antigua no contiene señales suficientes para reconocer el programa, el software solicita indicar si corresponde a 16 o 18 páginas; ante una duda, cancele y revise el archivo antes de continuar.
+Las nuevas P05 y P11 conservan el contenido inicial de la plantilla de 12 páginas hasta que el equipo las complete. Si una copia antigua no contiene señales suficientes para reconocer el programa, el software solicita indicar si corresponde a 16 o 12 páginas; ante una duda, cancele y revise el archivo antes de continuar.
 
 Las ediciones que se habían usado abriendo directamente `index.html` no son visibles desde el servidor local porque `file://` y `http://127.0.0.1:8787` tienen almacenes separados. Para trasladarlas, abra una vez el editor antiguo en el mismo navegador, descargue su copia JSON v1 y luego impórtela desde **Mis revistas**.
 
@@ -125,23 +125,19 @@ El taller guarda cada revista en un solo navegador de un solo equipo, y al impor
 
 ## 6. Componer una edición
 
-Dentro del taller, el árbol lateral reproduce la estructura ramificada de la revista. Las 14 secciones controlan las 18 páginas:
+Dentro del taller, el árbol lateral reproduce la estructura ramificada de la revista. Las 14 secciones controlan las 12 páginas:
 
 - P01: portada.
-- P02: sumario, créditos y contacto.
-- P03: carta editorial.
-- P04: noticias breves.
-- P05: avances de la agrupación.
-- P06–P07: reportaje central.
-- P08–P09: entrevista.
-- P10–P11: memoria y patrimonio.
-- P12: comunidad y servicios.
-- P13: comercio local.
-- P14: cartas y opinión vecinal.
-- P15: agenda y datos útiles.
-- P16: observatorio de datos públicos.
-- P17: publicidad y colaboradores.
-- P18: contraportada.
+- P02: sumario, créditos y carta editorial.
+- P03: noticias breves.
+- P04: avances de la agrupación.
+- P05–P06: reportaje central.
+- P07: voces del comercio.
+- P08: memoria y patrimonio.
+- P09: observatorio de datos públicos.
+- P10: comunidad, servicios y agenda.
+- P11: cartas y opinión vecinal.
+- P12: contraportada.
 
 Use las vistas de página, doble página o revista completa según la tarea. Presione **Editar** para modificar los campos habilitados. Al cambiar un texto, una fotografía o un dato que afecta una página aprobada, esa aprobación se retira para obligar a revisarla nuevamente.
 
@@ -154,7 +150,7 @@ Cada fotografía incorporada debe tener descripción accesible, crédito, pie cu
 El PDF se genera únicamente como salida de la edición activa:
 
 1. termine la edición de textos, datos e imágenes;
-2. revise y apruebe cada una de las 18 páginas;
+2. revise y apruebe cada una de las 12 páginas;
 3. presione **Revisión final**;
 4. corrija contenido de muestra, campos incompletos, imágenes faltantes o de baja resolución y contenido fuera del marco;
 5. presione **Guardar PDF** y siga las instrucciones del navegador.
@@ -173,7 +169,7 @@ En el cuadro de impresión seleccione:
 
 Al guardar el PDF, el cuadro ofrece dos archivos distintos:
 
-**PDF A5 de oficina y uso digital.** Las 18 páginas al tamaño final, 148 × 210 mm.
+**PDF A5 de oficina y uso digital.** Las 12 páginas al tamaño final, 148 × 210 mm.
 Para leer en pantalla, distribuir por correo o mensajería, o imprimir en una
 impresora común. Elija papel A5, escala 100 %, márgenes ninguno.
 
@@ -212,6 +208,6 @@ El espacio real disponible depende del navegador y del disco del equipo. Si apar
 
 - `LEEME_PRIMERO.md`: acceso rápido y flujo esencial.
 - `ESTRUCTURA_RAMIFICADA.md`: estructura técnica y editorial de las carpetas.
-- `DOCUMENTACION/PROGRAMA_18_PAGINAS.md`: pauta detallada de cada página.
+- `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`: pauta detallada de cada página.
 - `DOCUMENTACION/GUIA_VERSION_ULTRA.md`: controles editoriales y de cierre.
 - `PLANTILLAS/`: fichas de artículo, fotografía, publicidad y control de cierre.

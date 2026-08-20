@@ -64,8 +64,12 @@
     document.body.prepend(warning);
   }
 
-  const EXPECTED_PAGE_COUNT = 18;
-  const MAGAZINE_SIZE_LABEL = "18 páginas";
+  const EXPECTED_PAGE_COUNT = 12;
+  // Estaba escrito a mano en seis sitios, así que al cambiar la estructura la
+  // interfaz seguía hablando de dieciocho páginas.
+  function etiquetaTamano() {
+    return `${pages.length} páginas`;
+  }
   const ISSUE_DEFAULTS = {
     edition: "Edición N.° 1 · Mes 2026",
     responsible: "",
@@ -86,23 +90,18 @@
   const MAX_BACKUP_CHARACTERS = 40_000_000;
   const IMAGE_SLOTS = new Set([
     "p01.hero",
-    "p03.portrait",
-    "p05.progress",
-    "p06.main",
-    "p07.support",
-    "p08.portrait",
-    "p09.context",
-    "p10.historic",
-    "p11.memory",
-    "p12.service",
-    "p13.commerce",
-    "p16.culture",
+    "p02.portrait",
+    "p04.progress",
+    "p05.main",
+    "p06.support",
+    "p07.portrait",
+    "p07.commerce",
+    "p08.historic",
+    "p09.culture",
+    "p10.service",
     "brand.logo",
-    "p17.primary",
-    "p17.ad1",
-    "p17.ad2",
-    "p18.ad",
-    ...["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15", "p16"].map((id) => `${id}.ad`)
+    "p12.ad",
+    ...["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11"].map((id) => `${id}.ad`)
   ]);
   const WORD_BUDGET_EXCLUDED = new Set([
     "title", "subtitle", "ribbon", "kicker", "headline", "edition", "label", "contact",
@@ -121,22 +120,16 @@
   // llenándolas con texto hasta que desbordan. El mínimo deja la página
   // razonablemente llena; el máximo se queda por debajo del desborde.
   const PAGE_WORD_BUDGETS = {
-    p02: { min: 110, max: 220, nombre: "Sumario y créditos" },
-    p03: { min: 260, max: 370, nombre: "Carta editorial" },
-    p04: { min: 380, max: 500, nombre: "Noticias breves" },
-    p05: { min: 280, max: 480, nombre: "Avances de la agrupación" },
-    p06: { min: 200, max: 255, nombre: "Reportaje · apertura" },
-    p07: { min: 330, max: 410, nombre: "Reportaje · continuación" },
-    p08: { min: 340, max: 470, nombre: "Entrevista · presentación" },
-    p09: { min: 450, max: 620, nombre: "Entrevista · conversación" },
-    p10: { min: 260, max: 330, nombre: "Memoria · apertura" },
-    p11: { min: 380, max: 500, nombre: "Memoria · continuación" },
-    p12: { min: 450, max: 590, nombre: "Comunidad y servicios" },
-    p13: { min: 230, max: 295, nombre: "Comercio local" },
-    p14: { min: 360, max: 600, nombre: "Cartas al director" },
-    p15: { min: 90, max: 180, nombre: "Agenda comunitaria" },
-    p16: { min: 250, max: 320, nombre: "Observatorio de datos" },
-    p17: { min: 90, max: 200, nombre: "Publicidad y colaboradores" }
+    p02: { min: 300, max: 460, nombre: "Sumario, créditos y editorial" },
+    p03: { min: 380, max: 500, nombre: "Noticias breves" },
+    p04: { min: 280, max: 480, nombre: "Avances de la agrupación" },
+    p05: { min: 195, max: 250, nombre: "Reportaje · apertura" },
+    p06: { min: 315, max: 400, nombre: "Reportaje · continuación" },
+    p07: { min: 270, max: 345, nombre: "Voces del comercio" },
+    p08: { min: 225, max: 290, nombre: "Memoria y patrimonio" },
+    p09: { min: 250, max: 320, nombre: "Observatorio de datos" },
+    p10: { min: 300, max: 385, nombre: "Comunidad, servicios y agenda" },
+    p11: { min: 360, max: 600, nombre: "Cartas al director" }
   };
 
   function countWords(value) {
@@ -161,9 +154,8 @@
   // Rango por elemento para las páginas cuyo número de elementos es variable.
   // Rangos por elemento, también en palabras de A4.
   const RANGO_POR_ELEMENTO = {
-    p04: { lista: "briefs", min: 95, max: 125 },
-    p14: { lista: "letters", min: 90, max: 150 },
-    p15: { lista: "agenda", min: 18, max: 45 }
+    p03: { lista: "briefs", min: 95, max: 125 },
+    p11: { lista: "letters", min: 90, max: 150 }
   };
 
   // Los presupuestos están medidos en A4. Para los otros formatos se ajustan
@@ -391,12 +383,12 @@
   }
 
   const LIST_SPECS = {
-    "p04.briefs":     { parts: 3, min: 2, max: 6, uno: "noticia",    varias: "noticias" },
-    "p05.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
-    "p14.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
-    "p15.agenda":     { parts: 4, min: 1, max: 6, uno: "actividad",  varias: "actividades" },
-    "p16.registros":  { parts: 5, min: 3, max: 9,  uno: "registro",   varias: "registros" },
-    "p16.lineas":     { parts: 2, min: 2, max: 3,  uno: "línea",      varias: "líneas de trabajo" }
+    "p03.briefs":     { parts: 3, min: 2, max: 6, uno: "noticia",    varias: "noticias" },
+    "p04.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
+    "p10.agenda":     { parts: 4, min: 1, max: 3, uno: "actividad",  varias: "actividades" },
+    "p11.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
+    "p09.registros":  { parts: 5, min: 3, max: 9,  uno: "registro",   varias: "registros" },
+    "p09.lineas":     { parts: 2, min: 2, max: 3,  uno: "línea",      varias: "líneas de trabajo" }
   };
 
   function listCountKey(pageId, listName) {
@@ -966,13 +958,11 @@
     else creditLines.unshift(responsibleLine);
     if (aplicarDato("p02", "credits", creditLines.join(String.fromCharCode(10)))) tocadas.add("p02");
     if (aplicarDato("p02", "contact", contact ? `Contacto editorial: ${contact}` : "")) tocadas.add("p02");
-    if (aplicarDato("p03", "signature", normalized.responsible)) tocadas.add("p03");
-    if (aplicarDato("p16", "deadline", closing || contact ? `Recepción de aportes: ${[closing, contact].filter(Boolean).join(" · ")}` : "")) tocadas.add("p16");
-    if (aplicarDato("p17", "contact", contact || closing ? `Reserva de avisos y recepción de contenidos: ${[contact, closing].filter(Boolean).join(" · ")}` : "")) tocadas.add("p17");
-    if (aplicarDato("p18", "tagline", normalized.motto)) tocadas.add("p18");
-    if (aplicarDato("p18", "contact1", normalized.email)) tocadas.add("p18");
-    if (aplicarDato("p18", "contact2", normalized.whatsapp)) tocadas.add("p18");
-    if (aplicarDato("p18", "contact3", normalized.location)) tocadas.add("p18");
+    if (aplicarDato("p02", "signature", normalized.responsible)) tocadas.add("p02");
+    if (aplicarDato("p12", "tagline", normalized.motto)) tocadas.add("p12");
+    if (aplicarDato("p12", "contact1", normalized.email)) tocadas.add("p12");
+    if (aplicarDato("p12", "contact2", normalized.whatsapp)) tocadas.add("p12");
+    if (aplicarDato("p12", "contact3", normalized.location)) tocadas.add("p12");
     // Sólo vuelven a pendiente las páginas que realmente cambiaron.
     tocadas.forEach((pageId) => updates.set(storageKey("done", pageId), null));
     await projectStorage.putMany(updates);
@@ -1173,12 +1163,13 @@
   // derecha, las que el lector ve al abrir, y por eso son las que se venden.
   // Quedan fuera la portada, la contraportada y la página que ya es de
   // publicidad completa.
-  const AD_STRIP_EXCLUDED_SEGMENTS = new Set(["13_cierre_publicidad"]);
+  const AD_STRIP_EXCLUDED_SEGMENTS = new Set();
 
-  // La carta editorial y el cierre del reportaje central no llevan aviso: son
-  // las dos páginas donde la revista habla con su propia voz, y un faldón
-  // pagado al pie de ellas confunde lo editorial con lo comercial.
-  const AD_STRIP_EXCLUDED_PAGES = new Set([3, 7]);
+  // Dos páginas impares no se venden. La apertura del reportaje es donde la
+  // revista pone su mejor trabajo, y el observatorio declara al pie de dónde
+  // salen sus datos: un aviso pagado justo debajo de ese recuadro pone en duda
+  // lo que acaba de afirmar.
+  const AD_STRIP_EXCLUDED_PAGES = new Set([5, 9]);
 
   function pageAllowsAdStrip(page) {
     if (!page || page.number % 2 !== 1) return false;
@@ -1243,7 +1234,7 @@
       : `Se agregó un aviso al pie de la página ${page.number}.`);
   }
 
-  const PAGINAS_CON_FIRMA = new Set(["p04", "p06", "p10", "p12", "p13", "p16"]);
+  const PAGINAS_CON_FIRMA = new Set(["p03", "p05", "p07", "p08", "p09", "p10"]);
 
   function firma(page) {
     if (!PAGINAS_CON_FIRMA.has(page.id)) return "";
@@ -1315,6 +1306,16 @@
           ${editableLabel(page, "participateBody", "Envía noticias, fotografías y cartas para el próximo número.", "p")}
           <p><strong>${editable(page, "contact")}</strong></p>
         </aside>
+      </div>
+      <div class="editorial-breve page-fill">
+        ${editableLabel(page, "edLabel", "Carta editorial", "span", "section-ribbon")}
+        <h3 class="editorial-breve__titulo">${editable(page, "edTitle")}</h3>
+        <div class="two-columns">
+          <p class="body-copy lead-copy">${editable(page, "edBody1")}</p>
+          <p class="body-copy">${editable(page, "edBody2")}</p>
+          <p class="body-copy">${editable(page, "edBody3")}</p>
+        </div>
+        <p class="editorial-breve__firma"><strong>${editable(page, "signature")}</strong></p>
       </div>`;
     return pageFrame(page, content);
   }
@@ -1482,6 +1483,40 @@
     return pageFrame(page, content);
   }
 
+  // Entrevista y comercio local compartían dos páginas y media revista. Para una
+  // asociación gremial es la misma historia: quien atiende el local es la voz
+  // que vale la pena escuchar, y su dirección es el dato que el lector usa.
+  function renderVoices(page) {
+    const preguntas = [1, 2, 3].map((n) => `<div class="qa">
+        <h3>${editable(page, `q${n}`)}</h3>
+        <p>${editable(page, `a${n}`)}</p>
+      </div>`).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="voces-grid page-fill">
+        <div class="voces-apoyo">
+          ${imageSlot(page, "portrait", "Agregar retrato de la persona entrevistada", "voces-retrato")}
+          ${imageSlot(page, "commerce", "Agregar fotografía del local", "voces-local")}
+          <div class="contact-card">
+            <h3>${editable(page, "negocio")}</h3>
+            ${editableLabel(page, "visitaLabel", "Visítalo", "h4")}
+            <p>${editable(page, "visita")}</p>
+          </div>
+        </div>
+        <div class="voces-texto">
+          <p class="body-copy lead-copy">${editable(page, "intro")}</p>
+          ${preguntas}
+          <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
+        </div>
+      </div>
+      <p class="caption voces-aviso">${editable(page, "aviso")} · ${editable(page, "credit")}</p>`;
+    return pageFrame(page, content);
+  }
+
   function renderHeritage(page) {
     const content = `
       ${runningHead(page)}
@@ -1497,6 +1532,8 @@
         <div>
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
+          <p class="body-copy">${editableValue(page, "body3", "Tercer párrafo: qué permanece hoy de aquello, qué cambió y qué conviene resguardar.")}</p>
+          <div class="quote-card">${editableValue(page, "quote", "Testimonio breve de una vecina, vecino o especialista, identificado y autorizado.")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
           <div class="contact-card">${editableLabel(page, "sourceLabel", "Fuentes", "h3")}<p>${editable(page, "source")}</p></div>
         </div>
       </div>`;
@@ -1525,6 +1562,21 @@
   }
 
   function renderCommunity(page) {
+    const modeloAgenda = page.lists?.agenda || [];
+    const totalAgenda = listCount(page, "agenda", modeloAgenda);
+    const agenda = Array.from({ length: totalAgenda }, (unused, index) => {
+      const [dia, mes, titulo, detalle] = splitItem(modeloAgenda[index], 4);
+      return `<article class="agenda-breve__item">
+        <span class="agenda-breve__fecha">
+          <strong>${editableList(page, "agenda", index, "day", dia)}</strong>
+          <span>${editableList(page, "agenda", index, "month", mes)}</span>
+        </span>
+        <span class="agenda-breve__texto">
+          <strong>${editableList(page, "agenda", index, "title", titulo)}</strong>
+          <span>${editableList(page, "agenda", index, "detail", detalle)}</span>
+        </span>
+      </article>`;
+    }).join("");
     const blocks = [1, 2, 3].map((index) => `<article class="contact-card"><span class="icon-chip">${index}</span><h3>${editable(page, `block${index}Title`)}</h3><p>${editable(page, `block${index}Body`)}</p></article>`).join("");
     const content = `
       ${runningHead(page)}
@@ -1538,7 +1590,13 @@
         <p class="body-copy">${editable(page, "body2")}</p>
         <p class="body-copy">${editable(page, "body3")}</p>
       </div>
-      <div class="contact-card">${editableLabel(page, "contactLabel", "Información práctica", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
+      <div class="contact-card">${editableLabel(page, "contactLabel", "Información práctica", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>
+      <div class="agenda-breve">
+        ${editableLabel(page, "agendaLabel", "Agenda comunitaria", "h3")}
+        <div class="agenda-breve__lista">${agenda}</div>
+        ${listControls(page, "agenda", totalAgenda)}
+        <p class="caption">${editable(page, "agendaNota")}</p>
+      </div>`;
     return pageFrame(page, content);
   }
 
@@ -1748,8 +1806,8 @@
     commerce: renderCommerce,
     letters: renderLetters,
     agenda: renderAgenda,
-    culture: renderCulture,
     observatorio: renderObservatorio,
+    voices: renderVoices,
     ads: renderAds,
     back: renderBack
   };
@@ -1917,7 +1975,7 @@
       ? "Vista de página: una hoja a la vez."
       : state.view === "spread"
         ? "Doble página: se ven dos páginas juntas, como al abrir la revista."
-        : "Vista completa: las 18 páginas seguidas.";
+        : `Vista completa: las ${pages.length} páginas seguidas.`;
     els.message.textContent = state.editing
       ? descripcionVista
       : `${descripcionVista} Estás mirando la revista: pulsa Editar para cambiar textos y fotografías.`;
@@ -2143,7 +2201,7 @@
         type: "structure",
         pageId: null,
         pageIndex: null,
-        title: `La estructura de ${MAGAZINE_SIZE_LABEL} necesita revisión`,
+        title: `La estructura de ${etiquetaTamano()} necesita revisión`,
         detail: "Comprueba el número, orden, identificador y plantilla de cada página antes de imprimir."
       });
     }
@@ -2184,13 +2242,13 @@
     }
     // El descargo de la página de cartas es el único blindaje legal de la
     // revista, y era un rótulo editable que podía borrarse sin dejar rastro.
-    const descargoCartas = savedText("p14", "disclaimer", DESCARGO_CARTAS).trim();
+    const descargoCartas = savedText("p11", "disclaimer", DESCARGO_CARTAS).trim();
     if (!descargoCartas) {
       issues.push({
         severity: "critical",
         type: "disclaimer",
-        pageId: "p14",
-        pageIndex: pages.findIndex((page) => page.id === "p14"),
+        pageId: "p11",
+        pageIndex: pages.findIndex((page) => page.id === "p11"),
         title: "Falta el descargo de las cartas",
         detail: "La página de cartas debe declarar que las opiniones son de sus autores y bajo qué condiciones se publican. Sin ese texto la revista responde por lo que escriba cualquiera."
       });
@@ -2201,7 +2259,7 @@
     // se revisan uno por uno antes de cerrar.
     const CONTACTOS = [
       { pageId: "p02", key: "contact", donde: "los créditos" },
-      { pageId: "p17", key: "contact", donde: "la página de colaboradores" }
+      { pageId: "p12", key: "contact1", donde: "la contraportada" }
     ];
     const MUESTRA = /1234\s?5678|ejemplo\.|@cascohistorico\.cl|\[[^\]]+\]|correo@|tu@/i;
     CONTACTOS.forEach(({ pageId, key, donde }) => {
@@ -2515,7 +2573,7 @@
         ? `No se puede cerrar la edición porque ${listaEnEspanol(motivos)}.`
         : "No se puede cerrar la edición hasta resolver las observaciones críticas."
       : ready
-        ? `Las ${MAGAZINE_SIZE_LABEL} pasaron la revisión editorial automática.`
+        ? `Las ${etiquetaTamano()} pasaron la revisión editorial automática.`
         : "Puedes guardar un borrador o entrar a cada observación para completar la edición.";
 
     state.lastPreflight = { issues, checkedAt: new Date().toISOString() };
@@ -2617,7 +2675,7 @@
   }
 
   async function runPreflight() {
-    showToast(`Revisando las ${MAGAZINE_SIZE_LABEL}…`);
+    showToast(`Revisando las ${etiquetaTamano()}…`);
     await waitForFonts();
     await afterNextFrames();
     const issues = collectPreflightIssues();
@@ -2846,6 +2904,7 @@
   function projectCard(project, trashed = false) {
     const completed = completedPagesFor(project);
     const percent = Math.round((completed / EXPECTED_PAGE_COUNT) * 100);
+    const total = pages.length;
     const ready = completed === EXPECTED_PAGE_COUNT;
     const id = escapeHtml(project.id);
     const name = escapeHtml(project.name);
@@ -2866,7 +2925,7 @@
         <h3>${name}</h3>
         <p class="project-card__edition">${edition}</p>
         <div class="project-card__meta">
-          <span class="project-card__status ${ready ? "is-ready" : ""}">${trashed ? "En papelera" : ready ? "18 páginas listas" : `${completed}/18 páginas listas`}</span>
+          <span class="project-card__status ${ready ? "is-ready" : ""}">${trashed ? "En papelera" : ready ? `${total} páginas listas` : `${completed}/${total} páginas listas`}</span>
         </div>
         <div class="project-card__progress" aria-hidden="true"><span style="width:${percent}%"></span></div>
         <p class="project-card__updated">${escapeHtml(projectDateLabel(project.updatedAt))}</p>
@@ -2938,7 +2997,7 @@
 
   // La página 16 dejó de ser una convocatoria a colaborar y pasó a ser el
   // observatorio de datos. Dos campos de la maqueta anterior ya no se leen.
-  const CAMPOS_RETIRADOS = ["p16.callout", "p16.deadline", "p12.body"];
+  const CAMPOS_RETIRADOS = ["p09.callout", "p09.deadline", "p10.body"];
 
   function limpiarCamposRetirados() {
     const prefijos = CAMPOS_RETIRADOS.flatMap((campo) => [
@@ -2952,6 +3011,68 @@
     if (!cambios.size) return 0;
     projectStorage.putMany(cambios).catch(() => undefined);
     return cambios.size;
+  }
+
+  // ---------------------------------------------------------------------------
+  // De dieciocho páginas a doce
+  //
+  // La revista se reordenó: la carta editorial pasó a compartir página con el
+  // sumario, entrevista y comercio se fundieron en una sola, memoria y
+  // entrevista perdieron su continuación, la agenda pasó a un recuadro y la
+  // página suelta de publicidad desapareció. Los identificadores de página se
+  // renumeraron para que coincidan con el folio.
+  //
+  // Esta migración mueve el contenido ya escrito a su página nueva. Se hace en
+  // una sola escritura porque los identificadores se solapan: lo que era la
+  // dieciséis pasa a ser la nueve, y la nueve antigua ya no existe.
+  // ---------------------------------------------------------------------------
+  const MAPA_DOCE = {
+    p01: "p01", p02: "p02", p03: "p02", p04: "p03", p05: "p04", p06: "p05",
+    p07: "p06", p08: "p07", p10: "p08", p12: "p10", p14: "p11", p16: "p09", p18: "p12"
+  };
+  // La carta editorial entra en la página del sumario, que ya tiene título y
+  // bajada propios: sus campos cambian de nombre para no pisarlos.
+  const CAMPOS_EDITORIAL = {
+    title: "edTitle", body1: "edBody1", body2: "edBody2", body3: "edBody3",
+    signature: "signature", deck: null, runningHead: null
+  };
+
+  function migrarADocePaginas() {
+    const ajustes = issueSettings();
+    if (ajustes.estructura === "12") return 0;
+
+    const entradas = projectStorage.entries();
+    const cambios = new Map();
+    let movidas = 0;
+    let perdidas = 0;
+
+    entradas.forEach(([clave]) => {
+      if (/^(text|image|image-meta|done):p\d{2}/.test(clave)) cambios.set(clave, null);
+    });
+
+    entradas.forEach(([clave, valor]) => {
+      const m = /^(text|image|image-meta|done):(p\d{2})(?:\.(.+))?$/.exec(clave);
+      if (!m) return;
+      const [, tipo, viejo, resto] = m;
+      const nuevo = MAPA_DOCE[viejo];
+      if (!nuevo) { perdidas += 1; return; }
+      let cola = resto;
+      if (viejo === "p03") {
+        const raiz = String(resto || "").split(".")[0];
+        const destino = Object.prototype.hasOwnProperty.call(CAMPOS_EDITORIAL, raiz)
+          ? CAMPOS_EDITORIAL[raiz]
+          : raiz;
+        if (!destino) { perdidas += 1; return; }
+        cola = String(resto).replace(raiz, destino);
+      }
+      const claveNueva = cola ? `${tipo}:${nuevo}.${cola}` : `${tipo}:${nuevo}`;
+      if (claveNueva !== clave) movidas += 1;
+      cambios.set(claveNueva, valor);
+    });
+
+    cambios.set(storageKey("settings", "issue"), JSON.stringify({ ...ajustes, estructura: "12" }));
+    projectStorage.putMany(cambios).catch(() => undefined);
+    return movidas;
   }
 
   function showEditor(options = {}) {
@@ -2968,7 +3089,11 @@
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
     aplicarFormato();
+    const reubicadas = migrarADocePaginas();
     const huerfanas = migrarSumarioAntiguo() + limpiarCamposRetirados();
+    if (reubicadas) {
+      showToast(`Esta revista pasó de dieciocho a doce páginas. Se trasladaron ${reubicadas} textos a su página nueva: revísalas antes de imprimir.`);
+    }
     if (huerfanas) {
       showToast(huerfanas === 1
         ? "Se actualizó la estructura de esta revista y se retiró un dato que ya no se usaba."
@@ -3092,7 +3217,7 @@
       els.printModeNotice.classList.toggle("is-final", finalMode);
       els.printModeNotice.classList.toggle("is-review", !finalMode);
       els.printModeNotice.innerHTML = finalMode
-        ? `<strong>PDF final A5</strong><p>La revisión automática está limpia y las ${MAGAZINE_SIZE_LABEL} fueron aprobadas. Esta salida sirve para distribución digital o impresión de oficina; confirma con la imprenta si necesita sangrado, marcas o un perfil de color específico.</p>`
+        ? `<strong>PDF final A5</strong><p>La revisión automática está limpia y las ${etiquetaTamano()} fueron aprobadas. Esta salida sirve para distribución digital o impresión de oficina; confirma con la imprenta si necesita sangrado, marcas o un perfil de color específico.</p>`
         : `<strong>PDF de revisión · BORRADOR</strong><p>El archivo llevará la marca “BORRADOR · NO DISTRIBUIR”. Úsalo para corregir y aprobar contenido; no lo distribuyas como edición final.</p>`;
     }
     if (typeof els.print.showModal === "function") els.print.showModal();
@@ -3764,7 +3889,7 @@
     "- Entrega sólo el texto pedido, sin explicaciones previas ni comentarios finales."
   ].join(String.fromCharCode(10));
 
-  const ASISTENTE_VOCES = new Set(["p08", "p09", "p14"]);
+  const ASISTENTE_VOCES = new Set(["p07", "p11"]);
   // Hay palabras de personas reales también en las frases destacadas del
   // reportaje, de memoria y del comercio. Redactarlas es fabricar un testimonio.
   const ASISTENTE_CAMPOS_VEDADOS = new Set(["quote", "quoteAuthor", "intro", "a1", "a2", "a3", "body"]);

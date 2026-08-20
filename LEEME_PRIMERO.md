@@ -1,6 +1,6 @@
 # Taller Editorial de la Revista Casco Histórico
 
-Este es un software local para crear, conservar y revisar varias ediciones independientes de una revista A5 de 18 páginas, incluida la portada y la contraportada. El PDF es sólo la salida final o de revisión: el trabajo editable permanece dentro del sistema y puede trasladarse mediante respaldos JSON.
+Este es un software local para crear, conservar y revisar varias ediciones independientes de una revista A4 de 12 páginas, incluida la portada y la contraportada. El PDF es sólo la salida final o de revisión: el trabajo editable permanece dentro del sistema y puede trasladarse mediante respaldos JSON.
 
 ## Inicio rápido
 
@@ -15,22 +15,18 @@ Mantenga una sola pestaña del taller abierta. Si una segunda pestaña muestra *
 ## Programa editorial
 
 - P01: portada.
-- P02: sumario, créditos y contacto.
-- P03: carta editorial.
-- P04: noticias breves.
-- P05: avances de la agrupación.
-- P06–P07: reportaje central.
-- P08–P09: entrevista.
-- P10–P11: memoria y patrimonio.
-- P12: comunidad y servicios.
-- P13: comercio local.
-- P14: cartas y opinión vecinal.
-- P15: agenda y datos útiles.
-- P16: observatorio de datos públicos.
-- P17: publicidad y colaboradores.
-- P18: contraportada.
+- P02: sumario, créditos y carta editorial.
+- P03: noticias breves.
+- P04: avances de la agrupación.
+- P05–P06: reportaje central.
+- P07: voces del comercio.
+- P08: memoria y patrimonio.
+- P09: observatorio de datos públicos.
+- P10: comunidad, servicios y agenda.
+- P11: cartas y opinión vecinal.
+- P12: contraportada.
 
-El programa detallado se encuentra en `DOCUMENTACION/PROGRAMA_18_PAGINAS.md`.
+El programa detallado se encuentra en `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`.
 
 ## Estructura
 
@@ -50,8 +46,8 @@ revista**, y los va marcando según el avance real de la edición. Se puede pleg
 con **Ocultar** y el taller recuerda la preferencia.
 
 1. Cree o abra una revista desde **Mis revistas**.
-2. Use el árbol lateral para recorrer los segmentos y las 18 páginas.
-3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. Ahí se elige también el **formato**: A5 de bolsillo, A4, o tabloide de 280 × 400 mm, que es tamaño de diario. Cambiar el formato recompone las 18 páginas, así que conviene decidirlo antes de escribir. El sistema la reutiliza en las páginas correspondientes.
+2. Use el árbol lateral para recorrer los segmentos y las 12 páginas.
+3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. Ahí se elige también el **formato**: A5 de bolsillo, A4, o tabloide de 280 × 400 mm, que es tamaño de diario. Cambiar el formato recompone las 12 páginas, así que conviene decidirlo antes de escribir. El sistema la reutiliza en las páginas correspondientes.
 4. Presione **Editar** para cambiar textos y fotografías. Cada foto exige descripción accesible, crédito y confirmación de permiso. Si modifica una página aprobada, vuelve automáticamente a estado pendiente.
    - Al pegar desde Word o desde el correo, el taller conserva sólo el texto: lo que ve en pantalla es lo que se va a imprimir.
    - **Deshacer** revierte el último cambio de texto. También funciona con Ctrl+Z cuando el cursor no está dentro de un campo.
@@ -71,7 +67,7 @@ con **Ocultar** y el taller recuerda la preferencia.
 
 El guardado automático usa IndexedDB y queda sólo en este navegador y en este dispositivo. No es un respaldo externo. Exporte una copia JSON y guárdela en una carpeta segura o en otro medio.
 
-El sistema acepta respaldos v2 actuales y copias v1 del editor anterior. Toda importación crea una revista nueva e independiente; no reemplaza el proyecto abierto. Las copias antiguas de 16 páginas se pueden redistribuir a la estructura actual de 18 páginas. Abra únicamente archivos creados por este sistema y recibidos de una fuente confiable.
+El sistema acepta respaldos v2 actuales y copias v1 del editor anterior. Toda importación crea una revista nueva e independiente; no reemplaza el proyecto abierto. Las copias antiguas de 16 páginas se pueden redistribuir a la estructura actual de 12 páginas. Abra únicamente archivos creados por este sistema y recibidos de una fuente confiable.
 
 ## Fotografías, permisos y créditos
 
@@ -84,7 +80,7 @@ El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y
 ## Qué tipo de PDF se obtiene
 
 - **PDF de revisión:** puede contener pendientes; el sistema incorpora la marca visible **BORRADOR · NO DISTRIBUIR** y no se usa como archivo final.
-- **PDF A5 de oficina o digital:** las 18 páginas sirven para revisión en pantalla, distribución digital o impresión común en A5 después del control de cierre.
+- **PDF A5 de oficina o digital:** las 12 páginas sirven para revisión en pantalla, distribución digital o impresión común en A5 después del control de cierre.
 - **Cuadernillo doblado y corcheteado:** suele necesitar una cantidad de páginas múltiplo de cuatro. Consulte a la imprenta si debe ampliar la edición a 20 páginas antes de diseñar los pliegos.
 - **Archivo de imprenta:** al guardar el PDF puede elegir esta salida. Coloca cada página A5 centrada en una hoja A4, con 3 mm de sangrado y marcas de corte y de registro, y un pie técnico que indica página, edición, medida de corte y sangrado. Es lo que un taller gráfico necesita para el tiraje. No incluye imposición de pliegos ni perfil de color: eso lo aplica la imprenta con sus propios equipos.
 
