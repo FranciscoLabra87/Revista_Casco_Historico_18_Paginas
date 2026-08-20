@@ -1551,7 +1551,14 @@
     const first = visible[0]?.number || 1;
     const last = visible[visible.length - 1]?.number || first;
     els.position.textContent = first === last ? `Página ${first} de ${pages.length}` : `Páginas ${first}–${last} de ${pages.length}`;
-    els.message.textContent = state.view === "single" ? "Vista de página: revisión detallada de una hoja." : state.view === "spread" ? "Doble página: páginas enfrentadas en orden de lectura, sin imposición de imprenta." : "Vista completa: revisión general antes de imprimir o guardar en PDF.";
+    const descripcionVista = state.view === "single"
+      ? "Vista de página: una hoja a la vez."
+      : state.view === "spread"
+        ? "Doble página: se ven dos páginas juntas, como al abrir la revista."
+        : "Vista completa: las 18 páginas seguidas.";
+    els.message.textContent = state.editing
+      ? descripcionVista
+      : `${descripcionVista} Estás mirando la revista: pulsa Editar para cambiar textos y fotografías.`;
     const currentPage = pages[state.current];
     const currentComplete = projectStorage.getItem(storageKey("done", currentPage.id)) === "1";
     els.navComplete.hidden = !state.editing;
@@ -2046,21 +2053,69 @@
     if (!issues.length) {
       els.preflightResults.innerHTML = `<div class="preflight-empty"><strong>Sin observaciones</strong><p>La edición está preparada para la salida PDF.</p></div>`;
     } else {
+      // Antes era una lista plana en el orden en que se generaron las
+      // observaciones: en una edición recién creada, sesenta o más entradas
+      // seguidas, sin saber si son sesenta problemas o el mismo repetido
+      // dieciocho veces. Ahora se agrupa por página, se ordena por gravedad y
+      // se encabeza con los pasos concretos por los que conviene empezar.
       const labels = { critical: "Corregir", warning: "Completar", review: "Revisar" };
-      els.preflightResults.innerHTML = `<div class="preflight-list" role="list">${issues.map((issue) => {
-        const page = issue.pageIndex === null ? null : pages[issue.pageIndex];
-        const pageLabel = page ? `P${String(page.number).padStart(2, "0")} · ${page.title}` : "Toda la edición";
+      const peso = { critical: 0, warning: 1, review: 2 };
+
+      const tarjeta = (issue) => {
         const action = issue.type === "settings"
           ? `<button type="button" class="button button--small button--ghost" data-preflight-settings>Completar datos</button>`
           : issue.pageIndex === null
             ? ""
             : `<button type="button" class="button button--small button--ghost" data-preflight-page="${issue.pageIndex}" data-issue-type="${issue.type}">Ir a la página</button>`;
-        return `<article class="preflight-issue preflight-issue--${issue.severity}" role="listitem">
-          <span class="severity-label">${labels[issue.severity]}</span>
-          <div><span class="preflight-page-label">${escapeHtml(pageLabel)}</span><h3>${escapeHtml(issue.title)}</h3><p>${escapeHtml(issue.detail)}</p></div>
+        return `<article class="preflight-issue preflight-issue--${issue.severity}${issue.advisory ? " is-advisory" : ""}" role="listitem">
+          <span class="severity-label">${issue.advisory ? "Informativa" : labels[issue.severity]}</span>
+          <div><h3>${escapeHtml(issue.title)}</h3><p>${escapeHtml(issue.detail)}</p></div>
           ${action}
         </article>`;
-      }).join("")}</div>`;
+      };
+
+      const generales = issues.filter((issue) => issue.pageIndex === null);
+      const porPagina = new Map();
+      issues.filter((issue) => issue.pageIndex !== null).forEach((issue) => {
+        const lista = porPagina.get(issue.pageIndex) || [];
+        lista.push(issue);
+        porPagina.set(issue.pageIndex, lista);
+      });
+
+      // Pasos sugeridos: lo que de verdad conviene hacer antes que nada.
+      const pendientesDeAprobar = issues.filter((issue) => issue.type === "completion").length;
+      const conMuestra = new Set(issues.filter((issue) => issue.type === "model-copy").map((issue) => issue.pageIndex)).size;
+      const pasos = [];
+      if (generales.some((issue) => issue.type === "settings")) pasos.push("Completa los datos de la edición.");
+      if (conMuestra) pasos.push(`Reemplaza el texto de muestra en ${conMuestra} ${conMuestra === 1 ? "página" : "páginas"}.`);
+      const faltanImagenes = issues.filter((issue) => issue.type === "image").length;
+      if (faltanImagenes) pasos.push(`Coloca las fotografías que faltan en ${faltanImagenes} ${faltanImagenes === 1 ? "página" : "páginas"}.`);
+      if (pendientesDeAprobar) pasos.push(`Marca como listas las ${pendientesDeAprobar} páginas pendientes.`);
+
+      const bloquePasos = pasos.length
+        ? `<section class="preflight-steps"><h3>Por dónde empezar</h3><ol>${pasos.map((paso) => `<li>${escapeHtml(paso)}</li>`).join("")}</ol></section>`
+        : "";
+
+      const bloqueGenerales = generales.length
+        ? `<details class="preflight-group" open><summary><span class="preflight-group__name">Toda la edición</span><span class="preflight-group__count">${generales.length}</span></summary><div class="preflight-list" role="list">${generales.sort((a, b) => peso[a.severity] - peso[b.severity]).map(tarjeta).join("")}</div></details>`
+        : "";
+
+      const bloquesPaginas = [...porPagina.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([pageIndex, lista]) => {
+          const page = pages[pageIndex];
+          const ordenadas = lista.slice().sort((a, b) => peso[a.severity] - peso[b.severity]);
+          const bloqueantes = ordenadas.filter((issue) => !issue.advisory).length;
+          const grave = ordenadas.some((issue) => issue.severity === "critical")
+            ? " preflight-group--critical"
+            : bloqueantes ? " preflight-group--warning" : "";
+          const resumen = bloqueantes
+            ? `${bloqueantes} ${bloqueantes === 1 ? "cosa por resolver" : "cosas por resolver"}`
+            : "sólo informativas";
+          return `<details class="preflight-group${grave}"><summary><span class="preflight-group__name">P${String(page.number).padStart(2, "0")} · ${escapeHtml(page.title)}</span><span class="preflight-group__count">${escapeHtml(resumen)}</span></summary><div class="preflight-list" role="list">${ordenadas.map(tarjeta).join("")}</div></details>`;
+        }).join("");
+
+      els.preflightResults.innerHTML = bloquePasos + bloqueGenerales + bloquesPaginas;
     }
 
     const preflightPrintButton = document.getElementById("preflightPrintButton");
@@ -2349,6 +2404,12 @@
     state.preflightByPage.clear();
     state.lastPreflight = null;
     undoStack.length = 0;
+    state.formatTarget = null;
+    if (els.assistant) els.assistant.hidden = true;
+    if (els.format) els.format.hidden = true;
+    els.assistantButton?.setAttribute("aria-expanded", "false");
+    els.formatButton?.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("assistant-open", "format-open");
     document.body.classList.remove("edit-mode", "is-printing", "print-review", "print-final", "sidebar-open");
     document.title = state.originalTitle;
     [els.identity, els.settings, els.imageMeta, els.preflight, els.print, els.newProject, els.renameProject]
@@ -2370,6 +2431,13 @@
     els.currentProjectName.textContent = project.name;
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
+    // De la edición dependían las fotos, los botones de lista, el faldón, el
+    // contador y la aprobación de páginas. Quien abría la revista veía un
+    // recuadro que decía "Agregar fotografía", lo pulsaba y no ocurría nada.
+    // Se entra directamente en modo edición; "Terminar edición" da la vista
+    // limpia para revisar.
+    if (!printPreview) state.editing = true;
+    syncEditButton();
     renderTree();
     renderMagazine();
     if (compactQuery.matches) els.sidebar.inert = true;
@@ -3058,6 +3126,8 @@
   els.undo?.addEventListener("click", undoLastEdit);
   window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (els.format && !els.format.hidden) { formatoAbrir(false); return; }
+      if (els.assistant && !els.assistant.hidden) { asistenteAbrir(false); return; }
       if (els.sidebar.classList.contains("is-open")) setSidebarOpen(false);
     }
     if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.key.toLowerCase() === "z") {
@@ -3170,6 +3240,8 @@
   };
 
   let asistenteOcupado = false;
+  let asistenteControlador = null;
+  const ASISTENTE_ESPERA_MAXIMA = 60_000;
 
   function asistenteContexto() {
     const page = pages[state.current];
@@ -3214,12 +3286,19 @@
     els.assistantResult.hidden = false;
     els.assistantUsage.textContent = "";
     els.assistantOutput.textContent = `${tarea.etiqueta}…`;
+    // Sin límite de espera, una red caída a mitad de conexión dejaba la bandera
+    // puesta y todos los botones mudos el resto de la sesión.
+    const controlador = new AbortController();
+    asistenteControlador = controlador;
+    const reloj = window.setTimeout(() => controlador.abort(), ASISTENTE_ESPERA_MAXIMA);
     try {
       const respuesta = await fetch("/api/asistente", {
         method: "POST",
         headers: { "content-type": "application/json" },
+        signal: controlador.signal,
         body: JSON.stringify({ sistema: ASISTENTE_SISTEMA, mensaje: tarea.construir(ctx) })
       });
+      if (asistenteControlador !== controlador) return;
       const datos = await respuesta.json();
       if (!respuesta.ok) {
         els.assistantOutput.textContent = [datos.error, datos.detalle].filter(Boolean).join(String.fromCharCode(10) + String.fromCharCode(10));
@@ -3229,9 +3308,14 @@
       if (datos.uso && datos.uso.entrada != null) {
         els.assistantUsage.textContent = `${datos.uso.entrada} tokens de entrada · ${datos.uso.salida} de salida`;
       }
-    } catch {
-      els.assistantOutput.textContent = "No se pudo contactar el asistente. Comprueba que el taller se abrió con ABRIR_REVISTA.cmd y que hay conexión a internet.";
+    } catch (error) {
+      if (asistenteControlador !== controlador) return;
+      els.assistantOutput.textContent = error?.name === "AbortError"
+        ? "El asistente tardó demasiado y se canceló. Vuelve a intentarlo; si sigue igual, comprueba la conexión a internet."
+        : "No se pudo contactar el asistente. Comprueba que el taller se abrió con ABRIR_REVISTA.cmd y que hay conexión a internet.";
     } finally {
+      window.clearTimeout(reloj);
+      if (asistenteControlador === controlador) asistenteControlador = null;
       asistenteOcupado = false;
     }
   }
@@ -3241,8 +3325,15 @@
     els.assistant.hidden = !abrir;
     if (els.assistantButton) els.assistantButton.setAttribute("aria-expanded", String(abrir));
     document.body.classList.toggle("assistant-open", abrir);
-    if (!abrir) return;
+    if (!abrir) {
+      asistenteControlador?.abort();
+      asistenteControlador = null;
+      asistenteOcupado = false;
+      els.assistantButton?.focus();
+      return;
+    }
     asistenteRefrescar();
+    requestAnimationFrame(() => els.assistant.querySelector(".assistant-action")?.focus());
     fetch("/api/asistente")
       .then((r) => r.json())
       .then((estado) => {
@@ -3502,6 +3593,7 @@
     } else {
       state.formatTarget = null;
       els.host.querySelectorAll(".is-format-target").forEach((n) => n.classList.remove("is-format-target"));
+      els.formatButton?.focus();
     }
   }
 

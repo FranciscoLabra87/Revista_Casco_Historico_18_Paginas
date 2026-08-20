@@ -3535,6 +3535,105 @@ body.print-press .safe-line {
   display: none !important;
 }
 
+/* Los paneles laterales son fijos y tapaban la página derecha del pliego y los
+   controles de navegación. Ahora el taller les cede el ancho. */
+body.assistant-open .studio-shell {
+  padding-right: min(380px, 92vw);
+}
+
+body.format-open .studio-shell {
+  padding-right: min(330px, 92vw);
+}
+
+body.assistant-open.format-open .studio-shell {
+  padding-right: min(330px, 92vw);
+}
+
+/* 16 · Revisión final agrupada -------------------------------- */
+
+.preflight-steps {
+  margin: 0 0 14px;
+  padding: 13px 16px;
+  border-left: 3px solid var(--ceramic);
+  border-radius: 0 8px 8px 0;
+  background: var(--panel);
+}
+
+.preflight-steps h3 {
+  margin: 0 0 7px;
+  color: var(--wood);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.preflight-steps ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.preflight-group {
+  margin-bottom: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.preflight-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.preflight-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.preflight-group__name {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.preflight-group__count {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.preflight-group--warning > summary {
+  border-left: 4px solid var(--warning);
+}
+
+.preflight-group--critical > summary {
+  border-left: 4px solid var(--danger);
+}
+
+.preflight-group[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.preflight-group .preflight-list {
+  padding: 10px 12px 12px;
+}
+
+.preflight-issue.is-advisory {
+  opacity: 0.82;
+}
+
+.preflight-issue.is-advisory .severity-label {
+  background: var(--panel);
+  color: var(--muted);
+}
+
 /* 15 · Aviso de fallo de guardado ----------------------------- */
 
 .save-alert {
