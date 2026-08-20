@@ -3563,6 +3563,24 @@ body.assistant-open.format-open .studio-shell {
   padding-right: min(330px, 92vw);
 }
 
+/* 19 · Autoría de las citas ----------------------------------- */
+
+/* Una frase destacada sin nombre no es una cita: es una frase suelta. */
+.quote-author {
+  display: block;
+  margin-top: 2mm;
+  color: var(--tone-ink);
+  font-family: var(--font-body);
+  font-size: 8pt;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.quote-author::before {
+  content: "— ";
+}
+
 /* 18 · Espacios publicitarios vendibles ----------------------- */
 
 /* Sin un hueco de imagen no se puede vender un aviso: nadie paga por un

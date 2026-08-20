@@ -114,7 +114,8 @@
     p04: { min: 240, max: 700, label: "Noticias breves: 3 a 5 noticias de 80 a 140 palabras" },
     p06: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
     p07: { min: 350, max: 450, label: "Reportaje central: 700 a 900 palabras en P06 y P07" },
-    p08: { min: 80, max: 260, label: "Entrevista · presentación: 80 a 120 palabras de introducción" },
+    p05: { min: 250, max: 400, label: "Información institucional: 250 a 400 palabras" },
+    p08: { min: 80, max: 260, label: "Entrevista: 80 a 120 palabras de presentación más las respuestas" },
     p12: { min: 350, max: 500, label: "Comunidad y servicios: 350 a 500 palabras" },
     p13: { min: 300, max: 450, label: "Comercio local: 300 a 450 palabras" },
     p14: { min: 120, max: 720, label: "Cartas: máximo 180 palabras por carta" }
@@ -463,6 +464,7 @@
   // ---------------------------------------------------------------------------
 
   const ROTULOS_COMERCIALES = ["Publicidad", "Contenido patrocinado", "Espacio cedido"];
+  const DESCARGO_CARTAS = "Publicamos cartas con nombre y sector verificados. No publicamos cartas anónimas, insultos, amenazas, acusaciones sin respaldo ni datos personales de terceros. Podemos abreviar por espacio sin alterar el sentido, y avisamos antes de hacerlo. Si una carta alude a una persona u organización, le ofrecemos responder en la misma edición o en la siguiente. Las opiniones son de sus autores.";
 
   function rotuloComercial(pageId, slot) {
     const guardado = projectStorage.getItem(storageKey("text", `${pageId}.${slot}.rotulo`));
@@ -1001,9 +1003,15 @@
   // publicidad completa.
   const AD_STRIP_EXCLUDED_SEGMENTS = new Set(["13_cierre_publicidad"]);
 
+  // La carta editorial y el cierre del reportaje central no llevan aviso: son
+  // las dos páginas donde la revista habla con su propia voz, y un faldón
+  // pagado al pie de ellas confunde lo editorial con lo comercial.
+  const AD_STRIP_EXCLUDED_PAGES = new Set([3, 7]);
+
   function pageAllowsAdStrip(page) {
     if (!page || page.number % 2 !== 1) return false;
     if (page.number === 1 || page.number === pages.length) return false;
+    if (AD_STRIP_EXCLUDED_PAGES.has(page.number)) return false;
     return !AD_STRIP_EXCLUDED_SEGMENTS.has(page.segmentId);
   }
 
@@ -1182,7 +1190,7 @@
     const content = `
       ${runningHead(page, "Reportaje principal · continuación")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <div class="quote-card">${editable(page, "quote")}</div>
+      <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
       <div style="height:4mm"></div>
       <div class="feature-grid">
         <div class="two-columns">
@@ -1270,7 +1278,7 @@
     const content = `
       ${runningHead(page, "Voces del barrio · entrevista")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <div class="quote-card">${editable(page, "quote")}</div>
+      <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
       <div style="height:4mm"></div>
       <div class="two-columns">
         ${qa(page, "q1", "a1")}
@@ -1317,7 +1325,7 @@
           <p class="body-copy">${editable(page, "body2")}</p>
         </div>
         <aside>
-          <div class="quote-card">${editable(page, "quote")}</div>
+          <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
           <div class="contact-card heritage-source">${editableLabel(page, "sourceLabel", "Fuentes y memoria oral", "h3")}<p>${editable(page, "source")}</p></div>
         </aside>
       </div>`;
@@ -1352,7 +1360,7 @@
         <div>
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
-          <div class="quote-card">${editable(page, "quote")}</div>
+          <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
           <div style="height:3mm"></div>
           <div class="contact-card">${editableLabel(page, "contactLabel", "Visítalo", "h3")}<p>${editable(page, "contact")}</p></div>
         </div>
@@ -1367,7 +1375,7 @@
       const [title, body, author] = splitItem(defaults[index], 3);
       return `<article class="letter-card"><h3>${editableList(page, "letters", index, "title", title)}</h3><p>${editableList(page, "letters", index, "body", body)}</p><span class="letter-author">${editableList(page, "letters", index, "author", author)}</span></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div>${listControls(page, "letters", total)}${editableLabel(page, "disclaimer", "Las opiniones pertenecen a sus autores. La revista puede editar por extensión sin alterar el sentido.", "p", "caption")}`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="letter-grid page-fill">${cards}</div>${listControls(page, "letters", total)}${editableValue(page, "disclaimer", DESCARGO_CARTAS, "p", "caption")}`;
     return pageFrame(page, content);
   }
 
@@ -1887,6 +1895,20 @@
         detail: `Se modificó ${mastheadChanges.join(" y ")}. Confirma que el cambio está acordado: la cabecera identifica a la revista de un número al siguiente.`
       });
     }
+    // El descargo de la página de cartas es el único blindaje legal de la
+    // revista, y era un rótulo editable que podía borrarse sin dejar rastro.
+    const descargoCartas = savedText("p14", "disclaimer", DESCARGO_CARTAS).trim();
+    if (!descargoCartas) {
+      issues.push({
+        severity: "critical",
+        type: "disclaimer",
+        pageId: "p14",
+        pageIndex: pages.findIndex((page) => page.id === "p14"),
+        title: "Falta el descargo de las cartas",
+        detail: "La página de cartas debe declarar que las opiniones son de sus autores y bajo qué condiciones se publican. Sin ese texto la revista responde por lo que escriba cualquiera."
+      });
+    }
+
     if (settings.verified !== true) {
       issues.push({
         severity: "warning",
@@ -2000,6 +2022,22 @@
             pageIndex,
             title: recortadas.length === 1 ? "Una imagen se está recortando mucho" : `${recortadas.length} imágenes se están recortando mucho`,
             detail: "Su proporción no coincide con la del espacio, así que se pierde una parte importante. Si es un logotipo o un aviso, ábrela y elige “Mostrar completa”."
+          });
+        }
+
+        const citas = [...pageElement.querySelectorAll(".quote-card")].filter((tarjeta) => {
+          const autor = tarjeta.querySelector(".quote-author");
+          const frase = tarjeta.textContent.replace(autor?.textContent || "", "").trim();
+          return frase && (!autor || !autor.textContent.trim() || /^\[.*\]$/.test(autor.textContent.trim()));
+        });
+        if (citas.length) {
+          issues.push({
+            severity: "warning",
+            type: "quote-author",
+            pageId: page.id,
+            pageIndex,
+            title: citas.length === 1 ? "Una frase destacada no dice quién la dijo" : `${citas.length} frases destacadas no dicen quién las dijo`,
+            detail: "Una cita se atribuye siempre: nombre y quién es la persona. Sin eso no es una cita, es una frase suelta."
           });
         }
 
@@ -3263,10 +3301,19 @@
     "- No redactes testimonios, declaraciones ni cartas atribuidas a personas reales.",
     "- No uses lenguaje publicitario ni adjetivos grandilocuentes.",
     "- Distingue siempre lo comprobado de lo que es propuesta u opinión.",
+    "- No escribas en primera persona de la agrupación ni en tono de rendición de cuentas.",
+    "  Si el texto trata de una gestión de la agrupación, redáctalo en tercera persona y",
+    "  señala qué falta comprobar.",
+    "- No propongas titulares que el texto no sostenga.",
+    "- Si el texto no menciona ninguna fuente identificable, empieza tu respuesta con la",
+    "  línea: FALTAN FUENTES.",
     "- Entrega sólo el texto pedido, sin explicaciones previas ni comentarios finales."
   ].join(String.fromCharCode(10));
 
   const ASISTENTE_VOCES = new Set(["p08", "p09", "p14"]);
+  // Hay palabras de personas reales también en las frases destacadas del
+  // reportaje, de memoria y del comercio. Redactarlas es fabricar un testimonio.
+  const ASISTENTE_CAMPOS_VEDADOS = new Set(["quote", "quoteAuthor", "intro", "a1", "a2", "a3", "body"]);
 
   const ASISTENTE_TAREAS = {
     borrador: {
@@ -3288,7 +3335,7 @@
           ? `El texto de esta página tiene ${ctx.palabras} palabras y el programa pide entre ${ctx.rango.min} y ${ctx.rango.max}.`
           : `El texto de esta página tiene ${ctx.palabras} palabras.`,
         ctx.rango && ctx.palabras < ctx.rango.min
-          ? "Desarróllalo hasta alcanzar el rango, sin inventar información: profundiza lo que ya está dicho y marca entre corchetes los datos que hagan falta."
+          ? "Si no alcanza el rango porque falta información, NO lo alargues. Entrega la lista de preguntas que hay que responder, los documentos que hay que pedir y a quién hay que consultar para completarlo."
           : "Recórtalo hasta el rango conservando todos los hechos y quitando lo redundante.",
         `Sección: ${ctx.seccion}. ${ctx.proposito}`,
         "",
