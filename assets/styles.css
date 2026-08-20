@@ -3739,6 +3739,46 @@ body.assistant-open.format-open .studio-shell {
   font-weight: 700;
 }
 
+/* Las líneas de trabajo declaran de qué se va a ocupar el observatorio. El
+   bloque toma el espacio que sobra cuando la tabla es corta y se comprime
+   cuando es larga. */
+.observatorio__lineas {
+  margin: var(--base) 0 0;
+  padding-top: var(--media-base);
+  border-top: 0.4mm solid var(--linea-suave, rgba(0, 0, 0, 0.18));
+}
+
+.observatorio__lineas ul {
+  margin: var(--media-base) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--media-base);
+}
+
+.observatorio__lineas li {
+  display: grid;
+  grid-template-columns: var(--c2) 1fr;
+  gap: var(--gut);
+  align-items: baseline;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.observatorio__lineas strong {
+  font-family: var(--fuente-titulo, inherit);
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.92);
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.observatorio__lineas span {
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.94);
+  line-height: 1.35;
+}
+
+
 .observatorio__fuente {
   margin-top: auto;
 }

@@ -360,7 +360,8 @@
     "p05.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
     "p14.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
     "p15.agenda":     { parts: 4, min: 1, max: 6, uno: "actividad",  varias: "actividades" },
-    "p16.registros":  { parts: 5, min: 3, max: 12, uno: "registro",   varias: "registros" }
+    "p16.registros":  { parts: 5, min: 3, max: 9,  uno: "registro",   varias: "registros" },
+    "p16.lineas":     { parts: 2, min: 2, max: 3,  uno: "línea",      varias: "líneas de trabajo" }
   };
 
   function listCountKey(pageId, listName) {
@@ -1615,6 +1616,16 @@
       </tr>`;
     }).join("");
 
+    const modeloLineas = page.lists?.lineas || [];
+    const totalLineas = listCount(page, "lineas", modeloLineas);
+    const lineas = Array.from({ length: totalLineas }, (unused, index) => {
+      const [titulo, detalle] = splitItem(modeloLineas[index], 2);
+      return `<li>
+        <strong>${editableList(page, "lineas", index, "titulo", titulo)}</strong>
+        <span>${editableList(page, "lineas", index, "detalle", detalle)}</span>
+      </li>`;
+    }).join("");
+
     const content = `
       ${runningHead(page)}
       <span class="section-ribbon">${editableValue(page, "ribbon", "Observatorio de datos públicos")}</span>
@@ -1645,6 +1656,11 @@
         <tbody>${filas}</tbody>
       </table>
       ${listControls(page, "registros", total)}
+      <div class="observatorio__lineas">
+        ${editableLabel(page, "lineasLabel", "En qué se está trabajando", "h3")}
+        <ul>${lineas}</ul>
+        ${listControls(page, "lineas", totalLineas)}
+      </div>
       <div class="observatorio__fuente contact-card">
         ${editableLabel(page, "fuenteLabel", "De dónde salen estos datos", "h3")}
         <p>${editableValue(page, "fuente", "Fuente, fecha de consulta y dirección donde cualquiera puede comprobarlo.")}</p>

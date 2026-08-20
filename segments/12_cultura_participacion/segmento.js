@@ -24,10 +24,16 @@ window.MAGAZINE_SEGMENTS.push({
         colVia: "Vía",
         colEstado: "Estado",
         colMonto: "Inversión",
+        lineasLabel: "En qué se está trabajando",
         fuenteLabel: "De dónde salen estos datos",
         fuente: "Fuente: [organismo]. Consultado el [fecha]. Cualquiera puede comprobarlo en [dirección]."
       },
       lists: {
+        lineas: [
+          "Seguridad|Delitos denunciados en la comuna, por tipo y por sector, a partir de las estadísticas oficiales.",
+          "Comercio|Ventas del comercio del barrio por rubro, tomadas de los datos abiertos del Servicio de Impuestos Internos.",
+          "Inversión|Proyectos ingresados al sistema de evaluación ambiental: monto declarado, estado y plazos para opinar."
+        ],
         registros: [
           "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]",
           "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]",
