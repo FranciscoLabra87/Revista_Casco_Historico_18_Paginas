@@ -3612,6 +3612,89 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 22 · Portada ------------------------------------------------ */
+
+/* La cabecera iba dentro de un panel crema pegado sobre la foto: el nombre de
+   la revista, que es su activo de marca, quedaba como una etiqueta adhesiva.
+   Ahora va directamente sobre la fotografía, con un velo degradado que asegura
+   la lectura sin depender de qué foto suba el voluntario. */
+.cover-page .cover-masthead {
+  grid-template-columns: 14mm 1fr;
+  gap: 4mm;
+  align-items: center;
+  margin: calc(-12mm - var(--masthead-bleed)) calc(-13mm - var(--masthead-bleed)) 0;
+  padding: calc(11mm + var(--masthead-bleed)) calc(10mm + var(--masthead-bleed)) 8mm;
+  border: 0;
+  background: linear-gradient(180deg, rgba(29, 20, 13, 0.72), rgba(29, 20, 13, 0.32) 62%, transparent);
+}
+
+.cover-page .cover-masthead img {
+  width: 14mm;
+  height: 14mm;
+}
+
+/* Las minúsculas de Cinzel son versalitas: forzar mayúsculas destruye el único
+   contraste de altura que la fuente ofrece y deja un bloque macizo. */
+.cover-page .cover-masthead h2 {
+  color: var(--cream);
+  font-size: 27pt;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.cover-page .cover-masthead p {
+  margin-top: 1.5mm;
+  color: rgba(254, 250, 240, 0.86);
+  font-size: 7.5pt;
+  letter-spacing: 0.12em;
+}
+
+/* Sin sombra de texto: en CMYK se convierte en una mancha gris que suma tinta
+   y ensucia el blanco. Si el texto necesita separarse, lo hace el velo. */
+.cover-page .cover-story {
+  padding: 6mm 4mm 10mm;
+  text-shadow: none;
+}
+
+.cover-page .cover-story h3 {
+  max-width: 82mm;
+  font-size: 30pt;
+  font-weight: 400;
+  line-height: 0.95;
+  text-transform: none;
+}
+
+.cover-page .cover-content {
+  background: linear-gradient(0deg, rgba(29, 20, 13, 0.78) 22%, transparent 58%);
+}
+
+.cover-page .cover-edition {
+  font-size: 9pt;
+}
+
+/* Los llamados dejan de ser cajas negras translúcidas sobre una foto
+   desconocida: su contraste dependía de qué imagen subiera el voluntario. */
+.cover-page .cover-teasers {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 4mm;
+  border-top: 0.3mm solid var(--gold);
+}
+
+.cover-page .cover-teaser {
+  padding: 1.8mm 0;
+  border: 0;
+  border-bottom: 0.3mm solid rgba(184, 138, 69, 0.55);
+  background: none;
+  color: var(--cream);
+  font-size: 9pt;
+  font-weight: 600;
+}
+
 /* 21 · Firma de autoría --------------------------------------- */
 
 .byline {

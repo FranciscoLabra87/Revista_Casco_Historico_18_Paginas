@@ -329,7 +329,7 @@
     "14_contraportada": "gold"
   };
   const MASTHEAD_DEFAULTS = {
-    title: "Casco" + String.fromCharCode(10) + "Histórico",
+    title: "Casco Histórico",
     tagline: "Patrimonio · Comunidad · Historia · Comercio local"
   };
   const MODEL_TEXT_SAMPLE = 3;
