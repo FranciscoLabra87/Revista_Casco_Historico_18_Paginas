@@ -1604,6 +1604,11 @@
       : "La contraportada pasa a espacio publicitario, a página completa y a sangre.");
   }
 
+  function listaEnEspanol(partes) {
+    if (partes.length <= 1) return partes[0] || "";
+    return `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}`;
+  }
+
   function renderObservatorio(page) {
     const defaults = page.lists?.registros || [];
     const total = listCount(page, "registros", defaults);
@@ -2156,6 +2161,28 @@
       });
     }
 
+    // Un teléfono o un correo de muestra impreso en cinco mil ejemplares no se
+    // corrige después. Los campos por los que la revista pide que la contacten
+    // se revisan uno por uno antes de cerrar.
+    const CONTACTOS = [
+      { pageId: "p02", key: "contact", donde: "los créditos" },
+      { pageId: "p17", key: "contact", donde: "la página de colaboradores" }
+    ];
+    const MUESTRA = /1234\s?5678|ejemplo\.|@cascohistorico\.cl|\[[^\]]+\]|correo@|tu@/i;
+    CONTACTOS.forEach(({ pageId, key, donde }) => {
+      const valor = savedText(pageId, key, textoDeModelo(pageId, key) || "").trim();
+      if (!valor || MUESTRA.test(valor)) {
+        issues.push({
+          severity: "critical",
+          type: "contacto",
+          pageId,
+          pageIndex: pages.findIndex((page) => page.id === pageId),
+          title: `El contacto de ${donde} sigue siendo de muestra`,
+          detail: "La revista pide que le escriban y que reserven avisos por esta vía. Un correo o un teléfono de ejemplo impreso no se puede corregir después de la tirada: reemplázalo por uno que alguien conteste."
+        });
+      }
+    });
+
     if (settings.verified !== true) {
       issues.push({
         severity: "warning",
@@ -2431,9 +2458,27 @@
     counts.review = issues.filter((issue) => issue.severity === "review" && issue.advisory !== true).length;
     const ready = counts.critical === 0 && counts.warning === 0 && counts.review === 0;
     const statusClass = counts.critical ? "is-blocked" : ready ? "is-ready" : "has-pending";
-    const statusTitle = counts.critical ? "Hay correcciones de formato" : ready ? "Edición lista para PDF" : "La maqueta funciona, pero quedan pendientes";
+    // El aviso decía siempre "corrige los desbordes" porque el desborde era el
+    // único problema crítico que existía cuando se escribió. Ahora también
+    // bloquean la protección de menores, el descargo de las cartas y los
+    // contactos de muestra: el mensaje nombra lo que de verdad está frenando.
+    const MOTIVOS_CRITICOS = {
+      overflow: "hay texto que se sale de la caja",
+      minors: "falta la autorización de una persona menor de edad",
+      disclaimer: "falta el descargo de las cartas",
+      contacto: "hay un contacto de muestra sin reemplazar"
+    };
+    const motivos = [...new Set(issues
+      .filter((issue) => issue.severity === "critical")
+      .map((issue) => MOTIVOS_CRITICOS[issue.type])
+      .filter(Boolean))];
+    const statusTitle = counts.critical
+      ? counts.critical === 1 ? "Queda algo que impide imprimir" : "Quedan cosas que impiden imprimir"
+      : ready ? "Edición lista para PDF" : "La maqueta funciona, pero quedan pendientes";
     const statusDetail = counts.critical
-      ? "Corrige los desbordes para evitar contenido cortado."
+      ? motivos.length
+        ? `No se puede cerrar la edición porque ${listaEnEspanol(motivos)}.`
+        : "No se puede cerrar la edición hasta resolver las observaciones críticas."
       : ready
         ? `Las ${MAGAZINE_SIZE_LABEL} pasaron la revisión editorial automática.`
         : "Puedes guardar un borrador o entrar a cada observación para completar la edición.";
