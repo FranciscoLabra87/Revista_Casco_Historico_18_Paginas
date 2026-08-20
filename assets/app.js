@@ -1238,7 +1238,6 @@
       ${runningHead(page, "Reportaje principal · continuación")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
-      <div style="height:4mm"></div>
       <div class="feature-grid">
         <div class="two-columns">
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
@@ -1326,13 +1325,11 @@
       ${runningHead(page, "Voces del barrio · entrevista")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
-      <div style="height:4mm"></div>
       <div class="two-columns">
         ${qa(page, "q1", "a1")}
         ${qa(page, "q2", "a2")}
         ${qa(page, "q3", "a3")}
       </div>
-      <div style="height:4mm"></div>
       ${imageSlot(page, "context", "Agregar fotografía de contexto")}
       <p class="caption">${editable(page, "credit")}</p>`;
     return pageFrame(page, content);
@@ -1412,7 +1409,6 @@
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
           <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
-          <div style="height:3mm"></div>
           <div class="contact-card">${editableLabel(page, "contactLabel", "Visítalo", "h3")}<p>${editable(page, "contact")}</p></div>
         </div>
       </div>`;
@@ -1437,7 +1433,7 @@
       const [day, month, title, detail] = splitItem(defaults[index], 4);
       return `<article class="agenda-item"><div class="agenda-date"><strong>${editableList(page, "agenda", index, "day", day)}</strong><span>${editableList(page, "agenda", index, "month", month)}</span></div><div class="agenda-detail"><h3>${editableList(page, "agenda", index, "title", title)}</h3><p>${editableList(page, "agenda", index, "detail", detail)}</p></div></article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div>${listControls(page, "agenda", total)}<div style="height:4mm"></div><div class="contact-card">${editableLabel(page, "noticeLabel", "Antes de asistir", "h3")}${editableLabel(page, "noticeBody", "Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.", "p")}</div>`;
+    const content = `${runningHead(page)}<h2 class="page-title page-title--compact">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="agenda-list page-fill">${items}</div>${listControls(page, "agenda", total)}<div class="contact-card">${editableLabel(page, "noticeLabel", "Antes de asistir", "h3")}${editableLabel(page, "noticeBody", "Verifica la información con la organización responsable. Los datos de esta página deben revisarse 48 horas antes del cierre.", "p")}</div>`;
     return pageFrame(page, content);
   }
 
@@ -1467,7 +1463,6 @@
         <article class="ad-card">${marcaComercial(page, "ad1")}${imageSlot(page, "ad1", "Agregar el aviso o su logotipo", "ad-card__image")}<h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
         <article class="ad-card">${marcaComercial(page, "ad2")}${imageSlot(page, "ad2", "Agregar el aviso o su logotipo", "ad-card__image")}<h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>
       </div>
-      <div style="height:4mm"></div>
       <div class="contact-card">${editableLabel(page, "materialLabel", "Envía tu material", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
   }
@@ -1513,7 +1508,7 @@
     const alternarModo = state.editing
       ? `<button type="button" class="back-mode-toggle app-chrome" data-back-mode="${page.id}">Usar como espacio publicitario</button>`
       : "";
-    const content = `${alternarModo}<div class="back-inner"><img data-brand-logo src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
+    const content = `${alternarModo}<div class="back-inner"><img data-brand-logo src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label ad-label--suelta">${editable(page, "label")}</span></div>`;
     return pageFrame(page, content, "back-page");
   }
 

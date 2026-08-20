@@ -1134,6 +1134,8 @@ button.project-card__preview {
      25 caracteres por línea, justificados. A esa medida el justificado no
      reparte: abre espacios y encadena guiones. */
   --gut: 4mm;
+  --base: 4.5mm;
+  --media-base: 2.25mm;
   --c1: 17.5mm;
   --c2: 39mm;
   --c3: 60.5mm;
@@ -1146,7 +1148,7 @@ button.project-card__preview {
   width: calc(var(--trim-w) + var(--bleed) * 2);
   height: calc(var(--trim-h) + var(--bleed) * 2);
   flex: 0 0 auto;
-  padding: calc(13mm + var(--bleed)) calc(11mm + var(--bleed)) calc(11mm + var(--bleed));
+  padding: calc(13.5mm + var(--bleed)) calc(11mm + var(--bleed)) calc(16.5mm + var(--bleed));
   background:
     radial-gradient(circle at 18% 12%, rgba(184, 138, 69, 0.07), transparent 32%),
     var(--cream);
@@ -1331,10 +1333,10 @@ button.project-card__preview {
   margin: 0 0 3mm;
   color: var(--chocolate);
   font-family: var(--font-title);
-  font-size: 21pt;
+  font-size: 22pt;
   font-weight: 700;
   letter-spacing: 0.02em;
-  line-height: 1.02;
+  line-height: 1.16;
 }
 
 .page-title--compact {
@@ -1346,15 +1348,15 @@ button.project-card__preview {
   margin: 0 0 5mm;
   color: var(--palm);
   font-family: var(--font-subtitle);
-  font-size: 12.5pt;
+  font-size: 13pt;
   font-weight: 700;
-  line-height: 1.14;
+  line-height: 1.472;
 }
 
 .body-copy {
   margin: 0 0 3mm;
   font-size: 9pt;
-  line-height: 1.5;
+  line-height: 1.417;
   text-align: justify;
   text-wrap: pretty;
   hyphens: auto;
@@ -1404,7 +1406,7 @@ button.project-card__preview {
   background: var(--chocolate);
   color: var(--cream);
   font-family: var(--font-title);
-  font-size: 8pt;
+  font-size: 9pt;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1521,12 +1523,12 @@ button.project-card__preview {
   display: block;
   color: #f1bf63;
   font-family: var(--font-title);
-  font-size: 20pt;
+  font-size: 22pt;
 }
 
 .stat-card span {
-  font-size: 8pt;
-  line-height: 1.25;
+  font-size: 9pt;
+  line-height: 1.417;
 }
 
 .quote-card {
@@ -1536,9 +1538,9 @@ button.project-card__preview {
   border-radius: 3mm;
   color: var(--chocolate);
   font-family: var(--font-subtitle);
-  font-size: 14pt;
+  font-size: 13pt;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.472;
   text-align: center;
 }
 
@@ -1575,8 +1577,8 @@ button.project-card__preview {
   margin: 0 0 1.5mm;
   color: var(--chocolate);
   font-family: var(--font-subtitle);
-  font-size: 11pt;
-  line-height: 1.05;
+  font-size: 10.5pt;
+  line-height: 1.215;
 }
 
 .brief-card p,
@@ -1584,8 +1586,8 @@ button.project-card__preview {
 .ad-card p,
 .contact-card p {
   margin: 0;
-  font-size: 8pt;
-  line-height: 1.44;
+  font-size: 9pt;
+  line-height: 1.417;
   text-wrap: pretty;
   hyphens: auto;
   -webkit-hyphens: auto;
@@ -1621,8 +1623,8 @@ button.project-card__preview {
 
 .advances-top .body-copy {
   margin: 0;
-  font-size: 8pt;
-  line-height: 1.42;
+  font-size: 9pt;
+  line-height: 1.417;
 }
 
 .milestone-grid {
@@ -1666,14 +1668,14 @@ button.project-card__preview {
   margin: 0 0 1mm;
   color: var(--chocolate);
   font-family: var(--font-subtitle);
-  font-size: 9.5pt;
-  line-height: 1.08;
+  font-size: 10.5pt;
+  line-height: 1.215;
 }
 
 .milestone-card p {
   margin: 0;
   font-size: 7.5pt;
-  line-height: 1.32;
+  line-height: 1.35;
 }
 
 .advances-next {
@@ -1709,7 +1711,7 @@ button.project-card__preview {
 
 .contents-row span {
   font-family: var(--font-subtitle);
-  font-size: 10pt;
+  font-size: 10.5pt;
   font-weight: 700;
 }
 
@@ -1808,8 +1810,8 @@ button.project-card__preview {
 .cover-masthead h2 {
   margin: 0;
   font-family: var(--font-title);
-  font-size: 19pt;
-  line-height: 0.94;
+  font-size: 22pt;
+  line-height: 1.16;
   text-transform: uppercase;
 }
 
@@ -1817,7 +1819,7 @@ button.project-card__preview {
   margin: 1.5mm 0 0;
   color: var(--palm);
   font-family: var(--font-subtitle);
-  font-size: 8.5pt;
+  font-size: 9pt;
   font-weight: 700;
 }
 
@@ -1863,9 +1865,9 @@ button.project-card__preview {
   max-width: 105mm;
   margin: 3mm 0 0;
   font-family: var(--font-subtitle);
-  font-size: 12pt;
+  font-size: 13pt;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.472;
 }
 
 .cover-teasers {
@@ -1881,7 +1883,7 @@ button.project-card__preview {
   background: rgba(29, 20, 13, 0.62);
   font-size: 7.5pt;
   font-weight: 800;
-  line-height: 1.25;
+  line-height: 1.35;
 }
 
 /* Dentro de la columna de 82 mm no caben dos columnas legibles: se compone a
@@ -1947,13 +1949,13 @@ button.project-card__preview {
   margin: 0 0 1mm;
   color: var(--palm);
   font-family: var(--font-subtitle);
-  font-size: 10pt;
+  font-size: 10.5pt;
 }
 
 .qa p {
   margin: 0;
-  font-size: 8.5pt;
-  line-height: 1.46;
+  font-size: 9pt;
+  line-height: 1.417;
   text-wrap: pretty;
   hyphens: auto;
   -webkit-hyphens: auto;
@@ -1991,12 +1993,12 @@ button.project-card__preview {
 
 .heritage-close-grid .body-copy {
   font-size: 9pt;
-  line-height: 1.42;
+  line-height: 1.417;
 }
 
 .heritage-close-grid .quote-card {
   padding: 4mm 3mm;
-  font-size: 11pt;
+  font-size: 10.5pt;
 }
 
 .heritage-source {
@@ -2009,7 +2011,7 @@ button.project-card__preview {
   color: var(--muted);
   font-size: 7.5pt;
   font-style: normal;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .community-grid {
@@ -2045,7 +2047,7 @@ button.project-card__preview {
   background: var(--chocolate);
   color: var(--gold);
   font-family: Georgia, serif;
-  font-size: 12pt;
+  font-size: 13pt;
 }
 
 .agenda-list {
@@ -2073,7 +2075,7 @@ button.project-card__preview {
 .agenda-date strong {
   display: block;
   font-size: 17pt;
-  line-height: 1;
+  line-height: 1.126;
 }
 
 .agenda-date span {
@@ -2084,7 +2086,7 @@ button.project-card__preview {
 .agenda-detail h3 {
   margin: 0 0 1mm;
   font-family: var(--font-subtitle);
-  font-size: 11pt;
+  font-size: 10.5pt;
 }
 
 .agenda-detail p {
@@ -2113,7 +2115,7 @@ button.project-card__preview {
 
 .ad-card--primary h3 {
   color: #f2c66b;
-  font-size: 16pt;
+  font-size: 17pt;
 }
 
 .ad-label {
@@ -2123,7 +2125,7 @@ button.project-card__preview {
   border: 0.25mm solid var(--chocolate);
   color: var(--chocolate);
   font-family: var(--font-body);
-  font-size: 8pt;
+  font-size: 9pt;
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2167,14 +2169,14 @@ button.project-card__preview {
   color: var(--chocolate);
   font-family: var(--font-title);
   font-size: 22pt;
-  line-height: 1;
+  line-height: 1.16;
 }
 
 .back-inner p {
   margin: 0 0 5mm;
   color: var(--palm);
   font-family: var(--font-subtitle);
-  font-size: 12pt;
+  font-size: 13pt;
   font-weight: 700;
 }
 
@@ -2184,7 +2186,7 @@ button.project-card__preview {
   gap: 1.8mm;
   padding-top: 4mm;
   border-top: 0.45mm solid var(--gold);
-  font-size: 8pt;
+  font-size: 9pt;
   font-weight: 750;
 }
 
@@ -3341,16 +3343,16 @@ button.project-card__preview {
 .page--opener .page-title {
   font-size: 26pt;
   letter-spacing: 0.004em;
-  line-height: 0.97;
+  line-height: 0.981;
 }
 
 .page--opener .page-title--compact {
-  font-size: 21pt;
+  font-size: 22pt;
 }
 
 .page--continuation .page-title,
 .page--continuation .page-title--compact {
-  font-size: 17.5pt;
+  font-size: 17pt;
 }
 
 /* La bajada dejaba de ser bajada: competía con el titular en peso y color. */
@@ -3358,10 +3360,10 @@ button.project-card__preview {
   max-width: 62ch;
   color: var(--muted);
   font-family: var(--font-subtitle);
-  font-size: 12pt;
+  font-size: 13pt;
   font-style: italic;
   font-weight: 400;
-  line-height: 1.26;
+  line-height: 1.472;
 }
 
 .section-ribbon {
@@ -3612,6 +3614,23 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 25 · Ritmo vertical ----------------------------------------- */
+
+/* Los separadores iban escritos a mano en el marcado -div style="height:4mm"-
+   porque el CSS no tenía una unidad que gobernara el aire. Ahora la tienen los
+   elementos que los necesitaban. */
+.quote-card + *,
+.feature-grid + .contact-card,
+.community-body,
+.agenda-list + .contact-card,
+.ad-grid + .contact-card {
+  margin-top: var(--base);
+}
+
+.ad-label--suelta {
+  margin-top: var(--base);
+}
+
 /* 24 · Capitulares -------------------------------------------- */
 
 /* Una capitular significa "aquí empieza el artículo". Aparecía en nueve de las
@@ -3808,11 +3827,11 @@ body.assistant-open.format-open .studio-shell {
 /* El margen interior es mayor que el exterior: el lomo se come parte del papel
    al grapar, y el borde exterior es donde va el pulgar del lector. */
 .mag-page.page--recto:not(.cover-page):not(.back-page) {
-  padding: calc(13mm + var(--bleed)) calc(10mm + var(--bleed)) calc(11mm + var(--bleed)) calc(13mm + var(--bleed));
+  padding: calc(13.5mm + var(--bleed)) calc(10mm + var(--bleed)) calc(16.5mm + var(--bleed)) calc(13mm + var(--bleed));
 }
 
 .mag-page.page--verso:not(.cover-page):not(.back-page) {
-  padding: calc(13mm + var(--bleed)) calc(13mm + var(--bleed)) calc(11mm + var(--bleed)) calc(10mm + var(--bleed));
+  padding: calc(13.5mm + var(--bleed)) calc(13mm + var(--bleed)) calc(16.5mm + var(--bleed)) calc(10mm + var(--bleed));
 }
 
 /* El folio siempre al corte exterior, nunca contra el lomo. */
@@ -3839,7 +3858,7 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 2mm;
   color: var(--tone-ink);
   font-family: var(--font-body);
-  font-size: 8pt;
+  font-size: 9pt;
   font-style: normal;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -3896,16 +3915,16 @@ body.assistant-open.format-open .studio-shell {
   margin: 1mm 0 1.5mm;
   color: var(--chocolate);
   font-family: var(--font-title);
-  font-size: 16pt;
+  font-size: 17pt;
   font-weight: 700;
-  line-height: 1.05;
+  line-height: 1.126;
 }
 
 .back-page--ad .back-ad__foot p {
   margin: 0;
   color: var(--ink);
   font-size: 9pt;
-  line-height: 1.4;
+  line-height: 1.417;
 }
 
 .back-mode-toggle {
@@ -4591,15 +4610,15 @@ body.has-save-alert .topbar {
   margin: 0 0 1mm;
   color: var(--chocolate);
   font-family: var(--font-title);
-  font-size: 11pt;
+  font-size: 10.5pt;
   font-weight: 700;
-  line-height: 1.06;
+  line-height: 1.215;
 }
 
 .page-ad-strip__body p {
   margin: 0;
-  font-size: 8pt;
-  line-height: 1.4;
+  font-size: 9pt;
+  line-height: 1.417;
 }
 
 .page-ad-strip__image {
@@ -4653,15 +4672,15 @@ body.has-save-alert .topbar {
   border: 0.4mm solid var(--tone);
   border-radius: 50%;
   color: var(--tone-ink);
-  font-size: 14pt;
+  font-size: 13pt;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.472;
 }
 
 .ad-strip-placeholder strong {
   display: block;
   font-family: var(--font-title);
-  font-size: 9.5pt;
+  font-size: 10.5pt;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -4870,9 +4889,9 @@ body.has-save-alert .topbar {
 }
 
 .cover-masthead h2 {
-  font-size: 23pt;
+  font-size: 22pt;
   letter-spacing: 0.012em;
-  line-height: 0.9;
+  line-height: 1.16;
 }
 
 .cover-masthead p {
@@ -4886,7 +4905,7 @@ body.has-save-alert .topbar {
 }
 
 .cover-story h3 {
-  font-size: 33pt;
+  font-size: 34pt;
   line-height: 0.93;
   text-wrap: balance;
 }
@@ -4981,10 +5000,10 @@ body.has-save-alert .topbar {
     color: rgba(138, 48, 37, 0.2);
     content: "BORRADOR · NO DISTRIBUIR";
     font-family: var(--font-title);
-    font-size: 24pt;
+    font-size: 22pt;
     font-weight: 900;
     letter-spacing: 0.08em;
-    line-height: 1;
+    line-height: 1.16;
     text-align: center;
     text-transform: uppercase;
     pointer-events: none;
