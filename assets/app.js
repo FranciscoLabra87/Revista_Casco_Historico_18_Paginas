@@ -469,21 +469,20 @@
     if (restaurar) restaurar.hidden = !propio;
   }
 
+  // El tono acompaña a la sección: el lector distingue de un vistazo en qué
+  // parte de la revista está. Oro para la apertura y el cierre, y los otros
+  // tres alternando para que dos secciones seguidas nunca coincidan.
   const SECTION_TONES = {
     "01_portada": "gold",
-    "02_sumario_creditos": "gold",
-    "03_carta_editorial": "gold",
-    "04_noticias_breves": "ceramic",
-    "05_reportaje_central": "ceramic",
-    "06_entrevista": "palm",
-    "07_memoria_patrimonio": "wood",
+    "02_sumario_editorial": "gold",
+    "03_noticias_breves": "ceramic",
+    "04_reportaje_central": "wood",
+    "05_voces_comercio": "palm",
+    "06_memoria_patrimonio": "wood",
+    "07_observatorio_datos": "ceramic",
     "08_comunidad_servicios": "palm",
-    "09_comercio_local": "wood",
-    "10_cartas_director": "palm",
-    "11_agenda_datos": "ceramic",
-    "12_cultura_participacion": "palm",
-    "13_cierre_publicidad": "wood",
-    "14_contraportada": "gold"
+    "09_cartas_director": "ceramic",
+    "10_contraportada": "gold"
   };
   const MASTHEAD_DEFAULTS = {
     title: "Casco Histórico",
