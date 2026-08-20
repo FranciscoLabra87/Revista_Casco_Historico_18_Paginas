@@ -4149,8 +4149,8 @@ body.print-press .safe-line {
    no la página de la revista, porque cada A5 va centrada dentro de su A4.
    --------------------------------------------------------------------------- */
 @media print {
-  body.print-press,
-  body.print-press html {
+  html:has(body.print-press),
+  body.print-press {
     width: 210mm;
   }
 
@@ -4164,6 +4164,8 @@ body.print-press .safe-line {
   }
 
   body.print-press .mag-page {
+    width: calc(var(--trim-w) + var(--bleed) * 2);
+    height: calc(var(--trim-h) + var(--bleed) * 2);
     break-after: auto;
     page-break-after: auto;
   }

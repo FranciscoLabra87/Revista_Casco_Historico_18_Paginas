@@ -124,8 +124,13 @@
   function countPageWords(pageElement) {
     if (!pageElement) return 0;
     return [...pageElement.querySelectorAll("[data-edit-key]")].reduce((total, node) => {
-      const lastPart = String(node.dataset.editKey || "").split(".").at(-1);
+      const clave = String(node.dataset.editKey || "");
+      const lastPart = clave.split(".").at(-1);
+      // Los rótulos permanentes y el aviso publicitario no son cuerpo editorial:
+      // sumarlos hacía que una carta escrita a su medida se marcara excedida.
+      if (labelKeys.has(clave)) return total;
       if (WORD_BUDGET_EXCLUDED.has(lastPart)) return total;
+      if (lastPart === "adTitle" || lastPart === "adBody") return total;
       return total + countWords(node.textContent);
     }, 0);
   }
@@ -1707,7 +1712,14 @@
     measure.setAttribute("aria-hidden", "true");
     const scopedIds = Array.isArray(options.pageIds) && options.pageIds.length ? new Set(options.pageIds) : null;
     const measuredPages = scopedIds ? pages.filter((page) => scopedIds.has(page.id)) : pages;
+    // El recuadro "Agregar faldón publicitario" ocupa altura real y sólo existe
+    // en modo edición: medir con él encendido inventaba desbordes críticos que
+    // desaparecían al apagar Editar. Se mide siempre la página tal como se
+    // imprime.
+    const editandoAntes = state.editing;
+    state.editing = false;
     measure.innerHTML = measuredPages.map(renderPage).join("");
+    state.editing = editandoAntes;
     document.body.appendChild(measure);
     hydrateImageSlots(measure);
 
@@ -2343,8 +2355,26 @@
           canvas.height = Math.round(image.height * scale);
           const context = canvas.getContext("2d");
           context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+          // JPEG no tiene transparencia: los píxeles transparentes de un
+          // logotipo recortado se componían en negro. Si el original es PNG se
+          // conserva en PNG mientras quepa; si no, se pone blanco por detrás
+          // antes de pasar a JPEG.
+          let datos = "";
+          if (/png$/i.test(file.type)) {
+            const comoPng = canvas.toDataURL("image/png");
+            if (comoPng.length <= MAX_IMAGE_CHARACTERS) datos = comoPng;
+          }
+          if (!datos) {
+            context.globalCompositeOperation = "destination-over";
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.globalCompositeOperation = "source-over";
+            datos = canvas.toDataURL("image/jpeg", 0.84);
+          }
+
           resolve({
-            data: canvas.toDataURL("image/jpeg", 0.84),
+            data: datos,
             width: canvas.width,
             height: canvas.height,
             originalWidth: image.width,
