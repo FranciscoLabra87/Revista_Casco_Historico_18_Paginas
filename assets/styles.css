@@ -3823,10 +3823,14 @@ body.sin-marcas-edicion .image-slot:not(.has-image) {
    Siete formas distintas y ninguna repetida. Ahora hay cuatro, declaradas con
    aspect-ratio para que la caja no pueda derivar. */
 
+/* La fotografía de apertura ocupa alrededor de un tercio de la página. Sin
+   techo, a 3:2 sobre el ancho completo se comía la mitad del folio en A4 y
+   dejaba el texto fuera del marco. */
 .page--opener .feature-image,
 .page--opener .culture-hero {
   aspect-ratio: 3 / 2;
   min-height: 0;
+  max-height: calc(var(--trim-h) * 0.33);
 }
 
 .mag-page:has(> .page-ad-strip) .page--opener .feature-image,
