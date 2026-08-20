@@ -485,6 +485,21 @@
               <textarea id="photoCaption" name="photoCaption" rows="2"></textarea>
               <small>Texto opcional que se mostrará junto a la fotografía.</small>
             </label>
+            <fieldset class="form-field form-field--wide photo-minors">
+              <legend>Personas que aparecen</legend>
+              <label class="form-confirmation" for="photoMinors">
+                <input id="photoMinors" name="photoMinors" type="checkbox" />
+                <span>
+                  <strong>Aparecen personas menores de 18 años</strong>
+                  <small>Publicar en papel el rostro y el nombre de un niño del barrio es entregar un dato que ya no se puede retirar.</small>
+                </span>
+              </label>
+              <label class="form-field form-field--wide" for="photoMinorsAuth" id="photoMinorsAuthField" hidden>
+                <span>Autorización del adulto responsable <em>obligatorio</em></span>
+                <input id="photoMinorsAuth" name="photoMinorsAuth" type="text" autocomplete="off" />
+                <small>Nombre, parentesco, fecha y dónde está guardada la autorización escrita.</small>
+              </label>
+            </fieldset>
             <fieldset class="form-field form-field--wide photo-fit">
               <legend>Cómo debe encajar en su espacio</legend>
               <p class="photo-fit__hint" id="photoFitHint" role="status"></p>

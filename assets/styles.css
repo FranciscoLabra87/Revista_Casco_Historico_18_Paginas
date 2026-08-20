@@ -3612,6 +3612,35 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 21 · Firma de autoría --------------------------------------- */
+
+.byline {
+  margin: 0 0 4.5mm;
+  padding-bottom: 1.5mm;
+  border-bottom: 0.3mm solid var(--sand);
+  color: var(--tone-ink);
+  font-family: var(--font-body);
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.photo-minors {
+  margin: 0 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  background: var(--warning-soft);
+}
+
+.photo-minors legend {
+  padding: 0 6px;
+  color: var(--warning);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 /* 20 · Páginas enfrentadas ------------------------------------ */
 
 /* El margen interior es mayor que el exterior: el lomo se come parte del papel

@@ -1074,6 +1074,13 @@
       : `Se agregó un aviso al pie de la página ${page.number}.`);
   }
 
+  const PAGINAS_CON_FIRMA = new Set(["p04", "p06", "p10", "p12", "p13"]);
+
+  function firma(page) {
+    if (!PAGINAS_CON_FIRMA.has(page.id)) return "";
+    return editableValue(page, "byline", "Por [nombre y apellido]", "p", "byline");
+  }
+
   function runningHead(page, label) {
     return editableLabel(page, "runningHead", label || page.segmentTitle, "div", "page-running-head");
   }
@@ -1172,6 +1179,7 @@
       <span class="section-ribbon">${editable(page, "ribbon")}</span>
       <h2 class="page-title">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
       ${imageSlot(page, "main", "Agregar fotografía principal del reportaje", "feature-image")}
       <div class="feature-grid">
         <div class="two-columns">
@@ -1222,7 +1230,7 @@
         <span class="brief-meta">${editableList(page, "briefs", index, "meta", meta)}</span>
       </article>`;
     }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p><div class="brief-grid page-fill">${cards}</div>${listControls(page, "briefs", total)}`;
+    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p>${firma(page)}<div class="brief-grid page-fill">${cards}</div>${listControls(page, "briefs", total)}`;
     return pageFrame(page, content);
   }
 
@@ -1301,6 +1309,7 @@
       <span class="section-ribbon">${editable(page, "ribbon")}</span>
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
       <div class="heritage-grid">
         <div>
           ${imageSlot(page, "historic", "Agregar fotografía histórica", "heritage-photo")}
@@ -1342,6 +1351,7 @@
       ${runningHead(page)}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
       ${imageSlot(page, "service", "Agregar fotografía de la iniciativa", "feature-image")}
       <div class="community-grid page-fill">${blocks}</div>
       <div class="two-columns community-body">
@@ -1357,10 +1367,11 @@
       <span class="section-ribbon">${editable(page, "ribbon")}</span>
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
       <div class="heritage-grid">
         <div>
           ${imageSlot(page, "commerce", "Agregar fotografía del comercio", "heritage-photo")}
-          <span class="ad-label">${editable(page, "label")}</span>
+          ${marcaComercial(page, "perfil")}
         </div>
         <div>
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
@@ -2046,6 +2057,36 @@
           });
         }
 
+        if (PAGINAS_CON_FIRMA.has(page.id)) {
+          const nodoFirma = pageElement.querySelector(".byline");
+          const texto = String(nodoFirma?.textContent || "").trim();
+          if (!texto || /\[/.test(texto)) {
+            issues.push({
+              severity: "warning",
+              type: "byline",
+              pageId: page.id,
+              pageIndex,
+              title: "La página sale sin firma",
+              detail: "Quien escribe firma con nombre y apellido. Sin firma, cuando algo sale mal no responde nadie y responde la agrupación entera."
+            });
+          }
+        }
+
+        const menoresSinAutorizar = imageSlots.filter((slot) => {
+          const metadata = imageMetadata(slot.dataset.imageKey);
+          return metadata?.minors === true && !String(metadata.minorsAuth || "").trim();
+        });
+        if (menoresSinAutorizar.length) {
+          issues.push({
+            severity: "critical",
+            type: "minors",
+            pageId: page.id,
+            pageIndex,
+            title: menoresSinAutorizar.length === 1 ? "Una fotografía con menores no tiene autorización registrada" : `${menoresSinAutorizar.length} fotografías con menores no tienen autorización registrada`,
+            detail: "Anota quién autorizó, con qué parentesco, en qué fecha y dónde está guardada la autorización escrita. Publicar el rostro de un niño del barrio no se puede deshacer."
+          });
+        }
+
         const printResolution = imageSlots.map((slot) => {
           try {
             const metadata = imageMetadata(slot.dataset.imageKey);
@@ -2337,7 +2378,8 @@
     if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false;
     const dimensions = ["width", "height", "originalWidth", "originalHeight"];
     if (dimensions.some((key) => metadata[key] !== undefined && (!Number.isFinite(metadata[key]) || metadata[key] <= 0 || metadata[key] > 30_000))) return false;
-    const textFields = ["alt", "credit", "caption", "originalName"];
+    if (metadata.minors !== undefined && typeof metadata.minors !== "boolean") return false;
+    const textFields = ["alt", "credit", "caption", "originalName", "minorsAuth"];
     if (textFields.some((key) => metadata[key] !== undefined && (typeof metadata[key] !== "string" || metadata[key].length > 2_000))) return false;
     if (metadata.fit !== undefined && metadata.fit !== "cover" && metadata.fit !== "contain") return false;
     return metadata.permission === undefined || typeof metadata.permission === "boolean";
@@ -3119,6 +3161,13 @@
       photoCredit.value = String(previousMetadata?.credit || "");
       photoCaption.value = String(previousMetadata?.caption || "");
       photoPermission.checked = previousMetadata?.permission === true;
+      const photoMinors = els.imageMetaForm.elements.namedItem("photoMinors");
+      const photoMinorsAuth = els.imageMetaForm.elements.namedItem("photoMinorsAuth");
+      const campoAutorizacion = document.getElementById("photoMinorsAuthField");
+      if (photoMinors) photoMinors.checked = previousMetadata?.minors === true;
+      if (photoMinorsAuth) photoMinorsAuth.value = String(previousMetadata?.minorsAuth || "");
+      if (campoAutorizacion) campoAutorizacion.hidden = !(photoMinors && photoMinors.checked);
+      if (photoMinorsAuth) photoMinorsAuth.required = Boolean(photoMinors && photoMinors.checked);
 
       const sugerencia = suggestedFit(result, imageKey);
       const encajeElegido = previousMetadata?.fit === "cover" || previousMetadata?.fit === "contain"
@@ -3155,6 +3204,12 @@
     if (els.imageMeta.open) els.imageMeta.close();
   }
 
+  document.getElementById("photoMinors")?.addEventListener("change", (evento) => {
+    const campo = document.getElementById("photoMinorsAuthField");
+    const entrada = document.getElementById("photoMinorsAuth");
+    if (campo) campo.hidden = !evento.target.checked;
+    if (entrada) entrada.required = evento.target.checked;
+  });
   document.querySelectorAll("[data-close-image-meta]").forEach((button) => button.addEventListener("click", closeImageMetadataDialog));
   els.imageMeta.addEventListener("cancel", () => {
     state.pendingImage = null;
@@ -3177,6 +3232,8 @@
       originalHeight: result.originalHeight,
       originalName,
       fit: formData.get("photoFit") === "contain" ? "contain" : "cover",
+      minors: formData.has("photoMinors"),
+      minorsAuth: String(formData.get("photoMinorsAuth") || "").trim(),
       alt: String(formData.get("photoAlt") || "").trim(),
       credit: String(formData.get("photoCredit") || "").trim(),
       caption: String(formData.get("photoCaption") || "").trim(),
