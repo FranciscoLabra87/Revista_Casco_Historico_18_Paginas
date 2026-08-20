@@ -12,11 +12,11 @@ window.MAGAZINE_SEGMENTS.push({
       fields: {
         title: "Colaboradores y espacios publicitarios",
         deck: "Una página para reconocer apoyos y presentar avisos comerciales claramente identificados.",
-        primaryTitle: "Espacio publicitario destacado",
-        primaryBody: "Media página o página completa. Incluir logo, texto aprobado, datos de contacto y vigencia.",
-        ad1Title: "Aviso de 1/4 de página",
+        primaryTitle: "Destacado · 126 × 63 mm",
+        primaryBody: "Un tercio de página. Incluir logotipo, texto aprobado, datos de contacto verificados y vigencia del aviso.",
+        ad1Title: "Módulo · 61 × 63 mm",
         ad1Body: "Comercio, servicio o emprendimiento local.",
-        ad2Title: "Aviso de 1/4 de página",
+        ad2Title: "Módulo · 61 × 63 mm",
         ad2Body: "Comercio, servicio o emprendimiento local.",
         contact: "Reserva de avisos y recepción de contenidos para la próxima edición: [correo · WhatsApp · fecha límite]"
       }

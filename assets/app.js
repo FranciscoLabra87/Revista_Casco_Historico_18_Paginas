@@ -97,6 +97,10 @@
     "p13.commerce",
     "p16.culture",
     "brand.logo",
+    "p17.primary",
+    "p17.ad1",
+    "p17.ad2",
+    "p18.ad",
     ...["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11", "p12", "p13", "p14", "p15", "p16"].map((id) => `${id}.ad`)
   ]);
   const WORD_BUDGET_EXCLUDED = new Set([
@@ -446,6 +450,48 @@
     if (marco?.tratamiento === "bn") return " trata-bn";
     if (marco?.tratamiento === "sepia") return " trata-sepia";
     return "";
+  }
+
+
+  // ---------------------------------------------------------------------------
+  // Rótulo comercial
+  //
+  // Era un campo de texto libre que además quedaba fuera del control de texto de
+  // muestra: cualquiera podía reescribirlo o dejarlo en blanco y la revisión
+  // final no decía nada. Es lo único que separa una revista de un volante, así
+  // que pasa a ser un valor de una lista cerrada.
+  // ---------------------------------------------------------------------------
+
+  const ROTULOS_COMERCIALES = ["Publicidad", "Contenido patrocinado", "Espacio cedido"];
+
+  function rotuloComercial(pageId, slot) {
+    const guardado = projectStorage.getItem(storageKey("text", `${pageId}.${slot}.rotulo`));
+    return ROTULOS_COMERCIALES.includes(guardado) ? guardado : ROTULOS_COMERCIALES[0];
+  }
+
+  function marcaComercial(page, slot) {
+    const valor = rotuloComercial(page.id, slot);
+    if (!state.editing) return `<span class="ad-label">${escapeHtml(valor)}</span>`;
+    const siguiente = ROTULOS_COMERCIALES[(ROTULOS_COMERCIALES.indexOf(valor) + 1) % ROTULOS_COMERCIALES.length];
+    return `<button type="button" class="ad-label ad-label--editable app-chrome" data-ad-rotulo="${page.id}.${slot}" title="Pulsa para cambiar a “${escapeHtml(siguiente)}”">${escapeHtml(valor)}</button>`;
+  }
+
+  function cambiarRotuloComercial(clave) {
+    const punto = String(clave).indexOf(".");
+    const pageId = String(clave).slice(0, punto);
+    const slot = String(clave).slice(punto + 1);
+    const actual = rotuloComercial(pageId, slot);
+    const siguiente = ROTULOS_COMERCIALES[(ROTULOS_COMERCIALES.indexOf(actual) + 1) % ROTULOS_COMERCIALES.length];
+    try {
+      projectStorage.setItem(storageKey("text", `${pageId}.${slot}.rotulo`), siguiente);
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      return;
+    }
+    markPageDirty(pageId);
+    renderMagazine();
+    showToast(`Este espacio se identifica ahora como “${siguiente}”.`);
   }
 
   const UNDO_LIMIT = 60;
@@ -984,7 +1030,7 @@
       ? `<button type="button" class="ad-strip-remove app-chrome" data-ad-strip="${page.id}" aria-pressed="true">Quitar el aviso</button>`
       : "";
     return `<aside class="page-ad-strip">
-      ${editableLabel(page, "adLabel", "Publicidad", "span", "ad-label")}
+      ${marcaComercial(page, "ad")}
       <div class="page-ad-strip__body">
         <h3>${editableValue(page, "adTitle", "Nombre del comercio o servicio")}</h3>
         <p>${editableValue(page, "adBody", "Una línea que describa el aviso, con dirección, horario y teléfono verificados.")}</p>
@@ -1358,17 +1404,57 @@
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
       <p class="page-deck">${editable(page, "deck")}</p>
       <div class="ad-grid page-fill">
-        <article class="ad-card ad-card--primary">${editableLabel(page, "primaryLabel", "Publicidad", "span", "ad-label")}<h3>${editable(page, "primaryTitle")}</h3><p>${editable(page, "primaryBody")}</p></article>
-        <article class="ad-card">${editableLabel(page, "ad1Label", "Publicidad", "span", "ad-label")}<h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
-        <article class="ad-card">${editableLabel(page, "ad2Label", "Publicidad", "span", "ad-label")}<h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>
+        <article class="ad-card ad-card--primary">${marcaComercial(page, "primary")}${imageSlot(page, "primary", "Agregar el aviso o su logotipo", "ad-card__image")}<h3>${editable(page, "primaryTitle")}</h3><p>${editable(page, "primaryBody")}</p></article>
+        <article class="ad-card">${marcaComercial(page, "ad1")}${imageSlot(page, "ad1", "Agregar el aviso o su logotipo", "ad-card__image")}<h3>${editable(page, "ad1Title")}</h3><p>${editable(page, "ad1Body")}</p></article>
+        <article class="ad-card">${marcaComercial(page, "ad2")}${imageSlot(page, "ad2", "Agregar el aviso o su logotipo", "ad-card__image")}<h3>${editable(page, "ad2Title")}</h3><p>${editable(page, "ad2Body")}</p></article>
       </div>
       <div style="height:4mm"></div>
       <div class="contact-card">${editableLabel(page, "materialLabel", "Envía tu material", "h3")}<p><strong>${editable(page, "contact")}</strong></p></div>`;
     return pageFrame(page, content);
   }
 
+  function contraportadaComercial(page) {
+    return projectStorage.getItem(storageKey("text", `${page.id}.modo`)) === "aviso";
+  }
+
+  function alternarContraportada(pageId) {
+    const clave = storageKey("text", `${pageId}.modo`);
+    const comercial = projectStorage.getItem(clave) === "aviso";
+    try {
+      if (comercial) projectStorage.removeItem(clave);
+      else projectStorage.setItem(clave, "aviso");
+      setAutosaveStatus("Guardando…");
+    } catch {
+      setAutosaveStatus("Error al guardar", true);
+      return;
+    }
+    markPageDirty(pageId);
+    renderTree();
+    renderMagazine();
+    showToast(comercial
+      ? "La contraportada vuelve a su versión institucional."
+      : "La contraportada pasa a espacio publicitario, a página completa y a sangre.");
+  }
+
   function renderBack(page) {
-    const content = `<div class="back-inner"><img src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
+    if (contraportadaComercial(page)) {
+      const alternar = state.editing
+        ? `<button type="button" class="back-mode-toggle app-chrome" data-back-mode="${page.id}">Volver a contraportada institucional</button>`
+        : "";
+      const contenido = `${imageSlot(page, "ad", "Agregar el aviso de contraportada", "back-ad__image")}
+        <div class="back-ad__foot">
+          ${marcaComercial(page, "ad")}
+          <h2>${editableValue(page, "adTitle", "Nombre del anunciante")}</h2>
+          <p>${editableValue(page, "adBody", "Dirección, horario, teléfono y redes, verificados con el anunciante.")}</p>
+        </div>
+        ${alternar}`;
+      return pageFrame(page, contenido, "back-page back-page--ad");
+    }
+
+    const alternarModo = state.editing
+      ? `<button type="button" class="back-mode-toggle app-chrome" data-back-mode="${page.id}">Usar como espacio publicitario</button>`
+      : "";
+    const content = `${alternarModo}<div class="back-inner"><img data-brand-logo src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" /><h2>${editable(page, "title")}</h2><p>${editable(page, "tagline")}</p><div class="contact-lines"><span>${editable(page, "contact1")}</span><span>${editable(page, "contact2")}</span><span>${editable(page, "contact3")}</span></div><span class="ad-label" style="margin-top:5mm">${editable(page, "label")}</span></div>`;
     return pageFrame(page, content, "back-page");
   }
 
@@ -1635,6 +1721,15 @@
         state.activeImageKey = node.dataset.imageKey;
         els.imageFile.click();
       });
+    });
+    els.host.querySelectorAll("[data-ad-rotulo]").forEach((button) => {
+      button.addEventListener("click", (evento) => {
+        evento.preventDefault();
+        cambiarRotuloComercial(button.dataset.adRotulo);
+      });
+    });
+    els.host.querySelectorAll("[data-back-mode]").forEach((button) => {
+      button.addEventListener("click", () => alternarContraportada(button.dataset.backMode));
     });
     els.host.querySelectorAll("[data-ad-strip]").forEach((button) => {
       button.addEventListener("click", () => toggleAdStrip(button.dataset.adStrip));

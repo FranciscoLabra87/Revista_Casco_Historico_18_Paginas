@@ -2091,13 +2091,27 @@ button.project-card__preview {
 }
 
 .ad-label {
-  display: block;
+  display: inline-block;
   margin-bottom: 2mm;
-  color: var(--gold);
-  font-size: 6.3pt;
+  padding: 0.6mm 2mm;
+  border: 0.25mm solid var(--chocolate);
+  color: var(--chocolate);
+  font-family: var(--font-body);
+  font-size: 8pt;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+/* En modo edición el rótulo cicla entre los tres valores permitidos. */
+.ad-label--editable {
+  background: var(--cream);
+  cursor: pointer;
+}
+
+.ad-label--editable:hover {
+  background: var(--chocolate);
+  color: var(--cream);
 }
 
 .back-page {
@@ -3547,6 +3561,83 @@ body.format-open .studio-shell {
 
 body.assistant-open.format-open .studio-shell {
   padding-right: min(330px, 92vw);
+}
+
+/* 18 · Espacios publicitarios vendibles ----------------------- */
+
+/* Sin un hueco de imagen no se puede vender un aviso: nadie paga por un
+   recuadro con letras. */
+.ad-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ad-card__image {
+  width: 100%;
+  min-height: 22mm;
+  margin-bottom: 2mm;
+}
+
+.ad-card--primary .ad-card__image {
+  min-height: 34mm;
+}
+
+/* Contraportada vendida como espacio publicitario: imagen a sangre y pie con
+   el rótulo y los datos del anunciante. */
+.back-page--ad {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--paper);
+}
+
+.back-page--ad .back-ad__image {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.back-page--ad .back-ad__foot {
+  flex: 0 0 auto;
+  padding: 6mm 10mm 12mm;
+  text-align: center;
+}
+
+.back-page--ad .back-ad__foot h2 {
+  margin: 1mm 0 1.5mm;
+  color: var(--chocolate);
+  font-family: var(--font-title);
+  font-size: 16pt;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.back-page--ad .back-ad__foot p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 9pt;
+  line-height: 1.4;
+}
+
+.back-mode-toggle {
+  position: absolute;
+  top: 5.5mm;
+  left: 8mm;
+  z-index: 30;
+  padding: 2px 9px;
+  border: 0.3mm solid var(--gold);
+  border-radius: 999px;
+  background: var(--cream);
+  color: var(--wood);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* 17 · Guía de primer uso ------------------------------------- */
