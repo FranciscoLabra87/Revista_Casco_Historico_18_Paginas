@@ -658,7 +658,15 @@
       else nextRecords.set(key, value);
     });
     assertRecordCollectionLimits(nextRecords);
-    await writeActiveBatch(normalized);
+    // Toda escritura pasa por flushPromise: sin esto, un cambio de texto
+    // durante esta transacción arrancaba un segundo lote con una copia
+    // incompleta del mapa y guardaba mal el recuento de la edición.
+    flushPromise = writeActiveBatch(normalized);
+    try {
+      await flushPromise;
+    } finally {
+      flushPromise = null;
+    }
     normalized.forEach((value, key) => {
       if (value === DELETE_VALUE) activeRecords.delete(key);
       else activeRecords.set(key, value);
@@ -675,7 +683,14 @@
     const done = transactionResult(transaction);
     transaction.objectStore(EDITIONS_STORE).put(updated);
     await deleteRecords(transaction, activeEditionId);
-    await done;
+    // Mismo motivo que en putMany: una escritura durante este borrado volvía a
+    // insertar un registro justo después de haber vaciado el mapa.
+    flushPromise = done;
+    try {
+      await done;
+    } finally {
+      flushPromise = null;
+    }
     activeRecords = new Map();
     editions.set(updated.id, updated);
     storageEvent("saved");

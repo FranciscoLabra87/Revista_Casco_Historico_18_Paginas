@@ -140,9 +140,32 @@
     }, 0);
   }
 
+  // Rango por elemento para las páginas cuyo número de elementos es variable.
+  const RANGO_POR_ELEMENTO = {
+    p04: { lista: "briefs", min: 80, max: 140 },
+    p14: { lista: "letters", min: 30, max: 180 },
+    p15: { lista: "agenda", min: 12, max: 45 }
+  };
+
   function wordBudgetState(pageId, pageElement) {
     const budget = PAGE_WORD_BUDGETS[pageId];
     if (!budget) return null;
+    const porElemento = RANGO_POR_ELEMENTO[pageId];
+    if (porElemento) {
+      const page = pages.find((entry) => entry.id === pageId);
+      const defaults = page?.lists?.[porElemento.lista] || [];
+      const total = listCount(page, porElemento.lista, defaults);
+      const words = countPageWords(pageElement);
+      const min = total * porElemento.min;
+      const max = total * porElemento.max;
+      return {
+        min,
+        max,
+        label: `${total} ${total === 1 ? "elemento" : "elementos"} · entre ${porElemento.min} y ${porElemento.max} palabras cada uno`,
+        words,
+        status: words < min ? "short" : words > max ? "long" : "ok"
+      };
+    }
     const words = countPageWords(pageElement);
     const status = words < budget.min ? "short" : words > budget.max ? "long" : "ok";
     return { ...budget, words, status };
@@ -268,6 +291,16 @@
     </div>`;
   }
 
+  // renderMagazine reemplaza el contenido entero, así que el botón recién
+  // pulsado deja de existir y el foco cae al documento: para agregar tres
+  // noticias había que tabular desde el principio tres veces.
+  function recuperarFoco(selector) {
+    // Síncrono a propósito: el contenido ya está reconstruido cuando se llama, y
+    // esperar al siguiente cuadro deja el foco perdido si la ventana está en
+    // segundo plano, que es justo cuando el navegador no dibuja.
+    els.host.querySelector(selector)?.focus({ preventScroll: true });
+  }
+
   function changeListCount(listKey, delta) {
     const spec = LIST_SPECS[listKey];
     if (!spec) return;
@@ -289,6 +322,7 @@
     markPageDirty(pageId);
     renderTree();
     renderMagazine();
+    recuperarFoco(`[data-list-${delta > 0 ? "add" : "remove"}="${listKey}"]`);
     showToast(delta > 0
       ? `Se agregó ${spec.uno}. Quedan ${siguiente} en la página ${page.number}.`
       : `Se quitó ${spec.uno}. Su texto se conserva por si vuelves a agregarla.`);
@@ -1069,6 +1103,7 @@
     markPageDirty(pageId);
     renderTree();
     renderMagazine();
+    recuperarFoco(`[data-ad-strip="${pageId}"]`);
     showToast(activo
       ? `El aviso al pie se quitó de la página ${page.number}. Su contenido se conserva.`
       : `Se agregó un aviso al pie de la página ${page.number}.`);
@@ -2600,6 +2635,31 @@
     syncEditButton();
   }
 
+  // Migración puntual: el sumario pasó de lista con índice numérico a filas
+  // derivadas de la estructura. Las claves antiguas no se leen, no se borran,
+  // viajan en cada respaldo y cuentan contra los límites de la edición.
+  function migrarSumarioAntiguo() {
+    const antiguas = projectStorage.entries()
+      .map(([clave]) => clave)
+      .filter((clave) => /^text:p02\\.contents\\.\\d+\\./.test(clave));
+    if (!antiguas.length) return 0;
+
+    const filas = contentsRows();
+    const cambios = new Map();
+    antiguas.forEach((clave) => {
+      const partes = clave.split(".");
+      const indice = Number(partes[2]);
+      if (partes[3] === "title" && filas[indice]) {
+        const destino = storageKey("text", `p02.contents.${filas[indice].segmentId}.title`);
+        if (!projectStorage.getItem(destino)) cambios.set(destino, projectStorage.getItem(clave));
+      }
+      cambios.set(clave, null);
+    });
+
+    projectStorage.putMany(cambios).catch(() => undefined);
+    return antiguas.length;
+  }
+
   function showEditor(options = {}) {
     const project = projectStorage.active();
     if (!project) {
@@ -2613,6 +2673,8 @@
     els.currentProjectName.textContent = project.name;
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
+    const huerfanas = migrarSumarioAntiguo();
+    if (huerfanas) showToast(`Se actualizó el sumario de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
     // De la edición dependían las fotos, los botones de lista, el faldón, el
     // contador y la aprobación de páginas. Quien abría la revista veía un
     // recuadro que decía "Agregar fotografía", lo pulsaba y no ocurría nada.
@@ -3262,10 +3324,22 @@
     showToast("Fotografía, crédito y permiso guardados.");
   });
   document.getElementById("resetButton").addEventListener("click", async () => {
-    if (!window.confirm("Se descargará un respaldo y luego se reiniciará sólo esta edición. Las demás revistas no cambiarán. ¿Continuar?")) return;
+    const proyecto = projectStorage.active();
+    const nombre = String(proyecto?.name || "").trim();
+    const escrito = window.prompt(
+      `Esto borra todos los textos, fotografías y estados de “${nombre}” y la deja como recién creada. Las demás revistas no cambian.\n\n` +
+      "Antes de borrar se descarga un respaldo, pero si esa descarga falla no hay vuelta atrás.\n\n" +
+      `Para confirmar, escribe el nombre de la revista: ${nombre}`
+    );
+    if (escrito === null) return;
+    if (escrito.trim() !== nombre) {
+      showToast("El nombre no coincide. No se reinició nada.");
+      return;
+    }
     try {
       await exportDraft({ quiet: true });
       await projectStorage.clearActive();
+      undoStack.length = 0;
       resetEditorState();
       setAutosaveStatus("Edición reiniciada");
       renderTree();
