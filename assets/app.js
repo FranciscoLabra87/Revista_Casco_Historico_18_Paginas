@@ -3147,6 +3147,6 @@
   const toast = document.getElementById("toast");
   if (toast) {
     toast.textContent = error?.message || "El taller editorial encontró un error inesperado.";
-    toast.classList.add("show");
+    toast.classList.add("is-visible");
   }
 });

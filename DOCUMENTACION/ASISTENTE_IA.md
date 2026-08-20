@@ -32,7 +32,8 @@ Navegador  ──►  127.0.0.1:8787/api/asistente  ──►  API de Claude
 ```
 
 `clave-ia.txt` está excluido de git y no viaja en los respaldos JSON de las
-ediciones. Aun así, **es una credencial de pago**: no la comparta, no la copie a
+ediciones. El servidor local tampoco lo entrega: sólo sirve la interfaz, los
+recursos y la documentación, y rechaza cualquier otra ruta. Aun así, **es una credencial de pago**: no la comparta, no la copie a
 otro computador y cámbiela si sospecha que se filtró.
 
 ## 2. Qué hace

@@ -27,9 +27,36 @@ const mimeTypes = {
   ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 };
 
+// El servidor entregaba cualquier archivo de la carpeta, incluidos clave-ia.txt
+// y todo el historial de .git. Ahora sólo sirve lo que el taller necesita: una
+// lista blanca, no una lista de exclusiones, para que un archivo nuevo no quede
+// expuesto por olvido.
+const CARPETAS_PUBLICAS = new Set(["assets", "segments", "DOCUMENTACION", "PLANTILLAS"]);
+const ARCHIVOS_PUBLICOS = new Set([
+  "index.html",
+  "LEEME_PRIMERO.md",
+  "ESTRUCTURA_RAMIFICADA.md"
+]);
+
+function rutaPublica(relative) {
+  const partes = String(relative).split(/[\\/]+/).filter(Boolean);
+  if (!partes.length) return false;
+  if (partes.some((parte) => parte.startsWith("."))) return false;
+  if (partes.length === 1) return ARCHIVOS_PUBLICOS.has(partes[0]);
+  return CARPETAS_PUBLICAS.has(partes[0]);
+}
+
+// Sin comprobar la cabecera Host, un sitio cualquiera puede apuntar su dominio
+// a 127.0.0.1 y leer las respuestas como si fueran del mismo origen.
+function anfitrionValido(request) {
+  const host = String(request.headers.host || "").toLowerCase();
+  return host === `127.0.0.1:${port}` || host === `localhost:${port}`;
+}
+
 function safePath(urlPath) {
   const decoded = decodeURIComponent(urlPath.split("?")[0]);
   const relative = normalize(decoded === "/" ? "index.html" : decoded.replace(/^\/+/, ""));
+  if (!rutaPublica(relative)) return null;
   const target = join(root, relative);
   if (target !== root && !target.startsWith(`${root}${sep}`)) return null;
   return target;
@@ -170,6 +197,12 @@ async function manejarAsistente(request, response) {
 
 const server = createServer(async (request, response) => {
   const ruta = (request.url || "").split("?")[0];
+
+  if (!anfitrionValido(request)) {
+    response.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Solicitud no permitida");
+    return;
+  }
 
   if (ruta === "/api/asistente") {
     if (request.method === "POST") {

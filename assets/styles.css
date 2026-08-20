@@ -70,6 +70,14 @@
   box-sizing: border-box;
 }
 
+/* El atributo hidden lo aplica el navegador con display:none, pero cualquier
+   regla de autor que fije display -flex, grid, block- le gana. Ocurrió con el
+   panel del asistente, que quedaba visible y tapando el área de trabajo aunque
+   el programa lo diera por oculto. Esta regla lo impide para todo el taller. */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   min-height: 100%;
