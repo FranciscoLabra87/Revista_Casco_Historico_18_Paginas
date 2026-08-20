@@ -345,6 +345,53 @@
       </form>
     </dialog>
 
+    <dialog class="settings-dialog seccion-dialog" id="seccionDialog" aria-labelledby="seccionDialogTitle" aria-describedby="seccionDialogDescription">
+      <form id="seccionForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Estructura de la revista</p>
+            <h2 id="seccionDialogTitle">Agregar una sección</h2>
+          </div>
+          <button type="button" class="icon-button" data-cerrar-seccion aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body">
+          <p class="dialog-intro" id="seccionDialogDescription">Una sección puede tener de una a cuatro páginas. Elige la maqueta de cada una: podrás cambiarla después sin perder lo escrito.</p>
+          <div class="form-grid">
+            <label class="form-field form-field--wide" for="seccionTitulo">
+              <span>Nombre de la sección <em>obligatorio</em></span>
+              <input id="seccionTitulo" name="seccionTitulo" type="text" maxlength="60" required autocomplete="off" aria-describedby="seccionTituloAyuda" />
+              <small id="seccionTituloAyuda">Aparece en el sumario y en la cornisa de cada página. Ejemplo: Condolencias, Reportaje invitado, Avisos del barrio.</small>
+            </label>
+            <label class="form-field" for="seccionTono">
+              <span>Color de la sección</span>
+              <select id="seccionTono" name="seccionTono">
+                <option value="ceramic">Azul cerámica</option>
+                <option value="palm">Verde palma</option>
+                <option value="wood">Café madera</option>
+                <option value="gold">Oro</option>
+              </select>
+              <small>Distingue la sección al hojear. Conviene que no repita el de las secciones vecinas.</small>
+            </label>
+            <label class="form-field" for="seccionDonde">
+              <span>Dónde va</span>
+              <select id="seccionDonde" name="seccionDonde"></select>
+              <small>La portada va siempre primera y la contraportada siempre última.</small>
+            </label>
+          </div>
+          <fieldset class="seccion-paginas">
+            <legend>Páginas de la sección</legend>
+            <div id="seccionListaPaginas" class="seccion-lista"></div>
+            <button type="button" class="button button--ghost" id="seccionAgregarPagina">Agregar una página</button>
+          </fieldset>
+          <p class="seccion-aviso" id="seccionAviso" role="status"></p>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" data-cerrar-seccion>Cancelar</button>
+          <button type="submit" class="button button--primary">Agregar la sección</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog class="settings-dialog project-dialog" id="renameProjectDialog" aria-labelledby="renameProjectDialogTitle" aria-describedby="renameProjectDialogDescription">
       <form id="renameProjectForm">
         <div class="dialog-header">

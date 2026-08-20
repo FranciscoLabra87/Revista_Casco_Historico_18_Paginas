@@ -5464,3 +5464,212 @@ body.has-save-alert .topbar {
 .agenda-breve__texto { display: grid; gap: 0.5mm; }
 .agenda-breve__texto strong { font-size: calc(var(--cuerpo-texto, 9pt) * 0.95); }
 .agenda-breve__texto > span { font-size: calc(var(--cuerpo-texto, 9pt) * 0.85); }
+
+/* ==================================================================
+   31 · Maquetas del catálogo
+   Sirven para cualquier sección que alguien arme, no para una en
+   concreto. De ahí que no lleven nombre de sección.
+   ================================================================== */
+
+/* Fotografía a página completa: la imagen llega al borde y el pie se
+   apoya sobre ella, en la franja inferior. */
+.mag-page.foto-plena { padding: 0 !important; }
+
+.foto-plena__imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.foto-plena__imagen img { width: 100%; height: 100%; object-fit: cover; }
+
+.foto-plena__pie {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: var(--base) var(--margen-ext, 10mm);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
+  color: #fff;
+}
+
+/* Aviso a página completa. El rótulo es obligatorio y no se disimula. */
+.mag-page.aviso-plena { padding: 0 !important; }
+
+.rotulo-publicidad {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  padding: 1.2mm 3mm;
+  background: var(--tinta, #1c1a17);
+  color: var(--papel, #fff);
+  font-size: 7pt;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.aviso-plena__imagen { position: absolute; inset: 0; width: 100%; height: 100%; }
+.aviso-plena__imagen img { width: 100%; height: 100%; object-fit: cover; }
+
+.aviso-plena__pie {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--base) var(--margen-ext, 10mm);
+  background: var(--papel, #fff);
+  border-top: 0.5mm solid var(--tone, var(--sand));
+}
+
+.aviso-plena__pie h2 {
+  margin: 0 0 1mm;
+  font-family: var(--fuente-titulo, Georgia, serif);
+  font-size: calc(var(--cuerpo-texto, 9pt) * 1.7);
+  line-height: 1.1;
+}
+
+.aviso-plena__pie p { margin: 0; font-size: calc(var(--cuerpo-texto, 9pt) * 0.95); }
+
+/* Listado de fichas: condolencias, saludos, nóminas. Una columna angosta
+   por ficha para que quepan muchas sin apretarse. */
+.ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--medida-corta, 60mm), 1fr));
+  gap: var(--base) var(--gut);
+  align-content: start;
+}
+
+.ficha {
+  padding-top: var(--media-base);
+  border-top: 0.3mm solid var(--sand);
+  break-inside: avoid;
+}
+
+.ficha h3 {
+  margin: 0 0 0.5mm;
+  font-family: var(--fuente-titulo, Georgia, serif);
+  font-size: calc(var(--cuerpo-texto, 9pt) * 1.15);
+  line-height: 1.15;
+}
+
+.ficha__ref {
+  display: block;
+  margin-bottom: 1mm;
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.78);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tone-ink, inherit);
+}
+
+.ficha p {
+  margin: 0;
+  font-size: calc(var(--cuerpo-texto, 9pt) * 0.9);
+  line-height: 1.35;
+}
+
+/* Galería: cuatro piezas con su pie. */
+.galeria {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--base) var(--gut);
+  align-content: start;
+}
+
+.galeria__pieza { margin: 0; display: grid; gap: 1mm; }
+.galeria__imagen { aspect-ratio: 4 / 3; }
+.galeria__pieza .caption { margin: 0; }
+
+.ad-card__imagen { aspect-ratio: 16 / 9; margin-bottom: 1.5mm; }
+
+/* ==================================================================
+   32 · Editor de estructura
+   El árbol dejó de ser sólo un índice: desde ahí se arma la revista.
+   ================================================================== */
+.page-row { display: flex; align-items: stretch; gap: 2px; }
+.page-row .page-link { flex: 1; }
+
+.page-quitar {
+  flex: 0 0 auto;
+  width: 22px;
+  border: 1px solid var(--linea-suave, rgba(0, 0, 0, 0.16));
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.55;
+}
+
+.page-quitar:hover,
+.page-quitar:focus-visible { opacity: 1; border-color: currentColor; }
+
+.segment-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px 10px;
+}
+
+.segment-tool {
+  border: 1px solid var(--linea-suave, rgba(0, 0, 0, 0.16));
+  border-radius: 4px;
+  padding: 3px 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.segment-tool:hover:not(:disabled),
+.segment-tool:focus-visible { border-color: currentColor; }
+.segment-tool:disabled { opacity: 0.35; cursor: default; }
+.segment-tool--quitar { margin-left: auto; }
+
+.tree-footer { padding: 12px 8px 20px; display: grid; gap: 8px; }
+.tree-pliego { margin: 0; font-size: 11.5px; opacity: 0.7; line-height: 1.4; }
+
+.seccion-lista { display: grid; gap: 10px; margin-bottom: 12px; }
+
+.seccion-fila {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.seccion-fila__num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  opacity: 0.5;
+  padding-top: 6px;
+}
+
+.seccion-paginas {
+  margin: 16px 0 0;
+  padding: 12px;
+  border: 1px solid var(--linea-suave, rgba(0, 0, 0, 0.16));
+  border-radius: 6px;
+}
+
+.seccion-paginas legend { padding: 0 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.seccion-aviso { margin: 12px 0 0; font-size: 12.5px; opacity: 0.8; }
+.seccion-aviso.is-warning { opacity: 1; font-weight: 600; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

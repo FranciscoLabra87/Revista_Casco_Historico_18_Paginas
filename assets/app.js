@@ -64,7 +64,9 @@
     document.body.prepend(warning);
   }
 
-  const EXPECTED_PAGE_COUNT = 12;
+  // Ya no hay un número de páginas correcto: la estructura la arma cada
+  // edición. Lo que sí es obligatorio es que el total sea múltiplo de cuatro,
+  // porque una revista cosida al lomo se arma con pliegos de cuatro páginas.
   // Estaba escrito a mano en seis sitios, así que al cambiar la estructura la
   // interfaz seguía hablando de dieciocho páginas.
   function etiquetaTamano() {
@@ -396,7 +398,7 @@
   }
 
   function listCount(page, listName, defaults) {
-    const spec = LIST_SPECS[`${page.id}.${listName}`];
+    const spec = specDeLista(`${page.id}.${listName}`);
     const stored = Number(projectStorage.getItem(storageKey("text", listCountKey(page.id, listName))));
     const base = Number.isInteger(stored) && stored > 0 ? stored : (defaults?.length || 0);
     if (!spec) return base;
@@ -404,7 +406,7 @@
   }
 
   function listControls(page, listName, total) {
-    const spec = LIST_SPECS[`${page.id}.${listName}`];
+    const spec = specDeLista(`${page.id}.${listName}`);
     if (!state.editing || !spec) return "";
     const clave = `${page.id}.${listName}`;
     return `<div class="list-controls app-chrome">
@@ -425,7 +427,7 @@
   }
 
   function changeListCount(listKey, delta) {
-    const spec = LIST_SPECS[listKey];
+    const spec = specDeLista(listKey);
     if (!spec) return;
     const [pageId, listName] = String(listKey).split(".");
     const page = pages.find((item) => item.id === pageId);
@@ -709,23 +711,235 @@
     showToast(`Se deshizo el cambio en ${humanFieldLabel(entry.key)}${page ? ` de la página ${page.number}` : ""}.`);
   }
 
+  // ---------------------------------------------------------------------------
+  // Catálogo de maquetas
+  //
+  // Las maquetas del programa base están atadas a su sección: la de reportaje
+  // sólo sirve para el reportaje. Estas otras no: sirven para cualquier sección
+  // que alguien quiera armar, y son las que ofrece el taller al crear una.
+  // ---------------------------------------------------------------------------
+  const CATALOGO_MAQUETAS = [
+    {
+      id: "texto-2col",
+      nombre: "Texto a dos columnas",
+      descripcion: "Título, bajada, firma y cuatro párrafos. Para un reportaje propio o de fuera, una columna de opinión o un informe.",
+      campos: {
+        title: "Título de la sección",
+        deck: "Una bajada que explique de qué trata y por qué importa aquí.",
+        body1: "Primer párrafo: lo más importante primero, con nombres y fechas.",
+        body2: "Segundo párrafo: el desarrollo, con los datos y su fuente.",
+        body3: "Tercer párrafo: los antecedentes y lo que falta por resolver.",
+        body4: "Cuarto párrafo: el cierre y dónde seguir la información."
+      }
+    },
+    {
+      id: "texto-foto",
+      nombre: "Fotografía grande y texto",
+      descripcion: "Una fotografía a lo ancho arriba, con su pie, y el texto debajo a dos columnas.",
+      campos: {
+        title: "Título de la sección",
+        deck: "Una bajada breve.",
+        caption: "Pie de la fotografía: qué se ve, dónde y cuándo. Crédito: [nombre].",
+        body1: "Primer párrafo.",
+        body2: "Segundo párrafo.",
+        body3: "Tercer párrafo."
+      }
+    },
+    {
+      id: "foto-plena",
+      nombre: "Fotografía a página completa",
+      descripcion: "Una sola imagen ocupando la página, con su pie al pie. Para una apertura de sección o una imagen que se sostiene sola.",
+      campos: {
+        caption: "Pie de la fotografía: qué se ve, dónde y cuándo. Crédito: [nombre]."
+      }
+    },
+    {
+      id: "listado",
+      nombre: "Listado de fichas",
+      descripcion: "Filas con nombre y detalle, de largo variable. Para condolencias, saludos, resultados, socios o cualquier nómina.",
+      listas: {
+        fichas: {
+          parts: 3,
+          min: 1,
+          max: 24,
+          uno: "ficha",
+          varias: "fichas",
+          modelo: "[Nombre]|[Fechas o referencia]|[Texto breve]"
+        }
+      },
+      campos: {
+        title: "Título de la sección",
+        deck: "Una bajada que explique qué reúne esta página.",
+        nota: "Nota al pie: quién envía estos textos y cómo se comprueban."
+      }
+    },
+    {
+      id: "publicidad-plena",
+      nombre: "Publicidad a página completa",
+      descripcion: "Un solo aviso ocupando la página. Va rotulado como publicidad, siempre.",
+      campos: {
+        adTitle: "Nombre del anunciante",
+        adBody: "Texto aprobado por el anunciante, con dirección, horario y teléfono verificados."
+      }
+    },
+    {
+      id: "publicidad-modulos",
+      nombre: "Página de avisos",
+      descripcion: "Varios avisos en módulos, de dos a seis. Cada uno con su nombre, su texto y su imagen.",
+      listas: {
+        avisos: {
+          parts: 2,
+          min: 2,
+          max: 6,
+          uno: "aviso",
+          varias: "avisos",
+          modelo: "[Nombre del anunciante]|[Dirección · horario · teléfono]"
+        }
+      },
+      campos: {
+        title: "Avisos del barrio",
+        deck: "Espacios comerciales claramente identificados."
+      }
+    },
+    {
+      id: "galeria",
+      nombre: "Galería de fotografías",
+      descripcion: "Cuatro imágenes con sus pies. Para cubrir una actividad, una feria o un recorrido.",
+      campos: {
+        title: "Título de la galería",
+        deck: "Una bajada que sitúe la actividad: qué fue, dónde y cuándo.",
+        caption1: "Pie 1. Crédito: [nombre].",
+        caption2: "Pie 2. Crédito: [nombre].",
+        caption3: "Pie 3. Crédito: [nombre].",
+        caption4: "Pie 4. Crédito: [nombre]."
+      }
+    }
+  ];
+
+  function maquetaDelCatalogo(id) {
+    return CATALOGO_MAQUETAS.find((m) => m.id === id) || null;
+  }
+
+  // Los identificadores nuevos no dicen nada de la posición, a propósito.
+  function nuevoIdPagina() {
+    const azar = new Uint8Array(4);
+    (window.crypto || window.msCrypto).getRandomValues(azar);
+    return "pg" + [...azar].map((n) => n.toString(16).padStart(2, "0")).join("");
+  }
+
+  function nuevoIdSeccion() {
+    return "sec" + nuevoIdPagina().slice(2);
+  }
+
   const SEVERITY_ORDER = { review: 1, warning: 2, critical: 3 };
-  const segments = (window.MAGAZINE_SEGMENTS || [])
+  // ---------------------------------------------------------------------------
+  // Estructura de la edición
+  //
+  // Antes la revista era exactamente lo que decían los archivos de segments/.
+  // Ahora esos archivos son el programa base y cada edición guarda el suyo, para
+  // poder agregar una sección de tres páginas, una de condolencias o una sólo de
+  // avisos sin tocar el código.
+  // ---------------------------------------------------------------------------
+  const SEGMENTOS_BASE = (window.MAGAZINE_SEGMENTS || [])
     .slice()
-    .sort((a, b) => Math.min(...a.pages.map((page) => page.number)) - Math.min(...b.pages.map((page) => page.number)));
-  const pages = segments
-    .flatMap((segment) => {
-      const firstNumber = Math.min(...segment.pages.map((page) => page.number));
-      return segment.pages.map((page) => ({
-        ...page,
-        segmentId: segment.id,
-        segmentTitle: segment.title,
-        segmentPurpose: segment.purpose,
-        isOpener: page.number === firstNumber,
-        tone: SECTION_TONES[segment.id] || "gold"
-      }));
-    })
-    .sort((a, b) => a.number - b.number);
+    .sort((a, b) => Math.min(...a.pages.map((p) => p.number)) - Math.min(...b.pages.map((p) => p.number)));
+
+  function estructuraBase() {
+    return SEGMENTOS_BASE.map((segmento) => ({
+      id: segmento.id,
+      titulo: segmento.title,
+      proposito: segmento.purpose,
+      tono: SECTION_TONES[segmento.id] || "gold",
+      base: true,
+      paginas: segmento.pages
+        .slice()
+        .sort((a, b) => a.number - b.number)
+        .map((pagina) => ({ id: pagina.id, layout: pagina.layout, titulo: pagina.title }))
+    }));
+  }
+
+  function leerEstructura() {
+    const crudo = projectStorage.getItem(storageKey("settings", "estructura"));
+    if (!crudo) return estructuraBase();
+    try {
+      const datos = JSON.parse(crudo);
+      const secciones = Array.isArray(datos?.secciones) ? datos.secciones : null;
+      if (!secciones || !secciones.length) return estructuraBase();
+      return secciones;
+    } catch (error) {
+      return estructuraBase();
+    }
+  }
+
+  async function guardarEstructura(secciones) {
+    await projectStorage.putMany(new Map([
+      [storageKey("settings", "estructura"), JSON.stringify({ version: 1, secciones })]
+    ]));
+  }
+
+  // El modelo de una página: del programa base si viene de ahí, del catálogo si
+  // la creó alguien. Es lo que da los textos de muestra y las listas.
+  function modeloDePagina(pagina, seccion) {
+    const delBase = SEGMENTOS_BASE
+      .flatMap((s) => s.pages)
+      .find((p) => p.id === pagina.id);
+    if (delBase) return delBase;
+    const maqueta = maquetaDelCatalogo(pagina.layout);
+    if (!maqueta) return { id: pagina.id, fields: {}, lists: {} };
+    const listas = {};
+    Object.entries(maqueta.listas || {}).forEach(([nombre, spec]) => {
+      listas[nombre] = Array.from({ length: spec.min }, () => spec.modelo);
+    });
+    return {
+      id: pagina.id,
+      title: pagina.titulo || maqueta.nombre,
+      layout: pagina.layout,
+      status: "modelo",
+      fields: { ...maqueta.campos, ribbon: seccion?.titulo || maqueta.nombre },
+      lists: listas
+    };
+  }
+
+  function construirPaginas() {
+    const secciones = leerEstructura();
+    let numero = 0;
+    const salida = [];
+    secciones.forEach((seccion) => {
+      (seccion.paginas || []).forEach((pagina, indice) => {
+        numero += 1;
+        const modelo = modeloDePagina(pagina, seccion);
+        salida.push({
+          ...modelo,
+          id: pagina.id,
+          layout: pagina.layout || modelo.layout,
+          number: numero,
+          title: pagina.titulo || modelo.title,
+          segmentId: seccion.id,
+          segmentTitle: seccion.titulo,
+          segmentPurpose: seccion.proposito || "",
+          isOpener: indice === 0,
+          tone: seccion.tono || SECTION_TONES[seccion.id] || "gold",
+          delCatalogo: !seccion.base
+        });
+      });
+    });
+    return salida;
+  }
+
+  let pages = construirPaginas();
+
+  // Las listas del catálogo se registran junto a las del programa base.
+  function specDeLista(clave) {
+    if (LIST_SPECS[clave]) return LIST_SPECS[clave];
+    const [pageId, nombre] = String(clave).split(".");
+    const page = pages.find((p) => p.id === pageId);
+    const maqueta = page ? maquetaDelCatalogo(page.layout) : null;
+    return maqueta?.listas?.[nombre] || null;
+  }
+
+  function recargarEstructura() {
+    pages = construirPaginas();
+  }
 
   const printPreview = new URLSearchParams(window.location.search).get("print") === "1";
   const compactQuery = window.matchMedia("(max-width: 760px)");
@@ -1269,21 +1483,31 @@
     return pageFrame(page, content, "cover-page");
   }
 
+  // El sumario se arma sobre la estructura viva, no sobre los archivos de
+  // plantilla: una sección agregada por el equipo aparece igual que las demás.
   function contentsRows() {
     const lastNumber = pages.length;
-    return segments
-      .filter((segment) => segment.pages.some((entry) => entry.number > 2 && entry.number < lastNumber))
-      .map((segment) => {
-        const numbers = segment.pages.map((entry) => entry.number).sort((a, b) => a - b);
-        const first = numbers[0];
-        const last = numbers[numbers.length - 1];
-        return {
-          segmentId: segment.id,
-          title: segment.title,
-          marker: String(first).padStart(2, "0"),
-          range: first === last ? String(first) : `${first}–${last}`
-        };
-      });
+    const porSeccion = new Map();
+    pages.forEach((page) => {
+      if (page.number <= 2 || page.number >= lastNumber) return;
+      const actual = porSeccion.get(page.segmentId);
+      if (actual) {
+        actual.numbers.push(page.number);
+      } else {
+        porSeccion.set(page.segmentId, { title: page.segmentTitle, numbers: [page.number] });
+      }
+    });
+    return [...porSeccion.entries()].map(([segmentId, datos]) => {
+      const numbers = datos.numbers.slice().sort((a, b) => a - b);
+      const first = numbers[0];
+      const last = numbers[numbers.length - 1];
+      return {
+        segmentId,
+        title: datos.title,
+        marker: String(first).padStart(2, "0"),
+        range: first === last ? String(first) : `${first}–${last}`
+      };
+    });
   }
 
   function renderIndex(page) {
@@ -1789,6 +2013,115 @@
     return pageFrame(page, content, "back-page");
   }
 
+  function renderTexto2Col(page) {
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="two-columns page-fill">
+        <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+        <p class="body-copy">${editable(page, "body2")}</p>
+        <p class="body-copy">${editable(page, "body3")}</p>
+        <p class="body-copy">${editable(page, "body4")}</p>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
+  function renderTextoFoto(page) {
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      ${imageSlot(page, "principal", "Agregar la fotografía de esta página", "feature-image")}
+      <p class="caption">${editable(page, "caption")}</p>
+      <div class="two-columns page-fill">
+        <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+        <p class="body-copy">${editable(page, "body2")}</p>
+        <p class="body-copy">${editable(page, "body3")}</p>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
+  function renderFotoPlena(page) {
+    const content = `
+      ${imageSlot(page, "plena", "Agregar la fotografía de página completa", "foto-plena__imagen")}
+      <p class="caption foto-plena__pie">${editable(page, "caption")}</p>`;
+    return pageFrame(page, content, "foto-plena");
+  }
+
+  function renderListado(page) {
+    const modelo = page.lists?.fichas || [];
+    const total = listCount(page, "fichas", modelo);
+    const fichas = Array.from({ length: total }, (unused, index) => {
+      const [nombre, referencia, texto] = splitItem(modelo[index], 3);
+      return `<article class="ficha">
+        <h3>${editableList(page, "fichas", index, "nombre", nombre)}</h3>
+        <span class="ficha__ref">${editableList(page, "fichas", index, "referencia", referencia)}</span>
+        <p>${editableList(page, "fichas", index, "texto", texto)}</p>
+      </article>`;
+    }).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      <div class="ficha-grid page-fill">${fichas}</div>
+      ${listControls(page, "fichas", total)}
+      <p class="caption">${editable(page, "nota")}</p>`;
+    return pageFrame(page, content);
+  }
+
+  function renderPublicidadPlena(page) {
+    const content = `
+      <span class="rotulo-publicidad">Publicidad</span>
+      ${imageSlot(page, "aviso", "Agregar el aviso a página completa", "aviso-plena__imagen")}
+      <div class="aviso-plena__pie">
+        <h2>${editable(page, "adTitle")}</h2>
+        <p>${editable(page, "adBody")}</p>
+      </div>`;
+    return pageFrame(page, content, "aviso-plena");
+  }
+
+  function renderPublicidadModulos(page) {
+    const modelo = page.lists?.avisos || [];
+    const total = listCount(page, "avisos", modelo);
+    const avisos = Array.from({ length: total }, (unused, index) => {
+      const [nombre, datos] = splitItem(modelo[index], 2);
+      return `<article class="ad-card">
+        ${imageSlot(page, `aviso${index + 1}`, "Agregar la imagen del aviso", "ad-card__imagen")}
+        <h3>${editableList(page, "avisos", index, "nombre", nombre)}</h3>
+        <p>${editableList(page, "avisos", index, "datos", datos)}</p>
+      </article>`;
+    }).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="rotulo-publicidad">Publicidad</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      <div class="ad-grid page-fill">${avisos}</div>
+      ${listControls(page, "avisos", total)}`;
+    return pageFrame(page, content);
+  }
+
+  function renderGaleria(page) {
+    const fotos = [1, 2, 3, 4].map((n) => `<figure class="galeria__pieza">
+      ${imageSlot(page, `foto${n}`, `Agregar la fotografía ${n}`, "galeria__imagen")}
+      <figcaption class="caption">${editable(page, `caption${n}`)}</figcaption>
+    </figure>`).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="galeria page-fill">${fotos}</div>`;
+    return pageFrame(page, content);
+  }
+
   const renderers = {
     cover: renderCover,
     index: renderIndex,
@@ -1807,6 +2140,13 @@
     agenda: renderAgenda,
     observatorio: renderObservatorio,
     voices: renderVoices,
+    "texto-2col": renderTexto2Col,
+    "texto-foto": renderTextoFoto,
+    "foto-plena": renderFotoPlena,
+    listado: renderListado,
+    "publicidad-plena": renderPublicidadPlena,
+    "publicidad-modulos": renderPublicidadModulos,
+    galeria: renderGaleria,
     ads: renderAds,
     back: renderBack
   };
@@ -1926,18 +2266,246 @@
     requestAnimationFrame(refreshVisibleOverflows);
   }
 
+  // ---------------------------------------------------------------------------
+  // Operaciones sobre la estructura
+  //
+  // La portada y la contraportada no se mueven ni se borran: son el envoltorio.
+  // Todo lo demás se puede agregar, quitar y reordenar.
+  // ---------------------------------------------------------------------------
+  function seccionFija(seccion) {
+    return seccion.id === "01_portada" || seccion.id === "10_contraportada";
+  }
+
+  // Una revista cosida al lomo se arma con pliegos de cuatro páginas. Si el
+  // total no es múltiplo de cuatro, la imprenta no puede encuadernarla.
+  function avisoDePliego(total) {
+    const resto = total % 4;
+    if (!resto) return "";
+    const faltan = 4 - resto;
+    return `${total} páginas no se pueden encuadernar: los pliegos van de cuatro en cuatro. ${faltan === 1 ? "Falta una página" : `Faltan ${faltan} páginas`} para llegar a ${total + faltan}.`;
+  }
+
+  async function aplicarEstructura(secciones, mensaje) {
+    try {
+      await guardarEstructura(secciones);
+    } catch (error) {
+      showToast(error?.message || "No se pudo guardar la estructura.");
+      return false;
+    }
+    recargarEstructura();
+    invalidatePreflight();
+    if (state.current >= pages.length) state.current = Math.max(0, pages.length - 1);
+    renderTree();
+    renderMagazine();
+    const aviso = avisoDePliego(pages.length);
+    showToast(aviso ? `${mensaje} ${aviso}` : mensaje);
+    return true;
+  }
+
+  async function moverSeccion(indice, direccion) {
+    const secciones = leerEstructura();
+    const destino = indice + direccion;
+    if (destino < 1 || destino > secciones.length - 2) return;
+    if (seccionFija(secciones[indice])) return;
+    const [movida] = secciones.splice(indice, 1);
+    secciones.splice(destino, 0, movida);
+    await aplicarEstructura(secciones, `“${movida.titulo}” se movió de lugar.`);
+  }
+
+  async function eliminarSeccion(indice) {
+    const secciones = leerEstructura();
+    const seccion = secciones[indice];
+    if (!seccion || seccionFija(seccion)) return;
+    const cuantas = (seccion.paginas || []).length;
+    const escrito = window.prompt(
+      `Esto quita “${seccion.titulo}” de la revista: ${cuantas} ${cuantas === 1 ? "página" : "páginas"}.\n\n` +
+      "Los textos y las fotografías quedan dentro del respaldo, pero el taller no puede devolverlos: una sección nueva se crea con páginas nuevas.\n" +
+      "Si crees que los vas a necesitar, descarga un respaldo antes de seguir.\n\n" +
+      `Para confirmar, escribe el nombre de la sección: ${seccion.titulo}`
+    );
+    if (escrito === null) return;
+    if (escrito.trim() !== seccion.titulo) {
+      showToast("El nombre no coincide. No se quitó nada.");
+      return;
+    }
+    secciones.splice(indice, 1);
+    await aplicarEstructura(secciones, `“${seccion.titulo}” salió de la revista.`);
+  }
+
+  async function agregarPaginaASeccion(indice) {
+    const secciones = leerEstructura();
+    const seccion = secciones[indice];
+    if (!seccion || seccionFija(seccion)) return;
+    if ((seccion.paginas || []).length >= 4) {
+      showToast("Una sección admite hasta cuatro páginas. Para más, conviene dividirla en dos secciones.");
+      return;
+    }
+    const ultima = seccion.paginas[seccion.paginas.length - 1];
+    seccion.paginas.push({ id: nuevoIdPagina(), layout: ultima?.layout || "texto-2col" });
+    await aplicarEstructura(secciones, `“${seccion.titulo}” quedó con ${seccion.paginas.length} páginas.`);
+  }
+
+  async function quitarPaginaDeSeccion(indiceSeccion, indicePagina) {
+    const secciones = leerEstructura();
+    const seccion = secciones[indiceSeccion];
+    if (!seccion || seccionFija(seccion)) return;
+    if ((seccion.paginas || []).length <= 1) {
+      showToast("Una sección necesita al menos una página. Para quitarla entera, usa Eliminar la sección.");
+      return;
+    }
+    seccion.paginas.splice(indicePagina, 1);
+    await aplicarEstructura(secciones, `“${seccion.titulo}” quedó con ${seccion.paginas.length} páginas.`);
+  }
+
+  async function cambiarMaquetaDePagina(pageId, layout) {
+    const secciones = leerEstructura();
+    let encontrada = null;
+    secciones.forEach((seccion) => {
+      (seccion.paginas || []).forEach((pagina) => {
+        if (pagina.id === pageId) {
+          pagina.layout = layout;
+          encontrada = seccion;
+        }
+      });
+    });
+    if (!encontrada) return;
+    const maqueta = maquetaDelCatalogo(layout);
+    await aplicarEstructura(secciones, `La página cambió a “${maqueta?.nombre || layout}”. Lo que habías escrito sigue guardado.`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Crear una sección
+  // ---------------------------------------------------------------------------
+  let borradorSeccion = [];
+
+  function opcionesDeMaqueta(seleccion) {
+    return CATALOGO_MAQUETAS.map((m) =>
+      `<option value="${m.id}"${m.id === seleccion ? " selected" : ""}>${escapeHtml(m.nombre)}</option>`
+    ).join("");
+  }
+
+  function pintarPaginasDelBorrador() {
+    const lista = document.getElementById("seccionListaPaginas");
+    if (!lista) return;
+    lista.innerHTML = borradorSeccion.map((layout, indice) => {
+      const maqueta = maquetaDelCatalogo(layout);
+      return `<div class="seccion-fila">
+        <span class="seccion-fila__num">${indice + 1}</span>
+        <label class="form-field">
+          <span class="visually-hidden">Maqueta de la página ${indice + 1}</span>
+          <select data-borrador-maqueta="${indice}">${opcionesDeMaqueta(layout)}</select>
+          <small>${escapeHtml(maqueta?.descripcion || "")}</small>
+        </label>
+        <button type="button" class="segment-tool segment-tool--quitar" data-borrador-quitar="${indice}" aria-label="Quitar la página ${indice + 1}"${borradorSeccion.length <= 1 ? " disabled" : ""}>−</button>
+      </div>`;
+    }).join("");
+
+    lista.querySelectorAll("[data-borrador-maqueta]").forEach((sel) => {
+      sel.addEventListener("change", () => {
+        borradorSeccion[Number(sel.dataset.borradorMaqueta)] = sel.value;
+        pintarPaginasDelBorrador();
+      });
+    });
+    lista.querySelectorAll("[data-borrador-quitar]").forEach((b) => {
+      b.addEventListener("click", () => {
+        borradorSeccion.splice(Number(b.dataset.borradorQuitar), 1);
+        pintarPaginasDelBorrador();
+      });
+    });
+
+    const aviso = document.getElementById("seccionAviso");
+    if (aviso) {
+      const total = pages.length + borradorSeccion.length;
+      const pliego = avisoDePliego(total);
+      aviso.textContent = pliego
+        ? `La revista quedaría con ${total} páginas. ${pliego}`
+        : `La revista quedaría con ${total} páginas y se encuaderna sin sobras.`;
+      aviso.classList.toggle("is-warning", Boolean(pliego));
+    }
+  }
+
+  function abrirDialogoSeccion() {
+    const dialogo = document.getElementById("seccionDialog");
+    if (!dialogo) return;
+    borradorSeccion = ["texto-2col"];
+    const secciones = leerEstructura();
+    const donde = document.getElementById("seccionDonde");
+    if (donde) {
+      // Se puede colocar en cualquier punto salvo antes de la portada o
+      // después de la contraportada.
+      donde.innerHTML = secciones.slice(1).map((s, i) =>
+        `<option value="${i + 1}">Antes de “${escapeHtml(s.titulo)}”</option>`
+      ).slice(0, -1).join("") +
+      `<option value="${secciones.length - 1}" selected>Al final, antes de la contraportada</option>`;
+    }
+    const titulo = document.getElementById("seccionTitulo");
+    if (titulo) titulo.value = "";
+    pintarPaginasDelBorrador();
+    dialogo.showModal();
+    titulo?.focus();
+  }
+
+  function conectarDialogoSeccion() {
+    const dialogo = document.getElementById("seccionDialog");
+    if (!dialogo) return;
+    dialogo.querySelectorAll("[data-cerrar-seccion]").forEach((b) => {
+      b.addEventListener("click", () => dialogo.close());
+    });
+    document.getElementById("seccionAgregarPagina")?.addEventListener("click", () => {
+      if (borradorSeccion.length >= 4) {
+        showToast("Una sección admite hasta cuatro páginas. Para más, conviene dividirla en dos.");
+        return;
+      }
+      borradorSeccion.push(borradorSeccion[borradorSeccion.length - 1] || "texto-2col");
+      pintarPaginasDelBorrador();
+    });
+    document.getElementById("seccionForm")?.addEventListener("submit", async (evento) => {
+      evento.preventDefault();
+      const titulo = String(document.getElementById("seccionTitulo")?.value || "").trim();
+      if (!titulo) return;
+      const tono = document.getElementById("seccionTono")?.value || "ceramic";
+      const posicion = Number(document.getElementById("seccionDonde")?.value || 1);
+      const secciones = leerEstructura();
+      const nueva = {
+        id: nuevoIdSeccion(),
+        titulo,
+        proposito: "",
+        tono,
+        base: false,
+        paginas: borradorSeccion.map((layout) => ({ id: nuevoIdPagina(), layout, titulo }))
+      };
+      secciones.splice(Math.min(Math.max(posicion, 1), secciones.length - 1), 0, nueva);
+      const bien = await aplicarEstructura(secciones, `“${titulo}” entró en la revista con ${nueva.paginas.length} ${nueva.paginas.length === 1 ? "página" : "páginas"}.`);
+      if (bien) dialogo.close();
+    });
+  }
+
   function renderTree() {
-    els.tree.innerHTML = segments.map((segment, segmentIndex) => {
-      const pageLinks = segment.pages.map((page) => {
+    const secciones = leerEstructura();
+    els.tree.innerHTML = secciones.map((segment, segmentIndex) => {
+      const fija = seccionFija(segment);
+      const paginasDeSeccion = pages.filter((page) => page.segmentId === segment.id);
+      const pageLinks = paginasDeSeccion.map((page) => {
         const complete = projectStorage.getItem(storageKey("done", page.id)) === "1";
         const issues = state.preflightByPage.get(page.id) || [];
         const highestSeverity = issues.reduce((highest, issue) => SEVERITY_ORDER[issue.severity] > SEVERITY_ORDER[highest] ? issue.severity : highest, "review");
         const issueClass = issues.length ? highestSeverity === "critical" ? "has-critical" : highestSeverity === "warning" ? "has-warning" : "needs-review" : "";
         const statusText = issues.length ? `${issues.length} ${issues.length === 1 ? "observación" : "observaciones"} en la revisión final` : complete ? "marcada como lista" : "en preparación";
-        return `<button type="button" class="page-link" data-page-index="${pages.findIndex((entry) => entry.id === page.id)}" aria-label="Página ${page.number}: ${escapeHtml(page.title)}; ${escapeHtml(statusText)}"><span>P${String(page.number).padStart(2, "0")}</span><span>${escapeHtml(page.title)}</span><i class="page-status ${complete ? "is-complete" : ""} ${issueClass}" aria-hidden="true"></i></button>`;
+        const indicePagina = paginasDeSeccion.indexOf(page);
+        const quitar = fija || paginasDeSeccion.length <= 1 ? "" : `<button type="button" class="page-quitar" data-pagina-quitar="${segmentIndex}:${indicePagina}" aria-label="Quitar la página ${page.number} de ${escapeHtml(segment.titulo)}">−</button>`;
+        return `<div class="page-row"><button type="button" class="page-link" data-page-index="${pages.findIndex((entry) => entry.id === page.id)}" aria-label="Página ${page.number}: ${escapeHtml(page.title)}; ${escapeHtml(statusText)}"><span>P${String(page.number).padStart(2, "0")}</span><span>${escapeHtml(page.title)}</span><i class="page-status ${complete ? "is-complete" : ""} ${issueClass}" aria-hidden="true"></i></button>${quitar}</div>`;
       }).join("");
-      return `<details class="segment-group" open><summary><span class="segment-index">${String(segmentIndex + 1).padStart(2, "0")}</span><span class="segment-name">${escapeHtml(segment.title)}</span><span class="segment-count">${segment.pages.length} pág.</span></summary><div class="segment-pages">${pageLinks}</div></details>`;
-    }).join("");
+      const mandos = fija ? "" : `<div class="segment-tools">
+        <button type="button" class="segment-tool" data-seccion-subir="${segmentIndex}" aria-label="Subir ${escapeHtml(segment.titulo)}"${segmentIndex <= 1 ? " disabled" : ""}>↑</button>
+        <button type="button" class="segment-tool" data-seccion-bajar="${segmentIndex}" aria-label="Bajar ${escapeHtml(segment.titulo)}"${segmentIndex >= secciones.length - 2 ? " disabled" : ""}>↓</button>
+        <button type="button" class="segment-tool" data-seccion-agregar="${segmentIndex}" aria-label="Agregar una página a ${escapeHtml(segment.titulo)}">+ pág.</button>
+        <button type="button" class="segment-tool segment-tool--quitar" data-seccion-eliminar="${segmentIndex}" aria-label="Eliminar ${escapeHtml(segment.titulo)}">Eliminar</button>
+      </div>`;
+      return `<details class="segment-group" open><summary><span class="segment-index">${String(segmentIndex + 1).padStart(2, "0")}</span><span class="segment-name">${escapeHtml(segment.titulo)}</span><span class="segment-count">${paginasDeSeccion.length} pág.</span></summary><div class="segment-pages">${pageLinks}</div>${mandos}</details>`;
+    }).join("") + `<div class="tree-footer">
+      <button type="button" class="button button--ghost" id="treeNuevaSeccion">Agregar una sección</button>
+      <p class="tree-pliego">${escapeHtml(avisoDePliego(pages.length) || `${pages.length} páginas: se encuaderna sin sobras.`)}</p>
+    </div>`;
     els.tree.querySelectorAll("[data-page-index]").forEach((button) => {
       button.addEventListener("click", () => {
         state.current = Number(button.dataset.pageIndex);
@@ -1950,6 +2518,26 @@
         if (compactQuery.matches) setSidebarOpen(false);
       });
     });
+    els.tree.querySelectorAll("[data-seccion-subir]").forEach((b) => {
+      b.addEventListener("click", () => moverSeccion(Number(b.dataset.seccionSubir), -1));
+    });
+    els.tree.querySelectorAll("[data-seccion-bajar]").forEach((b) => {
+      b.addEventListener("click", () => moverSeccion(Number(b.dataset.seccionBajar), 1));
+    });
+    els.tree.querySelectorAll("[data-seccion-agregar]").forEach((b) => {
+      b.addEventListener("click", () => agregarPaginaASeccion(Number(b.dataset.seccionAgregar)));
+    });
+    els.tree.querySelectorAll("[data-seccion-eliminar]").forEach((b) => {
+      b.addEventListener("click", () => eliminarSeccion(Number(b.dataset.seccionEliminar)));
+    });
+    els.tree.querySelectorAll("[data-pagina-quitar]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const [seccion, pagina] = b.dataset.paginaQuitar.split(":").map(Number);
+        quitarPaginaDeSeccion(seccion, pagina);
+      });
+    });
+    els.tree.querySelector("#treeNuevaSeccion")?.addEventListener("click", abrirDialogoSeccion);
+
     updateTreeCurrent();
     updateProgress();
   }
@@ -2194,7 +2782,7 @@
     const uniqueIds = new Set(pages.map((page) => page.id));
     const sequential = pageNumbers.every((number, index) => number === index + 1);
     const missingRenderer = pages.find((page) => !renderers[page.layout]);
-    if (pages.length !== EXPECTED_PAGE_COUNT || uniqueIds.size !== pages.length || !sequential || missingRenderer) {
+    if (uniqueIds.size !== pages.length || !sequential || missingRenderer) {
       issues.push({
         severity: "critical",
         type: "structure",
@@ -2202,6 +2790,17 @@
         pageIndex: null,
         title: `La estructura de ${etiquetaTamano()} necesita revisión`,
         detail: "Comprueba el número, orden, identificador y plantilla de cada página antes de imprimir."
+      });
+    }
+    const pliego = avisoDePliego(pages.length);
+    if (pliego) {
+      issues.push({
+        severity: "critical",
+        type: "pliego",
+        pageId: null,
+        pageIndex: null,
+        title: "El total de páginas no se puede encuadernar",
+        detail: `${pliego} Agrega o quita páginas desde el árbol de secciones antes de mandar a imprenta.`
       });
     }
     const missingSettings = [
@@ -2836,7 +3435,7 @@
       if (separator <= 0 || !identifier) throw new Error("La copia contiene una clave dañada.");
 
       if (kind === "text") {
-        if (!pageIds.has(pageId) || !/^p\d{2}\.[A-Za-z0-9._-]{1,160}$/.test(identifier) || value.length > 100_000) {
+        if (!pageIds.has(pageId) || !/^p[a-z0-9]{2,22}\.[A-Za-z0-9._-]{1,160}$/.test(identifier) || value.length > 100_000) {
           throw new Error("La copia contiene un campo de texto no válido.");
         }
       } else if (kind === "image") {
@@ -2897,14 +3496,14 @@
     if (project.id === projectStorage.active()?.id) {
       return projectStorage.entries().filter(([key, value]) => key.startsWith("done:") && value === "1").length;
     }
-    return Math.max(0, Math.min(EXPECTED_PAGE_COUNT, Number(project.completedPages) || 0));
+    return Math.max(0, Math.min(pages.length, Number(project.completedPages) || 0));
   }
 
   function projectCard(project, trashed = false) {
     const completed = completedPagesFor(project);
-    const percent = Math.round((completed / EXPECTED_PAGE_COUNT) * 100);
     const total = pages.length;
-    const ready = completed === EXPECTED_PAGE_COUNT;
+    const percent = total ? Math.round((completed / total) * 100) : 0;
+    const ready = total > 0 && completed === total;
     const id = escapeHtml(project.id);
     const name = escapeHtml(project.name);
     const edition = escapeHtml(project.edition || "Edición sin nombre público");
@@ -4425,6 +5024,7 @@
     guiaPlegar(preferencia !== "0");
   })();
 
+  conectarDialogoSeccion();
   if (compactQuery.matches) els.sidebar.inert = true;
   syncEditButton();
   if (printPreview) {
