@@ -2819,7 +2819,7 @@
   function migrarSumarioAntiguo() {
     const antiguas = projectStorage.entries()
       .map(([clave]) => clave)
-      .filter((clave) => /^text:p02\\.contents\\.\\d+\\./.test(clave));
+      .filter((clave) => /^text:p02\.contents\.\d+\./.test(clave));
     if (!antiguas.length) return 0;
 
     const filas = contentsRows();
@@ -2838,6 +2838,24 @@
     return antiguas.length;
   }
 
+  // La página 16 dejó de ser una convocatoria a colaborar y pasó a ser el
+  // observatorio de datos. Dos campos de la maqueta anterior ya no se leen.
+  const CAMPOS_RETIRADOS = ["p16.callout", "p16.deadline"];
+
+  function limpiarCamposRetirados() {
+    const prefijos = CAMPOS_RETIRADOS.flatMap((campo) => [
+      storageKey("text", campo),
+      storageKey("text", `${campo}.${APLICADO_SUFIJO}`)
+    ]);
+    const cambios = new Map();
+    projectStorage.entries().forEach(([clave]) => {
+      if (prefijos.includes(clave)) cambios.set(clave, null);
+    });
+    if (!cambios.size) return 0;
+    projectStorage.putMany(cambios).catch(() => undefined);
+    return cambios.size;
+  }
+
   function showEditor(options = {}) {
     const project = projectStorage.active();
     if (!project) {
@@ -2852,8 +2870,8 @@
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
     aplicarFormato();
-    const huerfanas = migrarSumarioAntiguo();
-    if (huerfanas) showToast(`Se actualizó el sumario de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
+    const huerfanas = migrarSumarioAntiguo() + limpiarCamposRetirados();
+    if (huerfanas) showToast(`Se actualizó la estructura de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
     // De la edición dependían las fotos, los botones de lista, el faldón, el
     // contador y la aprobación de páginas. Quien abría la revista veía un
     // recuadro que decía "Agregar fotografía", lo pulsaba y no ocurría nada.
