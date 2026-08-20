@@ -139,7 +139,7 @@ Dentro del taller, el árbol lateral reproduce la estructura ramificada de la re
 - P13: comercio local.
 - P14: cartas y opinión vecinal.
 - P15: agenda y datos útiles.
-- P16: cultura y participación.
+- P16: observatorio de datos públicos.
 - P17: publicidad y colaboradores.
 - P18: contraportada.
 

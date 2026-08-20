@@ -26,7 +26,7 @@ Mantenga una sola pestaña del taller abierta. Si una segunda pestaña muestra *
 - P13: comercio local.
 - P14: cartas y opinión vecinal.
 - P15: agenda y datos útiles.
-- P16: cultura y participación.
+- P16: observatorio de datos públicos.
 - P17: publicidad y colaboradores.
 - P18: contraportada.
 

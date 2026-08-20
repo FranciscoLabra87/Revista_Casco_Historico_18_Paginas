@@ -359,7 +359,8 @@
     "p04.briefs":     { parts: 3, min: 2, max: 6, uno: "noticia",    varias: "noticias" },
     "p05.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
     "p14.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
-    "p15.agenda":     { parts: 4, min: 1, max: 6, uno: "actividad",  varias: "actividades" }
+    "p15.agenda":     { parts: 4, min: 1, max: 6, uno: "actividad",  varias: "actividades" },
+    "p16.registros":  { parts: 5, min: 3, max: 12, uno: "registro",   varias: "registros" }
   };
 
   function listCountKey(pageId, listName) {
@@ -1206,7 +1207,7 @@
       : `Se agregó un aviso al pie de la página ${page.number}.`);
   }
 
-  const PAGINAS_CON_FIRMA = new Set(["p04", "p06", "p10", "p12", "p13"]);
+  const PAGINAS_CON_FIRMA = new Set(["p04", "p06", "p10", "p12", "p13", "p16"]);
 
   function firma(page) {
     if (!PAGINAS_CON_FIRMA.has(page.id)) return "";
@@ -1600,6 +1601,57 @@
       : "La contraportada pasa a espacio publicitario, a página completa y a sangre.");
   }
 
+  function renderObservatorio(page) {
+    const defaults = page.lists?.registros || [];
+    const total = listCount(page, "registros", defaults);
+    const filas = Array.from({ length: total }, (unused, index) => {
+      const [anio, nombre, via, estado, monto] = splitItem(defaults[index], 5);
+      return `<tr>
+        <td class="dato-anio">${editableList(page, "registros", index, "anio", anio)}</td>
+        <td class="dato-nombre">${editableList(page, "registros", index, "nombre", nombre)}</td>
+        <td class="dato-via">${editableList(page, "registros", index, "via", via)}</td>
+        <td class="dato-estado">${editableList(page, "registros", index, "estado", estado)}</td>
+        <td class="dato-monto">${editableList(page, "registros", index, "monto", monto)}</td>
+      </tr>`;
+    }).join("");
+
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editableValue(page, "ribbon", "Observatorio de datos públicos")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="observatorio">
+        <div class="observatorio__texto">
+          <p class="body-copy">${editable(page, "body1")}</p>
+          <p class="body-copy">${editableValue(page, "body2", "Qué se va a publicar, con qué periodicidad y de dónde sale cada dato.")}</p>
+        </div>
+        <aside class="observatorio__cifra">
+          <strong>${editableValue(page, "cifra", "243")}</strong>
+          <span>${editableValue(page, "cifraPie", "proyectos ingresados al sistema ambiental en la comuna desde 1995.")}</span>
+        </aside>
+      </div>
+      <h3 class="ladillo">${editableValue(page, "tablaTitulo", "Primera entrega")}</h3>
+      <table class="tabla-datos">
+        <thead>
+          <tr>
+            <th>${editableValue(page, "colAnio", "Año")}</th>
+            <th>${editableValue(page, "colNombre", "Proyecto")}</th>
+            <th>${editableValue(page, "colVia", "Vía")}</th>
+            <th>${editableValue(page, "colEstado", "Estado")}</th>
+            <th>${editableValue(page, "colMonto", "Inversión")}</th>
+          </tr>
+        </thead>
+        <tbody>${filas}</tbody>
+      </table>
+      ${listControls(page, "registros", total)}
+      <div class="observatorio__fuente contact-card">
+        ${editableLabel(page, "fuenteLabel", "De dónde salen estos datos", "h3")}
+        <p>${editableValue(page, "fuente", "Fuente, fecha de consulta y dirección donde cualquiera puede comprobarlo.")}</p>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
   function renderBack(page) {
     if (contraportadaComercial(page)) {
       const alternar = state.editing
@@ -1639,6 +1691,7 @@
     letters: renderLetters,
     agenda: renderAgenda,
     culture: renderCulture,
+    observatorio: renderObservatorio,
     ads: renderAds,
     back: renderBack
   };

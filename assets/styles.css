@@ -3649,6 +3649,100 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 29 · Observatorio de datos ---------------------------------- */
+
+/* Una página de datos tiene tres obligaciones: decir la cifra, mostrar el
+   detalle y declarar de dónde sale. Si falta la tercera, no es periodismo de
+   datos: es una cifra suelta. */
+
+.observatorio {
+  display: grid;
+  grid-template-columns: var(--texto) var(--apoyo);
+  gap: var(--gut);
+  align-items: start;
+  margin-bottom: var(--base);
+}
+
+.observatorio__texto .body-copy {
+  margin-bottom: var(--media-base);
+}
+
+.observatorio__cifra {
+  padding: var(--media-base);
+  border-radius: 2mm;
+  background: var(--tone-ink);
+  color: var(--cream);
+  text-align: center;
+}
+
+.observatorio__cifra strong {
+  display: block;
+  font-family: var(--font-title);
+  font-size: 22pt;
+  font-weight: 700;
+  line-height: 1.16;
+}
+
+.observatorio__cifra span {
+  display: block;
+  margin-top: 1mm;
+  font-size: 7.5pt;
+  line-height: 1.35;
+}
+
+/* La tabla es el corazón de la página: cifras alineadas y filas legibles. */
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 7.5pt;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-datos th {
+  padding: 0 1.5mm 1mm 0;
+  border-bottom: 0.4mm solid var(--tone);
+  color: var(--tone-ink);
+  font-family: var(--font-body);
+  font-size: 7.5pt;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.tabla-datos td {
+  padding: 1.1mm 1.5mm 1.1mm 0;
+  border-bottom: 0.25mm solid var(--sand);
+  vertical-align: top;
+  line-height: 1.3;
+}
+
+.tabla-datos tr:last-child td {
+  border-bottom: 0;
+}
+
+.tabla-datos .dato-anio,
+.tabla-datos .dato-monto {
+  white-space: nowrap;
+}
+
+.tabla-datos .dato-monto {
+  text-align: right;
+}
+
+.tabla-datos .dato-nombre {
+  width: 46%;
+}
+
+.tabla-datos .dato-estado {
+  color: var(--tone-ink);
+  font-weight: 700;
+}
+
+.observatorio__fuente {
+  margin-top: auto;
+}
+
 /* 28 · Reportaje central -------------------------------------- */
 
 /* Dos páginas con sitio de verdad: la primera abre con fotografía grande y

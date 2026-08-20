@@ -1,22 +1,39 @@
 window.MAGAZINE_SEGMENTS.push({
   id: "12_cultura_participacion",
-  title: "Cultura y participación",
-  purpose: "Entretener e invitar a colaborar con la siguiente edición.",
+  title: "Observatorio de datos públicos",
+  purpose: "Poner al alcance del barrio la información pública que lo afecta y decir de dónde sale cada dato.",
   pages: [
     {
       id: "p16",
       number: 16,
-      title: "Cultura y participación",
-      layout: "culture",
+      title: "Observatorio de datos públicos",
+      layout: "observatorio",
       status: "modelo",
       fields: {
-        ribbon: "Vida cultural",
-        title: "Una página para compartir",
-        deck: "Actividad cultural, receta tradicional, fotografía de lectores, concurso o pasatiempo.",
-        body1: "Este espacio debe favorecer la participación. Indicar con claridad cómo enviar respuestas, imágenes o propuestas.",
-        body2: "Si existe un concurso, publicar bases simples, fecha de cierre, premio, forma de selección y autorización para difundir los aportes.",
-        callout: "Envíanos una fotografía antigua y cuéntanos quiénes aparecen, dónde fue tomada y de qué año podría ser.",
-        deadline: "Recepción de aportes: [fecha y contacto]"
+        ribbon: "Observatorio de datos públicos",
+        title: "Lo que se construye en la comuna, en una sola página",
+        deck: "La agrupación empieza a reunir y publicar los datos públicos que afectan al Casco Histórico: proyectos de inversión, delitos y actividad económica.",
+        byline: "Por [nombre y apellido]",
+        body1: "Toda obra grande que se levanta en la comuna pasa antes por el sistema de evaluación ambiental, donde su titular declara qué hará, dónde, cuánto invertirá y qué impactos reconoce. Esa información es pública, pero está publicada sin estar disponible: vive en un portal que se consulta de a un proyecto por vez.",
+        body2: "El observatorio ordena esos registros y los publica en cada edición. Junto a ellos irán las cifras de delitos de la comuna y la actividad económica del comercio local, tomada de los datos abiertos del Servicio de Impuestos Internos. Cada entrega dirá su fuente, su fecha de consulta y dónde comprobarla.",
+        cifra: "[cifra]",
+        cifraPie: "Qué mide esta cifra, en qué período y sobre qué universo.",
+        tablaTitulo: "Primera entrega",
+        colAnio: "Año",
+        colNombre: "Proyecto",
+        colVia: "Vía",
+        colEstado: "Estado",
+        colMonto: "Inversión",
+        fuenteLabel: "De dónde salen estos datos",
+        fuente: "Fuente: [organismo]. Consultado el [fecha]. Cualquiera puede comprobarlo en [dirección]."
+      },
+      lists: {
+        registros: [
+          "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]",
+          "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]",
+          "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]",
+          "[año]|[nombre del proyecto o registro]|[vía o categoría]|[estado]|[monto o cantidad]"
+        ]
       }
     }
   ]

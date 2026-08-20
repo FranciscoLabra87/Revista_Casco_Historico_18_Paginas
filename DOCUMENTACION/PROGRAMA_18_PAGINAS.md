@@ -50,27 +50,19 @@ Dos a cuatro cartas breves, con un máximo recomendado de 180 palabras cada una.
 
 Calendario de reuniones, actividades, ferias, talleres y panoramas culturales. Cada dato debe indicar fecha, hora, lugar, organizador, costo, inscripción y contacto, y verificarse inmediatamente antes del cierre.
 
-## Página 16 · Cultura y participación
+## Página 16 · Observatorio de datos públicos
 
-Convocatoria para enviar noticias, fotografías, historias, cartas y propuestas. Debe informar plazo, canales de contacto, condiciones de selección y requisitos de autorización para publicar.
+Entrega periódica de información pública que afecta al barrio: proyectos
+ingresados al sistema de evaluación ambiental, cifras de delitos de la comuna y
+actividad económica del comercio local a partir de los datos abiertos del
+Servicio de Impuestos Internos.
 
-## Faldón publicitario en páginas impares
+Cada entrega lleva una cifra destacada, una tabla con el detalle y un recuadro
+obligatorio que declara la fuente, la fecha de consulta y la dirección donde
+cualquiera puede comprobarlo. **Sin ese recuadro la página no se publica**: un
+dato sin fuente no es periodismo de datos, es una cifra suelta.
 
-Además de la página 17, las páginas impares pueden llevar un faldón al pie: un
-aviso horizontal con título, texto de contacto e imagen, identificado como
-publicidad.
-
-Se ofrecen en las páginas **3, 5, 7, 9, 11, 13 y 15**: siete espacios por
-edición. La regla es de imprenta, no de diseño. En un cuadernillo las impares
-son las páginas de la derecha, las que quedan a la vista al abrir la revista, y
-por eso son las que se venden. Quedan fuera la portada, la contraportada, todas
-las pares y la página 17, que ya es publicidad completa.
-
-Cada faldón se activa página por página desde el taller y debe cumplir las
-mismas condiciones que el resto de los avisos: acuerdo con el anunciante,
-material aprobado, vigencia e identificación visible como publicidad. Cuando una
-página lleva faldón, la maqueta reduce la fotografía de apertura para que el
-aviso quepa sin sacar texto del marco.
+La página se firma. Un dato publicado tiene autor, igual que una nota.
 
 ## Página 17 · Publicidad y colaboradores
 
