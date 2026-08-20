@@ -3649,6 +3649,56 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 28 · Reportaje central -------------------------------------- */
+
+/* Dos páginas con sitio de verdad: la primera abre con fotografía grande y
+   cuatro párrafos; la segunda reparte el texto con la segunda fotografía al
+   costado, un ladillo que ordena la lectura y la cita atribuida. */
+
+.feature-grid--close {
+  align-items: stretch;
+}
+
+.feature-close__texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.feature-close__texto .body-copy {
+  margin-bottom: var(--media-base);
+}
+
+.feature-close__apoyo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--media-base);
+  min-width: 0;
+}
+
+/* La segunda fotografía ocupa el ancho de su columna y crece con la página. */
+.feature-close__foto {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  min-height: 0;
+}
+
+/* El ladillo separa sin gritar: es una entrada de lectura, no un titular. */
+.ladillo {
+  margin: var(--media-base) 0 var(--media-base);
+  color: var(--tone-ink);
+  font-family: var(--font-title);
+  font-size: 10.5pt;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.215;
+}
+
+/* En la apertura, el pie de la fotografía principal va pegado a ella. */
+.feature-image + .caption {
+  margin: calc(var(--media-base) * -1) 0 var(--base);
+}
+
 /* 27 · Formato de página -------------------------------------- */
 
 .formato-pagina {

@@ -1313,14 +1313,23 @@
       <p class="page-deck">${editable(page, "deck")}</p>
       ${firma(page)}
       ${imageSlot(page, "main", "Agregar fotografía principal del reportaje", "feature-image")}
-      <div class="feature-grid">
+      <p class="caption">${editableValue(page, "mainCaption", "Pie de la fotografía principal: qué se ve, dónde y cuándo. Crédito: [nombre].")}</p>
+      <div class="feature-grid page-fill">
         <div class="two-columns">
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
+          <p class="body-copy">${editableValue(page, "body3", "Tercer párrafo del desarrollo: antecedentes comprobados, cifras con su fuente y el estado real del asunto.")}</p>
+          <p class="body-copy">${editableValue(page, "body4", "Cuarto párrafo: qué falta por resolver y quién tiene que responder. Continúa en la página siguiente.")}</p>
         </div>
-        <aside class="stat-card">
-          <strong>${editable(page, "stat")}</strong>
-          <span>${editable(page, "statLabel")}</span>
+        <aside class="feature-aside">
+          <div class="stat-card">
+            <strong>${editable(page, "stat")}</strong>
+            <span>${editable(page, "statLabel")}</span>
+          </div>
+          <div class="contact-card">
+            ${editableLabel(page, "sourcesLabel", "Cómo lo comprobamos", "h3")}
+            <p>${editableValue(page, "sources", "Documentos consultados, organismos a los que se preguntó y quién no respondió al cierre.")}</p>
+          </div>
         </aside>
       </div>`;
     return pageFrame(page, content);
@@ -1334,16 +1343,20 @@
     const content = `
       ${runningHead(page, "Reportaje principal · continuación")}
       <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
-      <div class="feature-grid">
-        <div class="two-columns">
-          <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+      <div class="feature-grid feature-grid--close page-fill">
+        <div class="feature-close__texto">
+          <p class="body-copy">${editable(page, "body1")}</p>
+          <p class="body-copy">${editableValue(page, "body2b", "Segundo párrafo de la continuación: consecuencias, opiniones relevantes y datos que las sostienen.")}</p>
+          <h3 class="ladillo">${editableValue(page, "ladillo", "Un ladillo que ordena la lectura")}</h3>
           <p class="body-copy">${editable(page, "body2")}</p>
+          <p class="body-copy">${editableValue(page, "body3", "Penúltimo párrafo: qué puede esperar la comunidad y dónde encontrar información actualizada.")}</p>
+          <div class="quote-card">${editable(page, "quote")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
+          <p class="body-copy">${editableValue(page, "body4", "Cierre: la pregunta que queda abierta y la forma concreta de participar o informarse.")}</p>
         </div>
-        <aside class="feature-aside">
-          <div class="fact-list">${facts}</div>
-          ${imageSlot(page, "support", "Agregar fotografía de apoyo")}
+        <aside class="feature-close__apoyo">
+          ${imageSlot(page, "support", "Agregar la segunda fotografía del reportaje", "feature-close__foto")}
           <p class="caption">${editable(page, "caption")}</p>
+          <div class="fact-list">${facts}</div>
         </aside>
       </div>`;
     return pageFrame(page, content);
