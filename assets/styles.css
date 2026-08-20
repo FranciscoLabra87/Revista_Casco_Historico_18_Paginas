@@ -1518,18 +1518,6 @@ button.project-card__preview {
   text-align: center;
 }
 
-.quote-card::before {
-  position: absolute;
-  top: -4mm;
-  left: 5mm;
-  padding: 0 2mm;
-  background: var(--cream);
-  color: var(--gold);
-  content: "“";
-  font-family: Georgia, serif;
-  font-size: 26pt;
-}
-
 .brief-grid,
 .letter-grid,
 .ad-grid,
@@ -3312,6 +3300,9 @@ button.project-card__preview {
 
 /* 5 · Menos cajas ------------------------------------------- */
 
+/* Sin comilla decorativa: colgaba del borde del recuadro anterior y, con el
+   filete lateral, quedaba encima de las primeras palabras. El filete y la
+   tipografía ya identifican la cita. */
 .quote-card {
   padding: 1mm 0 1mm 4.5mm;
   border: 0;
