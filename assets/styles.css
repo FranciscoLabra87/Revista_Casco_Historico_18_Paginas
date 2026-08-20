@@ -3612,6 +3612,85 @@ body.assistant-open.format-open .studio-shell {
   margin-top: 4.5mm;
 }
 
+/* 24 · Capitulares -------------------------------------------- */
+
+/* Una capitular significa "aquí empieza el artículo". Aparecía en nueve de las
+   dieciocho páginas, así que no significaba nada. Queda en las tres aperturas
+   de texto largo, y con line-height 1 en vez del 0,78 tanteado al ojo. */
+.lead-copy::first-letter {
+  float: none;
+  margin: 0;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+[data-page-id="p03"] .lead-copy::first-letter,
+[data-page-id="p06"] .lead-copy::first-letter,
+[data-page-id="p08"] .lead-copy::first-letter {
+  float: left;
+  margin: 0.4mm 1.8mm 0 0;
+  color: var(--tone-ink);
+  font-family: var(--font-title);
+  font-size: 30pt;
+  line-height: 1;
+}
+
+/* 23 · Encuadres fotográficos --------------------------------- */
+
+/* Los huecos se definían con min-height, así que su proporción dependía de
+   dónde cayera la caja: 2,39:1 · 2,11:1 · 2,29:1 · 1:1,50 · 1:1,66 · 1,23:1.
+   Siete formas distintas y ninguna repetida. Ahora hay cuatro, declaradas con
+   aspect-ratio para que la caja no pueda derivar. */
+
+.page--opener .feature-image,
+.page--opener .culture-hero {
+  aspect-ratio: 3 / 2;
+  min-height: 0;
+}
+
+.mag-page:has(> .page-ad-strip) .page--opener .feature-image,
+.mag-page.page--opener:has(> .page-ad-strip) .feature-image {
+  aspect-ratio: 2 / 1;
+  min-height: 0;
+}
+
+.heritage-photo {
+  aspect-ratio: 2 / 3;
+  min-height: 0;
+}
+
+.heritage-close-photo {
+  aspect-ratio: 3 / 2;
+  min-height: 0;
+}
+
+/* 4:5 es el recorte que produce un teléfono, que es de donde va a venir la
+   mayoría de los retratos de esta revista. */
+.portrait-slot {
+  aspect-ratio: 4 / 5;
+  min-height: 0;
+}
+
+.editorial-aside .portrait-slot {
+  aspect-ratio: auto;
+  min-height: 52mm;
+}
+
+.advances-photo {
+  aspect-ratio: 3 / 2;
+  min-height: 0;
+}
+
+/* El sepia era un efecto de pantalla que el motor de impresión rasteriza a la
+   resolución que le parezca, y se aplicaba igual a una placa de 1900 que a una
+   foto de la semana pasada. Si se quiere época, se hace en el archivo. */
+.heritage-photo,
+.heritage-close-photo {
+  filter: none;
+}
+
 /* 22 · Portada ------------------------------------------------ */
 
 /* La cabecera iba dentro de un panel crema pegado sobre la foto: el nombre de
