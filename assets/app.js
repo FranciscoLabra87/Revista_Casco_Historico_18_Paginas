@@ -1279,6 +1279,68 @@
       && DATA_IMAGE_PATTERN.test(data);
   }
 
+  // ---------------------------------------------------------------------------
+  // Encuadre de fotografía
+  //
+  // La imagen se pintaba como fondo del hueco. Eso alcanza para colocarla, pero
+  // no para trabajarla: un fondo no se puede girar, ni acercar, ni corregir de
+  // luz. Ahora es una capa propia dentro del hueco, y lo que se guarda son las
+  // instrucciones, no una copia recortada: el archivo original queda intacto y
+  // el encuadre se puede rehacer las veces que haga falta.
+  // ---------------------------------------------------------------------------
+  const ENCUADRE_POR_OMISION = {
+    zoom: 1,
+    x: 50,
+    y: 50,
+    giro: 0,
+    brillo: 100,
+    contraste: 100,
+    saturacion: 100
+  };
+
+  function encuadreDe(marco) {
+    const guardado = marco && typeof marco === "object" ? marco : {};
+    const limitar = (valor, minimo, maximo, porOmision) => {
+      const numero = Number(valor);
+      if (!Number.isFinite(numero)) return porOmision;
+      return Math.min(maximo, Math.max(minimo, numero));
+    };
+    return {
+      zoom: limitar(guardado.zoom, 1, 4, 1),
+      x: limitar(guardado.x, 0, 100, 50),
+      y: limitar(guardado.y, 0, 100, 50),
+      giro: limitar(guardado.giro, -180, 180, 0),
+      brillo: limitar(guardado.brillo, 40, 180, 100),
+      contraste: limitar(guardado.contraste, 40, 180, 100),
+      saturacion: limitar(guardado.saturacion, 0, 200, 100)
+    };
+  }
+
+  function encuadreEsPorOmision(encuadre) {
+    return Object.entries(ENCUADRE_POR_OMISION).every(([clave, valor]) => encuadre[clave] === valor);
+  }
+
+  // Blanco y negro y sepia entran aquí y no en una clase de CSS: el filtro que
+  // escribe el editor es un atributo style y pisaría cualquier regla externa.
+  const FILTRO_TRATAMIENTO = {
+    bn: "grayscale(1)",
+    sepia: "sepia(0.55) saturate(0.9)"
+  };
+
+  function estiloDeFoto(encuadre, ajuste, tratamiento) {
+    const filtros = [];
+    if (encuadre.brillo !== 100) filtros.push(`brightness(${encuadre.brillo}%)`);
+    if (encuadre.contraste !== 100) filtros.push(`contrast(${encuadre.contraste}%)`);
+    if (encuadre.saturacion !== 100) filtros.push(`saturate(${encuadre.saturacion}%)`);
+    if (FILTRO_TRATAMIENTO[tratamiento]) filtros.push(FILTRO_TRATAMIENTO[tratamiento]);
+    return [
+      `object-fit:${ajuste}`,
+      `object-position:${encuadre.x}% ${encuadre.y}%`,
+      `transform:rotate(${encuadre.giro}deg) scale(${encuadre.zoom})`,
+      filtros.length ? `filter:${filtros.join(" ")}` : ""
+    ].filter(Boolean).join(";");
+  }
+
   function imageMetadata(imageKey) {
     try {
       const metadata = JSON.parse(projectStorage.getItem(storageKey("image-meta", imageKey)) || "null");
@@ -1340,12 +1402,28 @@
       const clave = String(slot.dataset.imageKey || "");
       const [pageId, imageSlotName] = clave.split(".");
       const data = imageData(pageId, imageSlotName);
-      slot.style.backgroundImage = data ? `url("${data}")` : "";
-      slot.style.backgroundRepeat = data ? "no-repeat" : "";
-      const marcoGuardado = marcoImagen(pageId, imageSlotName);
-      slot.style.backgroundPosition = data ? (marcoGuardado?.encuadre || "center") : "";
-      slot.style.backgroundSize = data ? imageFit(clave) : "";
-      slot.classList.toggle("is-contained", Boolean(data) && imageFit(clave) === "contain");
+      let foto = slot.querySelector(":scope > .image-slot__foto");
+
+      if (!data) {
+        foto?.remove();
+        slot.classList.remove("is-contained");
+        return;
+      }
+
+      if (!foto) {
+        foto = document.createElement("img");
+        foto.className = "image-slot__foto";
+        foto.alt = "";
+        foto.decoding = "async";
+        slot.prepend(foto);
+      }
+      if (foto.getAttribute("src") !== data) foto.setAttribute("src", data);
+
+      const ajuste = imageFit(clave);
+      const marco = marcoImagen(pageId, imageSlotName);
+      const encuadre = encuadreDe(marco);
+      foto.setAttribute("style", estiloDeFoto(encuadre, ajuste, marco?.tratamiento));
+      slot.classList.toggle("is-contained", ajuste === "contain");
     });
   }
 
@@ -2445,6 +2523,203 @@
     titulo?.focus();
   }
 
+  // ---------------------------------------------------------------------------
+  // Editor de fotografía
+  //
+  // Trabaja sobre una copia de las instrucciones y sólo las guarda al aplicar,
+  // para que Cancelar signifique cancelar de verdad. La vista previa usa el
+  // mismo cálculo que la página, así que lo que se ve aquí es lo que se imprime.
+  // ---------------------------------------------------------------------------
+  const fotoEditor = { clave: null, encuadre: null, ajuste: "cover", tratamiento: "", arrastrando: false };
+
+  const FOTO_MANDOS = [
+    { id: "fotoZoom", campo: "zoom", valor: "fotoZoomValor", escala: 100, formato: (v) => `${v.toFixed(1).replace(".", ",")}×` },
+    { id: "fotoGiro", campo: "giro", valor: "fotoGiroValor", escala: 1, formato: (v) => `${Math.round(v)}°` },
+    { id: "fotoBrillo", campo: "brillo", valor: "fotoBrilloValor", escala: 1, formato: (v) => `${Math.round(v)}%` },
+    { id: "fotoContraste", campo: "contraste", valor: "fotoContrasteValor", escala: 1, formato: (v) => `${Math.round(v)}%` },
+    { id: "fotoSaturacion", campo: "saturacion", valor: "fotoSaturacionValor", escala: 1, formato: (v) => `${Math.round(v)}%` }
+  ];
+
+  function fotoPintarPrevia() {
+    const previa = document.getElementById("fotoPrevia");
+    if (!previa || !fotoEditor.encuadre) return;
+    previa.setAttribute("style", estiloDeFoto(fotoEditor.encuadre, fotoEditor.ajuste, fotoEditor.tratamiento));
+    FOTO_MANDOS.forEach(({ id, campo, valor, escala, formato }) => {
+      const mando = document.getElementById(id);
+      const etiqueta = document.getElementById(valor);
+      if (mando) mando.value = String(Math.round(fotoEditor.encuadre[campo] * escala));
+      if (etiqueta) etiqueta.textContent = formato(fotoEditor.encuadre[campo]);
+    });
+    const ajuste = document.getElementById("fotoAjuste");
+    if (ajuste) ajuste.value = fotoEditor.ajuste;
+  }
+
+  // Aviso de resolución: al acercar, la imagen se estira y puede quedar por
+  // debajo de lo que la imprenta necesita.
+  // Aviso de resolución. Cuenta los píxeles que de verdad van a viajar en el
+  // PDF, que son los de la copia guardada y no los del archivo que subieron, y
+  // mide el hueco en milímetros de papel descontando el zoom de la pantalla.
+  function fotoPintarMedida() {
+    const aviso = document.getElementById("fotoMedida");
+    if (!aviso || !fotoEditor.clave || !fotoEditor.encuadre) return;
+    const metadata = imageMetadata(fotoEditor.clave);
+    const pixeles = Number(metadata?.width || 0);
+    const hueco = document.querySelector(`[data-image-key="${CSS.escape(fotoEditor.clave)}"]`);
+    const pagina = hueco?.closest(".mag-page");
+    if (!pixeles || !hueco || !pagina) { aviso.textContent = ""; return; }
+
+    const altoFormato = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--formato-alto")) || 297;
+    const altoEnPx = (altoFormato / 25.4) * 96;
+    const escalaPantalla = pagina.getBoundingClientRect().height / altoEnPx;
+    if (!(escalaPantalla > 0)) { aviso.textContent = ""; return; }
+
+    const anchoMm = (hueco.getBoundingClientRect().width / escalaPantalla) / 96 * 25.4;
+    // Al acercar se usa menos trozo de la foto para el mismo hueco.
+    const pixelesUtiles = pixeles / fotoEditor.encuadre.zoom;
+    const dpi = anchoMm > 0 ? pixelesUtiles / (anchoMm / 25.4) : 0;
+    if (!dpi) { aviso.textContent = ""; return; }
+
+    const suficiente = dpi >= 220;
+    aviso.textContent = `La copia guardada rinde ${Math.round(dpi)} puntos por pulgada en un hueco de ${Math.round(anchoMm)} mm. ` +
+      (suficiente
+        ? "Suficiente para imprenta."
+        : "Por debajo de los 220 que pide la imprenta: acerca menos, o entrega el archivo original a la imprenta junto al PDF.");
+    aviso.classList.toggle("is-warning", !suficiente);
+  }
+
+  function abrirEditorDeFoto(clave) {
+    const dialogo = document.getElementById("fotoDialog");
+    const [pageId, slot] = String(clave).split(".");
+    const datos = imageData(pageId, slot);
+    if (!dialogo || !datos) return false;
+    fotoEditor.clave = clave;
+    const marcoActual = marcoImagen(pageId, slot);
+    fotoEditor.encuadre = encuadreDe(marcoActual);
+    fotoEditor.ajuste = imageFit(clave);
+    fotoEditor.tratamiento = marcoActual?.tratamiento || "";
+    const previa = document.getElementById("fotoPrevia");
+    if (previa) previa.src = datos;
+    // El lienzo copia la proporción del hueco: encuadrar sobre otra forma sería
+    // encuadrar para una página que no existe.
+    const hueco = document.querySelector(`[data-image-key="${CSS.escape(clave)}"]`);
+    const lienzo = document.getElementById("fotoLienzo");
+    if (hueco && lienzo) {
+      const caja = hueco.getBoundingClientRect();
+      if (caja.width > 0 && caja.height > 0) lienzo.style.aspectRatio = `${caja.width} / ${caja.height}`;
+    }
+    fotoPintarPrevia();
+    fotoPintarMedida();
+    dialogo.showModal();
+    return true;
+  }
+
+  function conectarEditorDeFoto() {
+    const dialogo = document.getElementById("fotoDialog");
+    if (!dialogo) return;
+
+    dialogo.querySelectorAll("[data-cerrar-foto]").forEach((boton) => {
+      boton.addEventListener("click", () => dialogo.close());
+    });
+
+    FOTO_MANDOS.forEach(({ id, campo, escala }) => {
+      document.getElementById(id)?.addEventListener("input", (evento) => {
+        if (!fotoEditor.encuadre) return;
+        fotoEditor.encuadre[campo] = Number(evento.target.value) / escala;
+        fotoPintarPrevia();
+        if (campo === "zoom") fotoPintarMedida();
+      });
+    });
+
+    document.querySelectorAll("[data-girar]").forEach((boton) => {
+      boton.addEventListener("click", () => {
+        if (!fotoEditor.encuadre) return;
+        const paso = Number(boton.dataset.girar);
+        const giro = paso === 0 ? 0 : fotoEditor.encuadre.giro + paso;
+        fotoEditor.encuadre.giro = ((giro + 180) % 360 + 360) % 360 - 180;
+        fotoPintarPrevia();
+      });
+    });
+
+    document.getElementById("fotoAjuste")?.addEventListener("change", (evento) => {
+      fotoEditor.ajuste = evento.target.value === "contain" ? "contain" : "cover";
+      fotoPintarPrevia();
+    });
+
+    // Arrastrar sobre la vista previa mueve el encuadre. El recorrido del ratón
+    // se traduce a porcentaje del lienzo para que la mano y la imagen coincidan.
+    const lienzo = document.getElementById("fotoLienzo");
+    if (lienzo) {
+      const mover = (evento) => {
+        if (!fotoEditor.arrastrando || !fotoEditor.encuadre) return;
+        const caja = lienzo.getBoundingClientRect();
+        if (!caja.width || !caja.height) return;
+        const dx = (evento.movementX / caja.width) * 100;
+        const dy = (evento.movementY / caja.height) * 100;
+        // Se redondea a dos decimales: más precisión no se ve y engorda el respaldo.
+        const encajar = (valor) => Math.round(Math.min(100, Math.max(0, valor)) * 100) / 100;
+        fotoEditor.encuadre.x = encajar(fotoEditor.encuadre.x - dx);
+        fotoEditor.encuadre.y = encajar(fotoEditor.encuadre.y - dy);
+        fotoPintarPrevia();
+      };
+      lienzo.addEventListener("pointerdown", (evento) => {
+        fotoEditor.arrastrando = true;
+        lienzo.setPointerCapture(evento.pointerId);
+        lienzo.classList.add("is-arrastrando");
+      });
+      lienzo.addEventListener("pointermove", mover);
+      const soltar = (evento) => {
+        if (!fotoEditor.arrastrando) return;
+        fotoEditor.arrastrando = false;
+        try { lienzo.releasePointerCapture(evento.pointerId); } catch { /* el puntero ya salió */ }
+        lienzo.classList.remove("is-arrastrando");
+      };
+      lienzo.addEventListener("pointerup", soltar);
+      lienzo.addEventListener("pointercancel", soltar);
+      lienzo.addEventListener("wheel", (evento) => {
+        if (!fotoEditor.encuadre) return;
+        evento.preventDefault();
+        const paso = evento.deltaY > 0 ? -0.05 : 0.05;
+        fotoEditor.encuadre.zoom = Math.min(4, Math.max(1, fotoEditor.encuadre.zoom + paso));
+        fotoPintarPrevia();
+        fotoPintarMedida();
+      }, { passive: false });
+    }
+
+    document.getElementById("fotoCambiar")?.addEventListener("click", () => {
+      state.activeImageKey = fotoEditor.clave;
+      dialogo.close();
+      els.imageFile.click();
+    });
+
+    document.getElementById("fotoRestablecer")?.addEventListener("click", () => {
+      fotoEditor.encuadre = { ...ENCUADRE_POR_OMISION };
+      fotoPintarPrevia();
+      fotoPintarMedida();
+    });
+
+    document.getElementById("fotoAplicar")?.addEventListener("click", async () => {
+      if (!fotoEditor.clave || !fotoEditor.encuadre) return;
+      const [pageId, slot] = fotoEditor.clave.split(".");
+      const marco = { ...(marcoImagen(pageId, slot) || {}) };
+      Object.keys(ENCUADRE_POR_OMISION).forEach((campo) => {
+        if (fotoEditor.encuadre[campo] === ENCUADRE_POR_OMISION[campo]) delete marco[campo];
+        else marco[campo] = fotoEditor.encuadre[campo];
+      });
+      guardarRegistro(pageId, slot, MARCO_SUFIJO, marco);
+
+      const metadata = { ...(imageMetadata(fotoEditor.clave) || {}), fit: fotoEditor.ajuste };
+      projectStorage.setItem(storageKey("image-meta", fotoEditor.clave), JSON.stringify(metadata));
+
+      markPageDirty(pageId);
+      invalidatePreflight();
+      renderMagazine();
+      dialogo.close();
+      showToast(encuadreEsPorOmision(fotoEditor.encuadre)
+        ? "La fotografía volvió a su encuadre original."
+        : "Encuadre aplicado. El archivo original no se tocó.");
+    });
+  }
+
   function conectarDialogoSeccion() {
     const dialogo = document.getElementById("seccionDialog");
     if (!dialogo) return;
@@ -2639,6 +2914,9 @@
           return;
         }
         state.activeImageKey = node.dataset.imageKey;
+        // Un hueco vacío pide una fotografía; uno que ya la tiene pide
+        // trabajarla. Cambiar el archivo sigue estando, dentro del editor.
+        if (abrirEditorDeFoto(node.dataset.imageKey)) return;
         els.imageFile.click();
       });
     });
@@ -5025,6 +5303,7 @@
   })();
 
   conectarDialogoSeccion();
+  conectarEditorDeFoto();
   if (compactQuery.matches) els.sidebar.inert = true;
   syncEditButton();
   if (printPreview) {

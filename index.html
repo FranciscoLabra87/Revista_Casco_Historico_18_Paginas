@@ -345,6 +345,67 @@
       </form>
     </dialog>
 
+    <dialog class="foto-dialog" id="fotoDialog" aria-labelledby="fotoDialogTitle" aria-describedby="fotoDialogAyuda">
+      <form id="fotoForm" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Fotografía</p>
+            <h2 id="fotoDialogTitle">Encuadrar la fotografía</h2>
+          </div>
+          <button type="button" class="icon-button" data-cerrar-foto aria-label="Cerrar">×</button>
+        </div>
+        <div class="dialog-body foto-body">
+          <div class="foto-lienzo-caja">
+            <div class="foto-lienzo" id="fotoLienzo">
+              <img id="fotoPrevia" alt="" />
+            </div>
+            <p class="foto-ayuda" id="fotoDialogAyuda">Arrastra la fotografía para elegir qué parte se ve. Los cambios no tocan el archivo original.</p>
+            <p class="foto-medida" id="fotoMedida" role="status"></p>
+          </div>
+          <div class="foto-mandos">
+            <label class="foto-mando" for="fotoZoom">
+              <span>Acercar <b id="fotoZoomValor">1,0×</b></span>
+              <input type="range" id="fotoZoom" min="100" max="400" step="5" value="100" />
+            </label>
+            <label class="foto-mando" for="fotoGiro">
+              <span>Enderezar <b id="fotoGiroValor">0°</b></span>
+              <input type="range" id="fotoGiro" min="-180" max="180" step="1" value="0" />
+            </label>
+            <div class="foto-giros">
+              <button type="button" class="button button--ghost" data-girar="-90">Girar ⟲</button>
+              <button type="button" class="button button--ghost" data-girar="90">Girar ⟳</button>
+              <button type="button" class="button button--ghost" data-girar="0">Enderezar</button>
+            </div>
+            <label class="foto-mando" for="fotoBrillo">
+              <span>Luz <b id="fotoBrilloValor">100%</b></span>
+              <input type="range" id="fotoBrillo" min="40" max="180" step="1" value="100" />
+            </label>
+            <label class="foto-mando" for="fotoContraste">
+              <span>Contraste <b id="fotoContrasteValor">100%</b></span>
+              <input type="range" id="fotoContraste" min="40" max="180" step="1" value="100" />
+            </label>
+            <label class="foto-mando" for="fotoSaturacion">
+              <span>Color <b id="fotoSaturacionValor">100%</b></span>
+              <input type="range" id="fotoSaturacion" min="0" max="200" step="1" value="100" />
+            </label>
+            <label class="foto-mando" for="fotoAjuste">
+              <span>Cómo llena el hueco</span>
+              <select id="fotoAjuste">
+                <option value="cover">Rellenar el hueco (se recorta)</option>
+                <option value="contain">Mostrar la foto entera</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="button button--ghost" id="fotoCambiar">Cambiar la fotografía</button>
+          <button type="button" class="button button--ghost" id="fotoRestablecer">Dejarla como estaba</button>
+          <button type="button" class="button button--ghost" data-cerrar-foto>Cancelar</button>
+          <button type="button" class="button button--primary" id="fotoAplicar">Aplicar</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog class="settings-dialog seccion-dialog" id="seccionDialog" aria-labelledby="seccionDialogTitle" aria-describedby="seccionDialogDescription">
       <form id="seccionForm">
         <div class="dialog-header">
