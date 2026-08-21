@@ -67,7 +67,7 @@
       </main>
 
       <footer class="project-home__footer">
-        <span>Formato editorial A5 · 18 páginas</span>
+        <span><span id="formatoResumenLargo">—</span></span>
         <span>Guardado local en este dispositivo</span>
       </footer>
     </section>
@@ -121,9 +121,9 @@
           <div class="edition-card__top">
             <span class="status-dot"></span>
             <span id="editionLabel">Edición piloto</span>
-            <strong>Ultra · 18 páginas</strong>
+            <strong id="edicionResumen">—</strong>
           </div>
-          <p>Formato A5 · 148 × 210 mm</p>
+          <p><span id="formatoResumen">—</span></p>
           <div class="progress-track" role="progressbar" aria-label="Avance editorial" aria-valuemin="0" aria-valuemax="18" aria-valuenow="0">
             <span id="progressBar"></span>
           </div>
@@ -168,6 +168,15 @@
           </label>
           <button type="button" class="tool-row tool-row--featured" data-open-settings>
             <span class="tool-code" aria-hidden="true">ED</span><span>Datos de la edición</span>
+          </button>
+          <button type="button" class="tool-row" id="identityButtonSidebar">
+            <span class="tool-code" aria-hidden="true">ID</span><span>Identidad de la revista</span>
+          </button>
+          <button type="button" class="tool-row" id="formatButtonSidebar">
+            <span class="tool-code" aria-hidden="true">FO</span><span>Formato del elemento</span>
+          </button>
+          <button type="button" class="tool-row" id="assistantButtonSidebar">
+            <span class="tool-code" aria-hidden="true">IA</span><span>Asistente editorial</span>
           </button>
           <button type="button" class="tool-row tool-row--featured" data-open-preflight>
             <span class="tool-code" aria-hidden="true">OK</span><span>Revisión final de imprenta</span>
@@ -270,7 +279,7 @@
               <span class="guia__mark" aria-hidden="true"></span>
               <div>
                 <strong>Reemplaza el texto de muestra</strong>
-                <small>Las 18 páginas vienen con texto de ejemplo. Pulsa sobre cualquier texto y escribe encima. El contador de la barra inferior te dice cuánto falta.</small>
+                <small>Las páginas vienen con texto de ejemplo. Pulsa sobre cualquier texto y escribe encima. El contador de la barra inferior te dice cuánto falta.</small>
               </div>
             </li>
             <li data-guide="fotos">
@@ -324,7 +333,7 @@
           <button type="button" class="icon-button" data-close-new-project aria-label="Cerrar">×</button>
         </div>
         <div class="dialog-body">
-          <p class="dialog-intro" id="newProjectDialogDescription">La nueva revista usará la estructura patrimonial de 18 páginas. Podrás editar sus textos, fotografías y datos antes de generar el PDF.</p>
+          <p class="dialog-intro" id="newProjectDialogDescription">La nueva revista parte del programa base y podrás agregar, quitar y reordenar sus secciones. Podrás editar sus textos, fotografías y datos antes de generar el PDF.</p>
           <div class="form-grid project-form-grid">
             <label class="form-field form-field--wide" for="projectName">
               <span>Nombre de la revista <em>obligatorio</em></span>
@@ -557,7 +566,7 @@
             </label>
             <fieldset class="form-field form-field--wide formato-pagina">
               <legend>Formato de la revista</legend>
-              <p class="formato-pagina__hint">Cambiar el formato recompone las 18 páginas: revísalas después, porque puede sobrar o faltar texto.</p>
+              <p class="formato-pagina__hint">Cambiar el formato recompone todas las páginas: revísalas después, porque puede sobrar o faltar texto.</p>
               <div class="formato-pagina__opciones" id="formatoOpciones"></div>
             </fieldset>
             <label class="form-confirmation form-field--wide" for="settingsVerified">

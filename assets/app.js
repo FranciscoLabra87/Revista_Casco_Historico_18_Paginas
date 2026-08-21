@@ -287,6 +287,17 @@
     return FORMATOS[guardado] ? guardado : "a5";
   }
 
+  function refrescarRotulosDeFormato() {
+    const f = FORMATOS[formatoActual()];
+    if (!f) return;
+    const corto = document.getElementById("formatoResumen");
+    const largo = document.getElementById("formatoResumenLargo");
+    const resumen = document.getElementById("edicionResumen");
+    if (corto) corto.textContent = `Formato ${f.etiqueta}`;
+    if (largo) largo.textContent = `${f.etiqueta} · ${pages.length} páginas`;
+    if (resumen) resumen.textContent = `${f.ancho} × ${f.alto} mm · ${pages.length} páginas`;
+  }
+
   function aplicarFormato() {
     const clave = formatoActual();
     const f = FORMATOS[clave];
@@ -305,6 +316,7 @@
     raiz.setProperty("--medida-texto", `${f.medida}mm`);
     raiz.setProperty("--medida-corta", `${f.medidaCorta}mm`);
     document.body.dataset.formato = clave;
+    refrescarRotulosDeFormato();
     applyPageRule(state.pressOutput === true ? "press" : "office");
   }
 
@@ -2371,6 +2383,7 @@
       return false;
     }
     recargarEstructura();
+    refrescarRotulosDeFormato();
     invalidatePreflight();
     if (state.current >= pages.length) state.current = Math.max(0, pages.length - 1);
     renderTree();
@@ -5304,6 +5317,14 @@
 
   conectarDialogoSeccion();
   conectarEditorDeFoto();
+  [["identityButtonSidebar", "identityButton"],
+   ["formatButtonSidebar", "formatButton"],
+   ["assistantButtonSidebar", "assistantButton"]].forEach(([atajo, original]) => {
+    document.getElementById(atajo)?.addEventListener("click", () => {
+      document.getElementById(original)?.click();
+      if (compactQuery.matches) setSidebarOpen(false);
+    });
+  });
   if (compactQuery.matches) els.sidebar.inert = true;
   syncEditButton();
   if (printPreview) {

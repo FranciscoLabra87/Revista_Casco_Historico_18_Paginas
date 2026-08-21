@@ -546,7 +546,9 @@ button.project-card__preview {
 .topbar {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) auto minmax(260px, 1fr);
+  /* Las columnas laterales se dimensionan por su contenido; la del título es
+     la única que cede espacio, y recorta con puntos suspensivos. */
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 24px;
   padding: 0 22px;
@@ -592,6 +594,15 @@ button.project-card__preview {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.topbar__brand { min-width: 0; }
+
+.topbar__brand h1,
+.topbar__brand p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar h1 {
@@ -2979,8 +2990,17 @@ button.project-card__preview {
 
 @media (max-width: 1100px) {
   .topbar {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
+
+  /* Los botones secundarios salen de la barra y quedan en la columna lateral,
+     que ya es donde vive el resto de las herramientas. Antes se quedaban todos
+     y aplastaban el nombre de la revista hasta hacerlo ilegible. */
+  .topbar__actions .button--supplemental {
+    display: none;
+  }
+
+
 
   .topbar__center {
     display: none;
@@ -5746,4 +5766,19 @@ body.has-save-alert .topbar {
 
 @media (max-width: 720px) {
   .foto-body { grid-template-columns: 1fr; }
+}
+
+/* Atajos que sustituyen a los botones que la barra suelta al estrecharse. */
+#identityButtonSidebar,
+#formatButtonSidebar,
+#assistantButtonSidebar {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  #identityButtonSidebar,
+  #formatButtonSidebar,
+  #assistantButtonSidebar {
+    display: flex;
+  }
 }
