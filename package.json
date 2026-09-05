@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node servidor-local.mjs",
-    "check:syntax": "node --check assets/core/modelo-editorial.js && node --check assets/core/estructura.js && node --check assets/core/migraciones.js && node --check assets/core/esquema-registros.js && node --check assets/backup-tools.js && node --check assets/data-store.js && node --check assets/app.js && node --check servidor-local.mjs",
+    "check:syntax": "node --check assets/core/modelo-editorial.js && node --check assets/core/estructura.js && node --check assets/core/migraciones.js && node --check assets/core/esquema-registros.js && node --check assets/backup-tools.js && node --check assets/data-store.js && node --check assets/app.js && node --check servidor-local.mjs && node --check servidor/nucleo.cjs && node --check build/compilar.mjs",
     "test": "node --test tests/integridad.test.mjs",
-    "check": "npm run check:syntax && npm test"
+    "check": "npm run check:syntax && npm test",
+    "build": "node build/compilar.mjs"
   }
 }

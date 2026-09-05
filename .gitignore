@@ -7,3 +7,6 @@ desktop.ini
 .preview_tmp/
 .claude/
 clave-ia.txt
+
+# Ejecutable compilado
+dist/

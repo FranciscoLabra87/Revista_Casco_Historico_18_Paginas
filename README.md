@@ -19,9 +19,27 @@ Este taller lo cruza solo. Abre en el navegador, escribe encima de las páginas
 como si fueran papel, y al final entrega dos PDF: uno para revisar en la oficina
 y otro listo para la imprenta.
 
-No hay cuenta que crear, ni servidor que contratar, ni nada que viaje a internet.
+No hay cuenta que crear ni servidor que contratar. Todo ocurre en el computador;
+la única parte que sale a internet es el asistente editorial, y es opcional.
 
 ## Cómo se usa
+
+Hay dos formas. La primera no necesita instalar nada.
+
+### Ejecutable único
+
+Descargar `TallerCascoHistorico.exe` desde las releases y hacer doble clic. El
+navegador se abre solo en la revista. No hace falta Node ni ninguna instalación:
+el runtime y todos los archivos del taller viajan dentro del ejecutable.
+
+La primera vez Windows muestra «Windows protegió tu PC», porque el archivo no
+está firmado. Hay que pulsar **Más información → Ejecutar de todas formas**. En
+las notas de cada release va publicado el sha256 para comprobar la descarga.
+
+Mientras el taller funciona queda una ventana de consola detrás. Se puede
+minimizar, pero cerrarla apaga el taller.
+
+### Desde la carpeta, con Node instalado
 
 1. Doble clic en `ABRIR_REVISTA.cmd`.
 2. El sistema abre `http://127.0.0.1:8787/` en el navegador.
@@ -82,7 +100,9 @@ archivo de imprenta agrega 3 mm de sangrado y marcas de corte y registro.
 | `assets/data-store.js` | Guardado en IndexedDB, por edición |
 | `assets/styles.css` | El diseño de la página, en milímetros |
 | `segments/` | El programa editorial base, como datos |
-| `servidor-local.mjs` | Servidor estático local |
+| `servidor-local.mjs` | Punto de entrada cuando se trabaja desde la carpeta |
+| `servidor/nucleo.cjs` | El servidor local: lista blanca, salud, asistente |
+| `build/compilar.mjs` | Compila el taller en un ejecutable único |
 | `tests/` | Pruebas del modelo y del servidor |
 
 La lógica editorial que se puede probar vive en `assets/core/`, fuera del DOM, y
@@ -97,7 +117,7 @@ Si vas a leer las fuentes, estas cuatro te ahorran preguntas:
 columnas, los márgenes y la línea base se derivan del tamaño de corte, así que
 cambiar de A5 a tabloide recompone la revista en vez de romperla.
 
-**El servidor sirve una lista blanca, no una lista de exclusiones.** `servidor-local.mjs`
+**El servidor sirve una lista blanca, no una lista de exclusiones.** `servidor/nucleo.cjs`
 entrega sólo las carpetas que el taller necesita, y verifica la cabecera `Host`.
 Sin eso, un sitio cualquiera puede apuntar su dominio a `127.0.0.1` y leer las
 respuestas como si fueran del mismo origen.
@@ -147,7 +167,14 @@ Requiere Node.js. No hay empaquetador ni dependencias externas.
 npm start        # levanta el taller en http://127.0.0.1:8787
 npm run check    # sintaxis de los módulos + pruebas
 npm test         # sólo las pruebas
+npm run build    # compila dist/TallerCascoHistorico.exe
 ```
+
+El servidor está partido en dos a propósito: `servidor-local.mjs` es un
+envoltorio y el servidor de verdad está en `servidor/nucleo.cjs`, en CommonJS.
+Un ejecutable compilado con Node SEA sólo arranca un `main` en CommonJS, así que
+si el núcleo fuera ESM no habría ejecutable. Los detalles, en
+[`DOCUMENTACION/COMPILAR.md`](DOCUMENTACION/COMPILAR.md).
 
 ## Estado
 
