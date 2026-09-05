@@ -1,77 +1,55 @@
-# Programa editorial de la revista · 12 páginas A5
+# Programa editorial base · 12 páginas
 
-Las 12 páginas incluyen la portada y la contraportada.
+Las 12 páginas incluyen la portada y la contraportada. El formato puede ser A5, A4 o tabloide de 280 × 400 mm. Los rangos de palabras que muestra el taller se ajustan al formato elegido y son la referencia final para cada maqueta.
 
-## Página 1 · Portada
+Este es el **programa base** de una revista nueva. Cada edición puede agregar, quitar o reordenar secciones y páginas. Cuando eso ocurra, use el árbol y el sumario recompuesto por el software como fuente de la paginación real.
 
-Logo, nombre de la revista, número de edición, fecha, fotografía principal, titular central y hasta dos llamados interiores. Debe comunicar el tema principal con una composición limpia y una imagen autorizada de buena resolución.
+## P01 · Portada
 
-## Página 2 · Sumario, créditos y contacto
+Logo, nombre de la revista, edición y fecha, fotografía principal, titular central, bajada y hasta dos llamados interiores. Debe representar el contenido real, usar una imagen autorizada y comprobar los folios de los llamados después de cualquier cambio de estructura.
 
-Índice con la paginación real, equipo responsable, datos de contacto, redes y forma de enviar noticias o cartas. Puede incluir un aviso pequeño claramente identificado.
+## P02 · Sumario, créditos y carta editorial
 
-## Página 3 · Carta editorial
+Índice con la paginación real, equipo responsable, contacto y forma de enviar noticias o cartas. En la parte inferior comparte la hoja con una carta editorial breve, firmada, que explica por qué sale el número e invita a participar. Todo aviso debe estar identificado.
 
-Mensaje de 250 a 350 palabras firmado por la directiva o la persona responsable. Presenta el sentido de la edición, sus temas principales y la invitación a participar.
+## P03 · Noticias breves
 
-## Página 4 · Noticias breves
+Tres a cinco noticias comprobadas. Cada una identifica el hecho, fecha, lugar, participantes, resultado y fuente o contacto verificable. El número de noticias y el rango por nota se controlan desde el taller.
 
-Tres a cinco noticias de 80 a 140 palabras. Cada una debe indicar título, fecha, lugar, participantes, resultado y contacto cuando corresponda.
+## P04 · Avances de la agrupación
 
-## Página 5 · Avances de la agrupación
+Rendición breve de proyectos, gestiones, solicitudes y acuerdos recientes. Cada avance distingue la acción realizada, responsable, resultado comprobable, estado actual, documento o contacto de respaldo y próximo paso.
 
-Resumen de proyectos, gestiones, solicitudes y acuerdos recientes. Debe distinguir claramente qué se realizó, qué resultado se obtuvo, qué está pendiente y cuál es el próximo paso.
+## P05–P06 · Reportaje central
 
-## Páginas 6 y 7 · Reportaje central
+Tema principal desarrollado en dos páginas. La apertura presenta el hecho, contexto, fotografía principal y fuentes; la continuación explica consecuencias, voces atribuidas, datos, próximos pasos y una fotografía de apoyo. Requiere dos o más fuentes y debe separar hechos, opiniones y asuntos aún no confirmados.
 
-Tema principal desarrollado en 700 a 900 palabras. Requiere antecedentes comprobados, dos o más fuentes, fotografía principal, imágenes de apoyo, frase destacada, datos clave y próximos pasos.
+## P07 · Voces del comercio
 
-## Páginas 8 y 9 · Entrevista
+Entrevista a una persona que atiende un local del sector: presentación, tres preguntas y respuestas, frase atribuida, retrato o fotografía del negocio, dirección, horario y contacto. Registre las autorizaciones. Si hubo pago o beneficio a cambio de publicación, identifique el contenido como publicidad o patrocinado.
 
-Conversación con una persona relevante para el barrio. Incluye presentación, cinco a ocho preguntas, retrato, fotografía de contexto y una frase destacada. Deben registrarse las autorizaciones de entrevista, fotografía y publicación.
+## P08 · Memoria y patrimonio
 
-## Páginas 10 y 11 · Memoria y patrimonio
+Historia de una calle, edificio, oficio, comercio, tradición o fotografía antigua. Distingue documentos de memoria oral, identifica a quien entrega el testimonio y registra fuente, fecha estimada, propietario, crédito y permiso de la imagen.
 
-Historia de una calle, edificio, comercio, tradición, personaje o fotografía del Casco Histórico. Puede combinar documentos y memoria oral, siempre distinguiendo las fuentes. Debe identificar el original, su propietario, fecha estimada, crédito y permiso.
+## P09 · Observatorio de datos públicos
 
-## Página 12 · Comunidad y servicios
+Información pública que afecta al barrio: por ejemplo, proyectos de inversión, seguridad o actividad económica. Incluye firma, cifra destacada, tabla y un recuadro obligatorio con organismo o documento fuente, fecha de consulta y dirección donde cualquier persona pueda comprobar los datos. **Sin fuentes verificables, la página no se publica.**
 
-Información sobre proyectos vecinales, talleres, operativos, beneficios o servicios. Debe señalar quién organiza, a quién beneficia, requisitos, fecha, lugar, costo y contacto verificado.
+## P10 · Comunidad, servicios y agenda
 
-## Página 13 · Comercio local
+Una iniciativa, operativo, beneficio, taller o servicio explicado con organización responsable, destinatarios, requisitos, fecha, lugar, costo y contacto verificado. Al pie incorpora una agenda breve; cada actividad se confirma nuevamente antes del cierre.
 
-Perfil de un comercio o emprendimiento de 300 a 450 palabras. Debe indicarse claramente si es contenido editorial, patrocinado o publicidad pagada.
+## P11 · Cartas al director
 
-## Página 14 · Cartas y opinión vecinal
+Dos a cuatro cartas breves, con nombre y sector verificados. No se publican amenazas, datos personales de terceros ni acusaciones sin respaldo. El descargo editorial al pie es obligatorio y se ofrece respuesta cuando una carta alude a una persona u organización.
 
-Dos a cuatro cartas breves, con un máximo recomendado de 180 palabras cada una. Se verifica la identidad del autor, el sector y la fecha. No se publican amenazas, datos personales ajenos ni acusaciones sin respaldo.
+## P12 · Contraportada
 
-## Página 15 · Agenda y datos útiles
+Cierre institucional, campaña, fotografía patrimonial o aviso a página completa. Trabaja una sola idea visual, mantiene la identidad y muestra contactos legibles. Si es comercial, debe llevar una identificación visible.
 
-Calendario de reuniones, actividades, ferias, talleres y panoramas culturales. Cada dato debe indicar fecha, hora, lugar, organizador, costo, inscripción y contacto, y verificarse inmediatamente antes del cierre.
+## Estructura variable y producción
 
-## Página 16 · Observatorio de datos públicos
+La portada permanece al principio y la contraportada al final. Las secciones interiores pueden reordenarse, eliminarse o ampliarse, y se pueden crear otras con una a cuatro páginas. Antes de un cambio estructural, descargue un respaldo; después, revise sumario, llamados de portada, folios, extensiones y todas las páginas aprobadas.
 
-Entrega periódica de información pública que afecta al barrio: proyectos
-ingresados al sistema de evaluación ambiental, cifras de delitos de la comuna y
-actividad económica del comercio local a partir de los datos abiertos del
-Servicio de Impuestos Internos.
-
-Cada entrega lleva una cifra destacada, una tabla con el detalle y un recuadro
-obligatorio que declara la fuente, la fecha de consulta y la dirección donde
-cualquiera puede comprobarlo. **Sin ese recuadro la página no se publica**: un
-dato sin fuente no es periodismo de datos, es una cifra suelta.
-
-La página se firma. Un dato publicado tiene autor, igual que una nota.
-
-## Página 17 · Publicidad y colaboradores
-
-Avisos comerciales, instituciones colaboradoras, agradecimientos y contacto publicitario. Cada aviso debe tener acuerdo, dimensiones, vigencia, material aprobado e identificación visible como publicidad o contenido patrocinado.
-
-## Página 18 · Contraportada
-
-Campaña institucional, fotografía patrimonial, mensaje comunitario o publicidad principal. Debe trabajar una sola idea visual, incluir datos legibles y mantener la identidad de la revista.
-
-## Nota de producción
-
-El PDF de 12 páginas sirve para distribución digital o impresión de oficina en hojas A5. Para un cuadernillo doblado y corcheteado, la imprenta suele exigir una cantidad total de páginas múltiplo de cuatro. Consulte antes del cierre si debe ampliarse el programa a 20 páginas y solicitar imposición, sangrado, marcas de corte, resolución y perfil de color.
+El PDF de oficina o digital conserva el tamaño elegido y no lleva sangrado. El archivo de imprenta agrega 3 mm de sangrado, marcas de corte y registro, pero no incluye imposición de pliegos ni perfil de color. Un total múltiplo de cuatro sólo es necesario si la publicación se fabricará como cuadernillo doblado y corcheteado; no es requisito para un PDF digital ni para páginas sueltas.

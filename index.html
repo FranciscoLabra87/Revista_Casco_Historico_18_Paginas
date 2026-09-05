@@ -7,7 +7,7 @@
     <title>Taller editorial · Revista Casco Histórico</title>
     <meta
       name="description"
-      content="Sistema local para componer, revisar y exportar la revista comunal Casco Histórico en formato A5."
+      content="Sistema local para componer, revisar y exportar la revista comunal Casco Histórico en formato A5, A4 o tabloide."
     />
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
@@ -111,8 +111,7 @@
           <button type="button" class="button button--ghost button--supplemental" id="undoButton" hidden disabled>Deshacer</button>
           <button type="button" class="button button--ghost button--supplemental" id="formatButton" aria-expanded="false" aria-controls="formatPanel">Formato</button>
           <button type="button" class="button button--ghost button--supplemental" id="assistantButton" aria-expanded="false" aria-controls="assistantPanel">Asistente</button>
-          <button type="button" class="button button--review button--supplemental" data-open-preflight>Revisión final</button>
-          <button type="button" class="button button--primary" id="printButton">Guardar PDF</button>
+          <button type="button" class="button button--primary" id="printButton">Revisar y crear PDF</button>
         </div>
       </header>
 
@@ -124,12 +123,12 @@
             <strong id="edicionResumen">—</strong>
           </div>
           <p><span id="formatoResumen">—</span></p>
-          <div class="progress-track" role="progressbar" aria-label="Avance editorial" aria-valuemin="0" aria-valuemax="18" aria-valuenow="0">
+          <div class="progress-track" role="progressbar" aria-label="Avance editorial" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">
             <span id="progressBar"></span>
           </div>
           <div class="progress-meta">
             <span id="progressLabel">Modelo preparado</span>
-            <span id="progressCount">0/18</span>
+            <span id="progressCount">0/12</span>
           </div>
         </section>
 
@@ -432,6 +431,11 @@
               <input id="seccionTitulo" name="seccionTitulo" type="text" maxlength="60" required autocomplete="off" aria-describedby="seccionTituloAyuda" />
               <small id="seccionTituloAyuda">Aparece en el sumario y en la cornisa de cada página. Ejemplo: Condolencias, Reportaje invitado, Avisos del barrio.</small>
             </label>
+            <label class="form-field form-field--wide" for="seccionProposito">
+              <span>Propósito y pauta editorial <em>obligatorio</em></span>
+              <textarea id="seccionProposito" name="seccionProposito" rows="3" maxlength="320" required aria-describedby="seccionPropositoAyuda"></textarea>
+              <small id="seccionPropositoAyuda">Explica qué debe contar esta sección, para quién se escribe y qué datos, fuentes o materiales necesita.</small>
+            </label>
             <label class="form-field" for="seccionTono">
               <span>Color de la sección</span>
               <select id="seccionTono" name="seccionTono">
@@ -439,6 +443,10 @@
                 <option value="palm">Verde palma</option>
                 <option value="wood">Café madera</option>
                 <option value="gold">Oro</option>
+                <option value="teja">Teja</option>
+                <option value="indigo">Índigo</option>
+                <option value="turquesa">Turquesa</option>
+                <option value="ciruela">Ciruela</option>
               </select>
               <small>Distingue la sección al hojear. Conviene que no repita el de las secciones vecinas.</small>
             </label>
@@ -685,31 +693,31 @@
         </div>
         <button type="button" class="icon-button" data-close-print aria-label="Cerrar">×</button>
       </div>
-      <div class="print-mode-notice" id="printModeNotice" role="status" aria-live="polite">
-        <strong>Salida A5 para revisión, oficina o uso digital</strong>
-        <p>Esta salida A5 está preparada para revisión, impresión de oficina y uso digital. Una imprenta profesional puede requerir un perfil acordado de sangrado, color y resolución.</p>
+      <div class="print-mode-notice" id="printModeNotice" role="status" aria-live="polite" data-output-label="Salida PDF">
+        <strong>Salida PDF para revisión, oficina o imprenta</strong>
+        <p>El sistema preparará el tamaño que elegiste para esta edición y te indicará las opciones que debes comprobar.</p>
       </div>
       <fieldset class="print-output">
         <legend>Qué archivo necesitas</legend>
         <label class="print-output__option" for="outputOffice">
           <input type="radio" id="outputOffice" name="printOutput" value="office" checked />
           <span>
-            <strong>PDF A5 de oficina y uso digital</strong>
-            <small>Las 18 páginas al tamaño final. Para leer en pantalla, distribuir o imprimir en una impresora común. <strong>No sirve para una imprenta</strong>: no lleva sangrado, y las fotografías que llegan al borde saldrían con una línea blanca.</small>
+            <strong id="officeOutputTitle">PDF de oficina y uso digital</strong>
+            <small id="officeOutputDescription">Todas las páginas al tamaño final elegido, sin marcas ni sangrado.</small>
           </span>
         </label>
         <label class="print-output__option" for="outputPress">
           <input type="radio" id="outputPress" name="printOutput" value="press" />
           <span>
-            <strong>Archivo de imprenta</strong>
-            <small>Cada A5 centrada en una hoja A4, con 3 mm de sangrado y marcas de corte y registro. Es lo que pide un taller para hacer el tiraje.</small>
+            <strong id="pressOutputTitle">Archivo para imprenta</strong>
+            <small id="pressOutputDescription">Cada página se centra en una hoja mayor, con 3 mm de sangrado y marcas de corte y registro.</small>
           </span>
         </label>
       </fieldset>
 
       <ol id="printSteps">
         <li>En la ventana de impresión elige <strong>Guardar como PDF</strong>.</li>
-        <li>Selecciona papel <strong>A5</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.</li>
+        <li>Comprueba el tamaño indicado, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.</li>
         <li>Activa <strong>gráficos de fondo</strong> para conservar marcos, colores y mosaicos.</li>
       </ol>
       <div class="dialog-actions">
@@ -741,6 +749,11 @@
     <script src="./segments/08_comunidad_servicios/segmento.js"></script>
     <script src="./segments/09_cartas_director/segmento.js"></script>
     <script src="./segments/10_contraportada/segmento.js"></script>
+    <script src="./assets/core/modelo-editorial.js"></script>
+    <script src="./assets/core/estructura.js"></script>
+    <script src="./assets/core/migraciones.js"></script>
+    <script src="./assets/core/esquema-registros.js"></script>
+    <script src="./assets/backup-tools.js"></script>
     <script src="./assets/data-store.js"></script>
     <script src="./assets/app.js"></script>
   </body>

@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edición de prueba · Casco Histórico</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../fonts/Cinzel-Variable.woff2") format("woff2");font-weight:400 900;font-display:swap}
+@font-face{font-family:"Archivo Narrow";src:url("../fonts/ArchivoNarrow-Variable.woff2") format("woff2");font-weight:400 700;font-display:swap}
+@font-face{font-family:"Source Sans 3";src:url("../fonts/SourceSans3-Variable.woff2") format("woff2");font-weight:200 900;font-display:swap}
+@font-face{font-family:"Source Serif 4";src:url("../fonts/SourceSerif4-Variable.woff2") format("woff2");font-weight:200 900;font-display:swap}
+
+:root{
+  --cream:#fdf8ee; --ink:#17110c; --muted:#6a6157;
+  --gold:#c8862a;     --gold-ink:#8a5a17;
+  --ceramic:#1f6f8b;  --ceramic-ink:#175468;
+  --palm:#2f6b52;     --palm-ink:#23503e;
+  --wood:#8a4b2a;     --wood-ink:#6b3920;
+  --teja:#c8402f;     --teja-ink:#9a2f22;
+  --indigo:#3f5aa6;   --indigo-ink:#31477f;
+  --turquesa:#1b8a86; --turquesa-ink:#146663;
+  --ciruela:#7a3b6b;  --ciruela-ink:#5e2d53;
+  --cond:"Archivo Narrow","Arial Narrow",sans-serif;
+  --sans:"Source Sans 3","Segoe UI",Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,serif;
+  --disp:"Cinzel",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#d8d2c6;font-family:var(--sans);color:var(--ink)}
+.wrap{max-width:1060px;margin:0 auto;padding:26px 20px 80px}
+h1.doc{font-family:var(--cond);font-size:30px;font-weight:700;text-transform:uppercase;letter-spacing:-.01em;color:#3a2517;margin:0 0 6px}
+p.doc{color:#4a423a;font-size:14px;line-height:1.6;margin:0 0 8px;max-width:76ch}
+.rot{font-family:var(--cond);text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:700;color:#fff;background:#3a2517;padding:4px 9px;display:inline-block;margin:22px 0 9px}
+.pliego{display:flex;gap:2px;flex-wrap:wrap;margin:0 0 8px}
+.nota{font-size:12.5px;color:#5b5248;line-height:1.55;margin:0 0 4px;max-width:76ch}
+
+/* ================= hoja A5 ================= */
+.h{
+  --u:3.4px; --tone:var(--gold); --tone-ink:var(--gold-ink);
+  width:calc(148*var(--u)); height:calc(210*var(--u));
+  position:relative; overflow:hidden; background:var(--cream);
+  box-shadow:0 14px 34px rgba(29,20,13,.26);
+  font-family:var(--serif); color:var(--ink);
+}
+.t-ceramic{--tone:var(--ceramic);--tone-ink:var(--ceramic-ink)}
+.t-palm{--tone:var(--palm);--tone-ink:var(--palm-ink)}
+.t-wood{--tone:var(--wood);--tone-ink:var(--wood-ink)}
+.t-teja{--tone:var(--teja);--tone-ink:var(--teja-ink)}
+.t-indigo{--tone:var(--indigo);--tone-ink:var(--indigo-ink)}
+.t-turquesa{--tone:var(--turquesa);--tone-ink:var(--turquesa-ink)}
+.t-ciruela{--tone:var(--ciruela);--tone-ink:var(--ciruela-ink)}
+
+.caja{position:absolute;left:calc(10*var(--u));right:calc(10*var(--u));top:calc(11*var(--u));bottom:calc(13*var(--u))}
+.caja--int-izq{left:calc(13*var(--u))}
+.caja--int-der{right:calc(13*var(--u))}
+
+img.f{display:block;width:100%;height:100%;object-fit:cover}
+.marco{overflow:hidden;position:relative;background:#cdc4b4}
+
+/* rúbrica, titulares, cuerpo */
+.rub{display:flex;align-items:center;gap:calc(2*var(--u));font-family:var(--cond);text-transform:uppercase;letter-spacing:.2em;font-size:calc(2.4*var(--u));color:var(--tone-ink);font-weight:700}
+.rub::before{content:"";width:calc(6*var(--u));height:calc(1.3*var(--u));background:var(--tone);flex:0 0 auto}
+.tit{margin:calc(2*var(--u)) 0 calc(3*var(--u));font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(9.4*var(--u));line-height:.95;letter-spacing:-.022em}
+.tit--chico{font-size:calc(7.2*var(--u))}
+.baj{margin:0 0 calc(2.6*var(--u));font-family:var(--sans);font-weight:300;font-size:calc(3.3*var(--u));line-height:1.34;color:#3a3128}
+.firma{font-family:var(--cond);text-transform:uppercase;letter-spacing:.18em;font-size:calc(2.15*var(--u));color:var(--tone-ink);font-weight:700;border-top:1px solid rgba(23,17,12,.25);border-bottom:1px solid rgba(23,17,12,.25);padding:calc(1.1*var(--u)) 0;margin:0 0 calc(2.8*var(--u))}
+.txt{font-family:var(--serif);font-size:calc(2.72*var(--u));line-height:1.5;text-align:justify;hyphens:auto}
+.txt p{margin:0 0 calc(1.5*var(--u))}
+.dos{columns:2;column-gap:calc(5*var(--u))}
+.cap p:first-child::first-letter{float:left;font-family:var(--cond);font-weight:700;font-size:calc(11*var(--u));line-height:.75;padding:calc(.7*var(--u)) calc(1.2*var(--u)) 0 0;color:var(--tone)}
+.cita{break-inside:avoid;margin:calc(2*var(--u)) 0;padding:calc(1.8*var(--u)) 0;border-top:2.5px solid var(--tone);border-bottom:1px solid rgba(23,17,12,.25);font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(3.8*var(--u));line-height:1.02;text-align:left;color:#2a1c12}
+.pie-foto{font-family:var(--sans);font-size:calc(2.15*var(--u));line-height:1.3;color:var(--muted);margin:calc(1.2*var(--u)) 0 0}
+.pie-foto b{color:var(--tone-ink);font-weight:700}
+.folio{position:absolute;bottom:calc(6.5*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(3.8*var(--u));color:var(--tone)}
+.folio span{font-weight:400;font-size:calc(2.1*var(--u));letter-spacing:.16em;color:var(--muted);margin:0 calc(1.8*var(--u))}
+.folio--izq{left:calc(10*var(--u))}
+.folio--der{right:calc(10*var(--u))}
+.folio--int-izq{left:calc(13*var(--u))}
+
+/* ---------- faldón publicitario ---------- */
+.con-faldon .caja{bottom:calc(48*var(--u))}
+.faldon{position:absolute;left:calc(10*var(--u));right:calc(10*var(--u));bottom:calc(12*var(--u));border-top:.8mm solid var(--tone);padding-top:calc(2.2*var(--u))}
+.faldon--int-izq{left:calc(13*var(--u))}
+.faldon--int-der{right:calc(13*var(--u))}
+.rot-pub{display:block;font-family:var(--cond);text-transform:uppercase;letter-spacing:.24em;font-size:calc(1.95*var(--u));font-weight:700;color:var(--muted);margin-bottom:calc(1.6*var(--u))}
+.faldon__cuerpo{display:grid;grid-template-columns:1fr calc(34*var(--u));gap:calc(3.4*var(--u));align-items:center}
+.faldon h3{margin:0 0 calc(1*var(--u));font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(4.2*var(--u));line-height:1;letter-spacing:-.01em}
+.faldon p{margin:0;font-family:var(--sans);font-size:calc(2.35*var(--u));line-height:1.36;color:#443c33}
+.faldon .marco{height:calc(21*var(--u))}
+
+/* ---------- avisos de catálogo ---------- */
+.plena{padding:0;display:flex;flex-direction:column}
+.plena .pie .rot-pub{margin-bottom:calc(2*var(--u))}
+.plena .marco{flex:1 1 auto;min-height:0}
+.plena .pie{flex:0 0 auto;padding:calc(6*var(--u)) calc(10*var(--u)) calc(11*var(--u));text-align:center}
+.plena .pie h2{margin:0 0 calc(1.6*var(--u));font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(7*var(--u));line-height:.95}
+.plena .pie p{margin:0;font-family:var(--sans);font-size:calc(2.6*var(--u));line-height:1.4;color:#443c33}
+.modulos{display:grid;grid-template-columns:1fr 1fr;gap:calc(4*var(--u)) calc(4.4*var(--u));margin-top:calc(3*var(--u))}
+.mod .marco{height:calc(26*var(--u));margin-bottom:calc(1.6*var(--u))}
+.mod h3{margin:0 0 calc(.8*var(--u));font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(3.5*var(--u));line-height:1.02}
+.mod p{margin:0;font-family:var(--sans);font-size:calc(2.3*var(--u));line-height:1.34;color:#443c33}
+.libre{border:.5mm dashed rgba(23,17,12,.32);display:flex;align-items:center;justify-content:center;text-align:center;padding:calc(3*var(--u))}
+.libre span{font-family:var(--cond);text-transform:uppercase;letter-spacing:.16em;font-size:calc(2.3*var(--u));font-weight:700;color:var(--muted);line-height:1.5}
+
+/* ---------- P01 portada ---------- */
+.cub .lienzo{position:absolute;inset:0}
+.cub .velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,8,5,.6) 0 22%,rgba(12,8,5,.02) 44%,rgba(12,8,5,.68) 76%,rgba(12,8,5,.93))}
+.cub .nombre{position:absolute;left:calc(7*var(--u));right:calc(7*var(--u));top:calc(7.5*var(--u));font-family:var(--disp);font-weight:800;color:#fff;font-size:calc(15.2*var(--u));line-height:.9}
+.cub .band{position:absolute;left:calc(7*var(--u));right:calc(7*var(--u));top:calc(36.5*var(--u));display:flex;justify-content:space-between;border-top:1.5px solid rgba(255,255,255,.55);padding-top:calc(1.8*var(--u));font-family:var(--cond);text-transform:uppercase;letter-spacing:.2em;font-size:calc(2.4*var(--u));color:rgba(255,255,255,.92)}
+.cub .bloque{position:absolute;left:calc(7*var(--u));right:calc(7*var(--u));bottom:calc(8.5*var(--u))}
+.cub .etq{display:inline-block;background:var(--teja);color:#fff;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.16em;font-size:calc(2.5*var(--u));padding:calc(.9*var(--u)) calc(2.3*var(--u));margin-bottom:calc(2.4*var(--u))}
+.cub h2{margin:0 0 calc(2.4*var(--u));color:#fff;font-family:var(--cond);font-weight:700;font-size:calc(11.2*var(--u));line-height:.95;letter-spacing:-.025em;text-transform:uppercase}
+.cub .sub{margin:0;color:rgba(255,255,255,.9);font-family:var(--sans);font-weight:300;font-size:calc(3*var(--u));line-height:1.34;max-width:84%}
+.cub .llam{display:flex;gap:calc(3.6*var(--u));margin-top:calc(4*var(--u));border-top:1px solid rgba(255,255,255,.32);padding-top:calc(2.2*var(--u))}
+.cub .llam div{flex:1;color:#fff;font-family:var(--sans);font-size:calc(2.6*var(--u));line-height:1.28}
+.cub .llam b{display:block;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:calc(2.2*var(--u));color:var(--gold);margin-bottom:calc(.7*var(--u))}
+
+/* ---------- P02 sumario ---------- */
+.sum .cab{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2.5px solid var(--ink);padding-bottom:calc(1.5*var(--u))}
+.sum .cab h2{margin:0;font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(8.6*var(--u));line-height:.95;letter-spacing:-.022em}
+.sum .cab span{font-family:var(--cond);text-transform:uppercase;letter-spacing:.18em;font-size:calc(2.2*var(--u));color:var(--muted)}
+.sum .dest{display:grid;grid-template-columns:1fr calc(44*var(--u));gap:calc(3.6*var(--u));margin-top:calc(4*var(--u))}
+.sum .dest .marco{height:calc(32*var(--u))}
+.sum .dest .n{font-family:var(--cond);font-weight:700;font-size:calc(8.4*var(--u));line-height:.8;color:var(--teja)}
+.sum .dest h3{margin:calc(1.2*var(--u)) 0;font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(5.2*var(--u));line-height:.95;letter-spacing:-.012em}
+.sum .dest p{margin:0;font-family:var(--sans);font-size:calc(2.6*var(--u));line-height:1.38;color:#443c33}
+.sum .lista{margin-top:calc(4.4*var(--u));display:grid;grid-template-columns:1fr 1fr;gap:calc(2.8*var(--u)) calc(4.6*var(--u))}
+.sum .fila{display:grid;grid-template-columns:calc(8.6*var(--u)) 1fr;gap:calc(1.8*var(--u));border-top:1px solid rgba(23,17,12,.22);padding-top:calc(1.5*var(--u))}
+.sum .fila b{font-family:var(--cond);font-weight:700;font-size:calc(5*var(--u));line-height:.85}
+.sum .fila i{display:block;font-style:normal;font-family:var(--cond);text-transform:uppercase;letter-spacing:.14em;font-size:calc(2.1*var(--u));margin-bottom:calc(.5*var(--u))}
+.sum .fila span{font-family:var(--sans);font-size:calc(2.6*var(--u));line-height:1.24;display:block}
+.c-ceramic{color:var(--ceramic-ink)} .c-teja{color:var(--teja-ink)} .c-palm{color:var(--palm-ink)}
+.c-wood{color:var(--wood-ink)} .c-indigo{color:var(--indigo-ink)} .c-turquesa{color:var(--turquesa-ink)} .c-ciruela{color:var(--ciruela-ink)}
+.sum .pie{position:absolute;left:calc(13*var(--u));right:calc(10*var(--u));bottom:calc(6*var(--u));display:flex;align-items:center;gap:calc(2.4*var(--u));border-top:1px solid rgba(23,17,12,.2);padding-top:calc(1.4*var(--u));font-family:var(--sans);font-size:calc(2.05*var(--u));color:var(--muted);line-height:1.3}
+.sum .pie img{width:calc(9*var(--u));height:calc(9*var(--u));object-fit:contain;flex:0 0 auto}
+
+/* ---------- P03 breves ---------- */
+.brv .lead{display:grid;grid-template-columns:calc(50*var(--u)) 1fr;gap:calc(3.4*var(--u));padding-bottom:calc(3*var(--u));border-bottom:2.5px solid var(--ink)}
+.brv .lead .marco{height:calc(31*var(--u))}
+.brv .lead .sello{font-family:var(--cond);text-transform:uppercase;letter-spacing:.16em;font-size:calc(2.05*var(--u));color:var(--tone-ink);font-weight:700;display:block;margin-bottom:calc(.9*var(--u))}
+.brv .lead h3{margin:0 0 calc(1.4*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(4.8*var(--u));line-height:.98;text-transform:uppercase}
+.brv .lead p{margin:0;font-family:var(--serif);font-size:calc(2.75*var(--u));line-height:1.44}
+.brv .malla{display:grid;grid-template-columns:1fr 1fr;gap:calc(3*var(--u)) calc(4.6*var(--u));margin-top:calc(3*var(--u))}
+.brv .it{border-top:1px solid rgba(23,17,12,.25);padding-top:calc(1.6*var(--u))}
+.brv .it h4{margin:0 0 calc(.9*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(3.5*var(--u));line-height:1.02;text-transform:uppercase}
+.brv .it p{margin:0;font-family:var(--serif);font-size:calc(2.5*var(--u));line-height:1.38;color:#332a22}
+.brv .it em{font-style:normal;font-family:var(--cond);text-transform:uppercase;letter-spacing:.14em;font-size:calc(1.95*var(--u));color:var(--tone-ink);display:block;margin-top:calc(.9*var(--u))}
+
+/* ---------- P04 apertura sin fotografía ---------- */
+.tipo .banda{position:absolute;left:0;right:0;top:0;height:calc(86*var(--u));background:var(--tone);color:#fff;padding:calc(11*var(--u)) calc(10*var(--u)) calc(6*var(--u)) calc(13*var(--u))}
+.tipo .banda .rub{color:rgba(255,255,255,.92)}
+.tipo .banda .rub::before{background:rgba(255,255,255,.9)}
+.tipo .banda h2{margin:calc(2.4*var(--u)) 0 0;font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(13.6*var(--u));line-height:.95;letter-spacing:-.03em}
+.tipo .banda .sub{margin:calc(2.6*var(--u)) 0 0;font-family:var(--sans);font-weight:300;font-size:calc(3.2*var(--u));line-height:1.3;color:rgba(255,255,255,.92);max-width:88%}
+.tipo .cuerpo{position:absolute;left:calc(13*var(--u));right:calc(10*var(--u));top:calc(93*var(--u));bottom:calc(13*var(--u))}
+.hito{display:grid;grid-template-columns:calc(22*var(--u)) 1fr;gap:calc(2.6*var(--u));border-top:1px solid rgba(23,17,12,.25);padding:calc(1.8*var(--u)) 0}
+.hito .meta{font-family:var(--cond);text-transform:uppercase;letter-spacing:.13em;font-size:calc(2.1*var(--u));color:var(--tone-ink);font-weight:700;line-height:1.3}
+.hito h4{margin:0 0 calc(.8*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(3.6*var(--u));line-height:1.02;text-transform:uppercase}
+.hito p{margin:0;font-family:var(--serif);font-size:calc(2.55*var(--u));line-height:1.4}
+
+/* ---------- P05 reportaje apertura ---------- */
+.rep .marco{position:absolute;left:0;right:0;top:0;height:calc(114*var(--u))}
+.rep .velo{position:absolute;left:0;right:0;top:0;height:calc(114*var(--u));background:linear-gradient(180deg,rgba(10,7,5,.42) 0 26%,rgba(10,7,5,.02) 46%,rgba(10,7,5,.82))}
+.rep .rubf{position:absolute;top:calc(8*var(--u));left:calc(10*var(--u));font-family:var(--cond);text-transform:uppercase;letter-spacing:.22em;font-size:calc(2.4*var(--u));color:#fff;font-weight:700;border-left:calc(1.2*var(--u)) solid var(--tone);padding-left:calc(2*var(--u))}
+.rep .titf{position:absolute;left:calc(10*var(--u));right:calc(10*var(--u));top:calc(78*var(--u))}
+.rep .titf h2{margin:0;color:#fff;font-family:var(--cond);font-weight:700;text-transform:uppercase;font-size:calc(10.6*var(--u));line-height:.95;letter-spacing:-.028em}
+.rep .cuerpo{position:absolute;left:calc(10*var(--u));right:calc(13*var(--u));top:calc(120*var(--u));bottom:calc(12*var(--u))}
+
+/* ---------- P07 retrato a columna ---------- */
+.retrato{display:grid;grid-template-columns:calc(48*var(--u)) 1fr;gap:calc(4*var(--u));height:100%}
+.retrato > div:first-child{display:flex;flex-direction:column}
+.retrato .marco{flex:1 1 auto;min-height:calc(60*var(--u))}
+
+/* ---------- P09 observatorio ---------- */
+.datos .cifras{display:grid;grid-template-columns:repeat(3,1fr);gap:calc(3*var(--u));margin:calc(1*var(--u)) 0 calc(3.4*var(--u))}
+.datos .cifra{border-top:2.5px solid var(--tone);padding-top:calc(1.4*var(--u))}
+.datos .cifra b{display:block;font-family:var(--cond);font-weight:700;font-size:calc(9.6*var(--u));line-height:.82;letter-spacing:-.03em}
+.datos .cifra span{display:block;font-family:var(--sans);font-size:calc(2.2*var(--u));line-height:1.25;color:var(--muted);margin-top:calc(.9*var(--u))}
+.barras{display:flex;flex-direction:column;gap:calc(1.9*var(--u));margin-bottom:calc(3*var(--u))}
+.barra{display:grid;grid-template-columns:calc(34*var(--u)) 1fr calc(11*var(--u));gap:calc(2*var(--u));align-items:center;font-family:var(--sans);font-size:calc(2.3*var(--u))}
+.barra .via{height:calc(3.4*var(--u));background:rgba(23,17,12,.09)}
+.barra .via i{display:block;height:100%;background:var(--tone)}
+.barra .val{font-family:var(--cond);font-weight:700;font-size:calc(3.2*var(--u));text-align:right;color:var(--tone-ink)}
+.fuente{font-family:var(--sans);font-size:calc(2.05*var(--u));color:var(--muted);border-top:1px solid rgba(23,17,12,.22);padding-top:calc(1.2*var(--u));line-height:1.35}
+
+/* ---------- P10 agenda ---------- */
+.agenda{display:grid;grid-template-columns:1fr 1fr;gap:calc(2.4*var(--u)) calc(4.4*var(--u))}
+.ev{border-top:1px solid rgba(23,17,12,.25);padding-top:calc(1.5*var(--u))}
+.ev b{display:block;font-family:var(--cond);font-weight:700;text-transform:uppercase;letter-spacing:.13em;font-size:calc(2.15*var(--u));color:var(--tone-ink)}
+.ev h4{margin:calc(.6*var(--u)) 0 calc(.6*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(3.3*var(--u));line-height:1.03;text-transform:uppercase}
+.ev p{margin:0;font-family:var(--serif);font-size:calc(2.4*var(--u));line-height:1.36}
+
+/* ---------- P11 cartas ---------- */
+.carta{break-inside:avoid;margin-bottom:calc(2.6*var(--u));padding-bottom:calc(2.2*var(--u));border-bottom:1px solid rgba(23,17,12,.22)}
+.carta h4{margin:0 0 calc(1*var(--u));font-family:var(--cond);font-weight:700;font-size:calc(3.5*var(--u));line-height:1.02;text-transform:uppercase}
+.carta p{margin:0 0 calc(1*var(--u));font-family:var(--serif);font-size:calc(2.55*var(--u));line-height:1.45;text-align:justify;hyphens:auto}
+.carta cite{font-style:normal;font-family:var(--cond);text-transform:uppercase;letter-spacing:.14em;font-size:calc(2.05*var(--u));color:var(--tone-ink);font-weight:700}
+
+/* ---------- P12 contraportada ---------- */
+.contra .lienzo{position:absolute;inset:0}
+.contra .velo{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,8,5,.15) 0 40%,rgba(12,8,5,.86))}
+.contra .cierre{position:absolute;left:calc(10*var(--u));right:calc(10*var(--u));bottom:calc(10*var(--u));color:#fff}
+.contra .cierre img{width:calc(20*var(--u));height:calc(20*var(--u));object-fit:contain;margin-bottom:calc(2.6*var(--u))}
+.contra .cierre h2{margin:0 0 calc(2*var(--u));font-family:var(--disp);font-weight:800;font-size:calc(8.6*var(--u));line-height:.95}
+.contra .cierre p{margin:0 0 calc(1.4*var(--u));font-family:var(--sans);font-size:calc(2.7*var(--u));line-height:1.4;color:rgba(255,255,255,.9);max-width:76%}
+.contra .cierre .datos-pie{font-family:var(--cond);text-transform:uppercase;letter-spacing:.16em;font-size:calc(2.2*var(--u));color:var(--gold);border-top:1px solid rgba(255,255,255,.32);padding-top:calc(1.8*var(--u));margin-top:calc(2.6*var(--u))}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1 class="doc">Edición de prueba · Casco Histórico</h1>
+<p class="doc">Doce páginas completas en el diseño nuevo, con las cinco fotografías de <code>assets/demo/</code> y texto de relleno escrito como se escribiría de verdad. Ordenadas en pliegos, igual que al abrir la revista: la portada sola, después las páginas enfrentadas, y la contraportada sola al final.</p>
+<p class="doc"><b>Mirá especialmente la página 4.</b> Es la variante sin fotografía: en vez de un hueco vacío, el titular crece y ocupa la banda superior con el color de la sección.</p>
+
+<span class="rot">Portada</span>
+<div class="pliego">
+  <div class="h cub">
+    <div class="lienzo"><img class="f" src="./prueba-portada-calle-historica-carga.jpg" alt=""></div>
+    <div class="velo"></div>
+    <div class="nombre">Casco<br>Histórico</div>
+    <div class="band"><span>Puente Alto</span><span>N.º 1 · Octubre 2026</span><span>Gratuita</span></div>
+    <div class="bloque">
+      <span class="etq">Tema de portada</span>
+      <h2>La casona que volvió a abrir</h2>
+      <p class="sub">Estuvo doce años con las ventanas tapiadas. La pintaron entre vecinos, en catorce sábados, y el lunes ya había alguien pidiendo la llave.</p>
+      <div class="llam">
+        <div><b>Comercio</b>Treinta años encuadernando en la misma mesa</div>
+        <div><b>Patrimonio</b>Las puertas que quedan en pie</div>
+        <div><b>Datos</b>Cuánto se demora una respuesta municipal</div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="nota">La fotografía ocupa la página entera y el nombre se apoya encima. Sin sello circular, sin panel crema. Los llamados dicen de qué se trata, no en qué página está.</p>
+
+<span class="rot">Páginas 2–3</span>
+<div class="pliego">
+  <div class="h sum">
+    <div class="caja caja--int-der">
+      <div class="cab"><h2>En esta edición</h2><span>N.º 1 · Octubre</span></div>
+      <div class="dest">
+        <div>
+          <div class="n">05</div>
+          <h3>La casona que volvió a abrir</h3>
+          <p>Catorce sábados, once familias y una discusión larga sobre el color de la puerta. Cómo se recuperó la casa de Balmaceda 148 sin un peso de presupuesto municipal.</p>
+        </div>
+        <div class="marco"><img class="f" src="./prueba-restauracion-patio-carga.jpg" alt=""></div>
+      </div>
+      <div class="lista">
+        <div class="fila"><b class="c-ceramic">03</b><span><i class="c-ceramic">Noticias</i>El barrio en breve: seis cosas que pasaron este mes</span></div>
+        <div class="fila"><b class="c-ceramic">04</b><span><i class="c-ceramic">Avances</i>En qué quedó cada gestión de la agrupación</span></div>
+        <div class="fila"><b class="c-palm">07</b><span><i class="c-palm">Comercio</i>Treinta años encuadernando en la misma mesa</span></div>
+        <div class="fila"><b class="c-wood">08</b><span><i class="c-wood">Patrimonio</i>Las puertas que quedan en pie</span></div>
+        <div class="fila"><b class="c-indigo">09</b><span><i class="c-indigo">Datos</i>Cuánto se demora una respuesta municipal</span></div>
+        <div class="fila"><b class="c-turquesa">10</b><span><i class="c-turquesa">Comunidad</i>Agenda de octubre y dónde pedir ayuda</span></div>
+      </div>
+      <div class="pie">
+        <img src="../brand/logo-casco-historico.webp" alt="">
+        <span>Asociación Casco Histórico de Puente Alto · Dirección editorial [nombre] · Redacción [nombres] · Fotografía [nombre] · revista@cascohistorico.cl · WhatsApp [número]</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="h brv t-ceramic con-faldon">
+    <div class="caja caja--int-izq">
+      <div class="rub">Noticias y avances</div>
+      <h2 class="tit">El barrio<br>en breve</h2>
+      <div class="lead">
+        <div class="marco"><img class="f" src="./prueba-comercio-barrio-carga.jpg" alt=""></div>
+        <div>
+          <span class="sello">Lo principal</span>
+          <h3>Abrieron dos locales en la cuadra vacía</h3>
+          <p>La galería de Concha y Toro llevaba tres años con cinco cortinas abajo. En septiembre abrieron una librería de viejo y un taller de cerámica. Los dos arriendos se firmaron el mismo día.</p>
+        </div>
+      </div>
+      <div class="malla">
+        <div class="it"><h4>Once postes repuestos</h4><p>Entre Balmaceda y la plaza. Quedan cuatro apagados hacia el sur.</p><em>12 de octubre</em></div>
+        <div class="it"><h4>La feria cambia de día</h4><p>Pasa al sábado mientras duren los trabajos en la calzada.</p><em>Desde el 5 de octubre</em></div>
+        <div class="it"><h4>Respuesta parcial por el alcantarillado</h4><p>La solicitud entró en junio. En septiembre llegó una respuesta que no fija fecha.</p><em>Gestión en curso</em></div>
+        <div class="it"><h4>Taller de oficios</h4><p>Veinte cupos en la sede. Inscripción por WhatsApp hasta llenar.</p><em>Plazo: 30 de octubre</em></div>
+        <div class="it"><h4>Poda en la plaza</h4><p>Se pidió por segunda vez. La primera solicitud es de marzo.</p><em>Sin respuesta</em></div>
+        <div class="it"><h4>Nuevo horario de la sede</h4><p>Martes y jueves de 17 a 20, y sábados en la mañana.</p><em>Vigente</em></div>
+        <div class="it"><h4>Cambió el recorrido del recolector</h4><p>Ahora entra por el pasaje. Sacar la basura después de las 20.</p><em>Desde el 1 de octubre</em></div>
+        <div class="it"><h4>Se firmó el comodato de la casona</h4><p>Tres años sin arriendo a cambio de la reparación. Ver página 5.</p><em>Junio de 2026</em></div>
+      </div>
+    </div>
+    <aside class="faldon faldon--int-izq">
+      <span class="rot-pub">Publicidad</span>
+      <div class="faldon__cuerpo">
+        <div>
+          <h3>Ferretería El Adoquín</h3>
+          <p>Pinturas, herrajes y corte de vidrio a medida. Balmaceda [número], frente a la plaza. Lunes a sábado de 9 a 19. Teléfono [número].</p>
+        </div>
+        <div class="marco"><img class="f" src="./prueba-comercio-barrio-carga.jpg" alt=""></div>
+      </div>
+    </aside>
+    <div class="folio folio--der">03<span>·</span></div>
+  </div>
+</div>
+<p class="nota">Izquierda: el índice ya no es una lista con puntos suspensivos. Un artículo manda, con su fotografía, y el resto son números grandes en el color de su sección. Los créditos bajaron a una línea al pie, con el logotipo que salió de la portada. Derecha: un brief principal con foto y cinco cortos sin recuadro.</p>
+
+<span class="rot">Páginas 4–5</span>
+<div class="pliego">
+  <div class="h tipo t-ceramic">
+    <div class="banda">
+      <div class="rub">Avances de la agrupación</div>
+      <h2>En qué<br>quedó<br>cada cosa</h2>
+      <p class="sub">Seis gestiones abiertas, con fecha de entrada y estado real. Sin adornos.</p>
+    </div>
+    <div class="cuerpo">
+      <div class="hito"><div class="meta">Entró<br>12 marzo 2026</div><div><h4>Poda de la plaza</h4><p>Primera solicitud sin respuesta. Se reingresó en septiembre con las fotografías adjuntas.</p></div></div>
+      <div class="hito"><div class="meta">Entró<br>4 junio 2026</div><div><h4>Alcantarillado de Balmaceda</h4><p>Respuesta parcial en septiembre: reconocen el problema, no fijan fecha de obra.</p></div></div>
+      <div class="hito"><div class="meta">Entró<br>20 julio 2026</div><div><h4>Luminarias del tramo sur</h4><p>Repuestos once de quince postes. Los cuatro restantes quedaron fuera del presupuesto del año.</p></div></div>
+      <div class="hito"><div class="meta">Entró<br>2 agosto 2026</div><div><h4>Uso de la sede los sábados</h4><p>Aprobado. Rige desde octubre, con cargo a rendir el gasto de luz.</p></div></div>
+      <div class="hito"><div class="meta">Entró<br>15 septiembre 2026</div><div><h4>Señalética patrimonial</h4><p>En evaluación. Se pidieron tres cotizaciones y falta una.</p></div></div>
+    </div>
+    <div class="folio folio--int-izq">04<span>·</span>Avances</div>
+  </div>
+
+  <div class="h rep t-teja">
+    <div class="marco"><img class="f" src="./prueba-restauracion-patio-carga.jpg" alt=""></div>
+    <div class="velo"></div>
+    <div class="rubf">Reportaje</div>
+    <div class="titf"><h2>La casona<br>que volvió<br>a abrir</h2></div>
+    <div class="cuerpo">
+      <p class="baj">Catorce sábados, once familias y una discusión larga sobre el color de la puerta.</p>
+      <div class="firma">Por [nombre y apellido] · Fotografías de [nombre]</div>
+      <div class="txt dos cap">
+        <p>La casa de Balmaceda 148 estuvo doce años con las ventanas tapiadas. Nadie sabía de quién era. Se decía que de una sucesión, que de un banco, que de nadie.</p>
+        <p>En marzo, dos vecinas fueron al conservador y pagaron el certificado. Eran cuatro herederos y ninguno vivía en la comuna. Tres contestaron el correo.</p>
+        <div class="cita">«Nadie sabía de quién era. Pagamos el certificado y aparecieron cuatro nombres»</div>
+        <p>El acuerdo se firmó en junio: la agrupación repara, los herederos no cobran arriendo por tres años. La primera jornada fue el 6 de julio y llegaron nueve personas.</p>
+        <p>El resto lo cuenta el patio. Se picó el estuco suelto, se cambiaron catorce tejas y se discutió tres sábados seguidos si la puerta iba azul o verde.</p>
+      </div>
+    </div>
+    <div class="folio folio--der">05<span>·</span>Reportaje</div>
+  </div>
+</div>
+<p class="nota">Página 4 es la variante sin fotografía: la banda de color reemplaza la foto y el titular crece hasta llenarla. No queda un hueco esperando una imagen. Página 5 es la apertura con foto a sangre: el titular se apoya sobre ella, capitular abajo y una cita que corta la columna.</p>
+
+<span class="rot">Páginas 6–7</span>
+<div class="pliego">
+  <div class="h t-teja">
+    <div class="caja caja--int-der">
+      <div class="rub">Reportaje · continuación</div>
+      <div class="txt dos" style="margin-top:calc(3*var(--u));height:calc(112*var(--u))">
+        <p>Ganó el azul, por nueve votos contra siete, y porque quedaban dos tarros de ese color en la bodega de la sede.</p>
+        <p>La cuenta final del material fue de un millón ciento veinte mil pesos, juntados con dos bingos, una rifa y el aporte de la ferretería de la esquina, que descontó el treinta por ciento.</p>
+        <p>Nadie llevó un registro de horas. Cuando se les pregunta cuánto trabajaron, todos responden lo mismo: los sábados.</p>
+        <p>En septiembre entró la primera solicitud para usarla: un taller de encuadernación que necesitaba mesa larga y luz de norte. La respuesta fue que sí, y que trajera su propio alargador.</p>
+        <p>Queda pendiente lo caro. El techo del ala poniente necesita cambio completo de estructura y ninguna rifa alcanza para eso.</p>
+        <p>Se pidieron tres cotizaciones. La más baja llegó a cuatro millones ochocientos mil y no incluye el andamio. La agrupación decidió postular a un fondo concursable que abre en enero.</p>
+        <p>Mientras tanto, el ala poniente queda cerrada con candado y un cartel escrito a mano. Nadie discutió ese cartel.</p>
+        <p>Lo que sí se discutió, y largo, fue qué hacer con la pieza del fondo. Una parte quería sala de reuniones; otra, bodega. Quedó como bodega hasta marzo, con la promesa de volver a votarlo.</p>
+        <p>El comodato vence en junio de 2029. Antes de esa fecha hay que decidir si se renueva, se compra o se devuelve, y esa conversación todavía no empieza.</p>
+      </div>
+      <div class="marco" style="height:calc(44*var(--u));margin-top:calc(3*var(--u))"><img class="f" src="./prueba-puerta-patrimonial-carga.jpg" alt=""></div>
+      <p class="pie-foto"><b>La puerta, ya terminada.</b> Ganó el azul por nueve votos contra siete. Fotografía de [nombre].</p>
+    </div>
+    <div class="folio folio--int-izq">06<span>·</span>Reportaje</div>
+  </div>
+
+  <div class="h t-palm con-faldon">
+    <div class="caja caja--int-der">
+      <div class="retrato">
+        <div>
+          <div class="marco"><img class="f" src="./prueba-retrato-encuadernador-carga.jpg" alt=""></div>
+          <p class="pie-foto"><b>[Nombre y apellido]</b>, en el taller de calle Concha y Toro. Fotografía de [nombre].</p>
+        </div>
+        <div>
+          <div class="rub">Voces del comercio</div>
+          <h2 class="tit tit--chico">Treinta años<br>en la misma<br>mesa</h2>
+          <div class="firma">Entrevista de [nombre]</div>
+          <div class="txt cap">
+            <p>Llegó en 1996, cuando la calle todavía tenía adoquines y tres almacenes. Hoy queda uno. Dice que el oficio no cambió tanto como el barrio.</p>
+            <p>Encuaderna tesis, libros de familia y, últimamente, cuadernos que la gente le encarga para regalar. La mesa es la misma que compró el primer año.</p>
+            <div class="cita">«El secreto no es vender. Es acordarse del nombre»</div>
+            <p>Cuando le preguntan si va a jubilar, contesta que no sabe hacer otra cosa, y que la mesa no cabe por la puerta.</p>
+            <p>El arriendo le subió dos veces en cinco años. La segunda vez estuvo tres meses buscando local y no encontró ninguno con luz de norte. Se quedó.</p>
+            <p>Tiene lista de espera desde julio. No toma más trabajos de los que alcanza a hacer, y dice que eso también es parte del oficio.</p>
+            <p>Empezó a enseñar los jueves. Vienen seis personas, casi todas del barrio, y ninguna había cosido un pliego antes de llegar al taller.</p>
+            <p>Lo que más le piden son libros de familia: fotografías sueltas y cartas que llegan en una caja de zapatos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <aside class="faldon faldon--int-der">
+      <span class="rot-pub">Publicidad</span>
+      <div class="faldon__cuerpo">
+        <div>
+          <h3>Panadería Santa Rosa</h3>
+          <p>Pan amasado y marraqueta desde las 7 de la mañana. Encargos de pan de pascua desde noviembre. Concha y Toro [número]. WhatsApp [número].</p>
+        </div>
+        <div class="marco"><img class="f" src="./prueba-retrato-encuadernador-carga.jpg" alt=""></div>
+      </div>
+    </aside>
+    <div class="folio folio--der">07<span>·</span>Voces del comercio</div>
+  </div>
+</div>
+<p class="nota">La continuación del reportaje baja de escala a propósito: rúbrica pequeña, sin titular grande. Así se nota que es la misma nota y no una apertura nueva. En la página 7 el retrato ocupa toda la altura de su columna.</p>
+
+<span class="rot">Páginas 8–9</span>
+<div class="pliego">
+  <div class="h t-wood">
+    <div class="caja caja--int-der">
+      <div class="rub">Memoria y patrimonio</div>
+      <h2 class="tit">Las puertas<br>que quedan<br>en pie</h2>
+      <div class="firma">Por [nombre y apellido]</div>
+      <div class="marco" style="height:calc(52*var(--u))"><img class="f" src="./prueba-puerta-patrimonial-carga.jpg" alt=""></div>
+      <p class="pie-foto"><b>Calle Concha y Toro al llegar a la plaza.</b> Fotografía de [nombre].</p>
+      <div class="txt dos cap" style="margin-top:calc(2.6*var(--u))">
+        <p>En el catastro de 1998 había ciento cuarenta puertas de madera anteriores a 1940. En el de 2024 quedan sesenta y una.</p>
+        <p>No se perdieron por un plan. Se perdieron de a una: una filtración, un presupuesto ajustado y una puerta metálica que llega el mismo día.</p>
+        <p>De las sesenta y una que quedan, once están en inmuebles con protección declarada. Las otras cincuenta dependen de que a alguien le importe.</p>
+        <p>Reponer una hoja de cedro con los mismos herrajes cuesta hoy alrededor de novecientos mil pesos. Una puerta metálica de medidas estándar cuesta ciento ochenta mil y llega en cuarenta y ocho horas. La comparación explica casi todo el catastro.</p>
+        <p>Hay un punto intermedio que casi nadie conoce: la reparación por parches. Se cambia sólo el tablero podrido, se conserva el marco y los herrajes, y el gasto baja a un tercio. En el barrio hay dos carpinteros que lo hacen.</p>
+        <p>La agrupación pidió en septiembre una señalética para las puertas catastradas. Una placa pequeña, con el año y el material, atornillada al marco. Todavía está en evaluación.</p>
+        <p>Mientras tanto, el registro se hace con lo que hay: alguien camina la cuadra, saca la fotografía y anota la dirección en un cuaderno.</p>
+      </div>
+    </div>
+    <div class="folio folio--int-izq">08<span>·</span>Memoria</div>
+  </div>
+
+  <div class="h datos t-indigo">
+    <div class="caja caja--int-der">
+      <div class="rub">Observatorio de datos públicos</div>
+      <h2 class="tit tit--chico">Cuánto se<br>demora una<br>respuesta</h2>
+      <div class="cifras">
+        <div class="cifra"><b>63</b><span>solicitudes ingresadas en 2026</span></div>
+        <div class="cifra"><b>41</b><span>respondidas dentro del plazo legal</span></div>
+        <div class="cifra"><b>87</b><span>días de demora promedio</span></div>
+      </div>
+      <div class="barras">
+        <div class="barra"><span>Alumbrado público</span><span class="via"><i style="width:34%"></i></span><span class="val">34 d</span></div>
+        <div class="barra"><span>Aseo y ornato</span><span class="via"><i style="width:48%"></i></span><span class="val">52 d</span></div>
+        <div class="barra"><span>Obras y permisos</span><span class="via"><i style="width:76%"></i></span><span class="val">94 d</span></div>
+        <div class="barra"><span>Patrimonio</span><span class="via"><i style="width:92%"></i></span><span class="val">118 d</span></div>
+        <div class="barra"><span>Tránsito</span><span class="via"><i style="width:29%"></i></span><span class="val">31 d</span></div>
+      </div>
+      <div class="txt" style="margin-bottom:calc(2.4*var(--u))">
+        <p>El plazo legal es de veinte días hábiles. Cuatro de las cinco áreas lo superan, y patrimonio —la que más nos toca— es la más lenta de todas.</p>
+        <p>La demora no se reparte parejo dentro del año. Entre enero y marzo el promedio fue de cincuenta y un días; entre julio y septiembre, de ciento nueve. La diferencia coincide con el período de formulación del presupuesto municipal.</p>
+        <p>Veintidós solicitudes siguen sin respuesta al cierre de esta edición. Diez de ellas superan los ciento veinte días, que es el punto en que la ley permite reclamar ante el Consejo para la Transparencia. La agrupación reclamó por tres.</p>
+        <p><b>Cómo leer estas cifras.</b> Cuentan días corridos desde el ingreso hasta la primera respuesta, aunque esa respuesta sea parcial. Una respuesta que dice «se está evaluando» cierra el reloj igual que una que resuelve.</p>
+      </div>
+      <div class="txt" style="margin-bottom:calc(2.4*var(--u))">
+        <p><b>Las tres más lentas.</b> La señalética patrimonial de la plaza lleva ciento cuarenta y dos días sin respuesta. La solicitud por el alcantarillado de Balmaceda, ciento treinta y uno. El permiso de uso de la casona demoró ciento veintiséis y terminó aprobado.</p>
+        <p>En las tres, la primera respuesta llegó recién después de insistir por segunda vez. Esa insistencia no reinicia el plazo legal, pero en la práctica es lo que mueve el expediente.</p>
+        <p>El próximo número publicará el mismo cuadro con los datos de octubre a diciembre, para poder comparar semestres.</p>
+      </div>
+      <p class="fuente">Fuente: solicitudes por Ley de Transparencia ingresadas por la agrupación entre enero y septiembre de 2026. Datos de prueba, sólo para maqueta.</p>
+    </div>
+    <div class="folio folio--der">09<span>·</span>Observatorio</div>
+  </div>
+</div>
+<p class="nota">La página de datos deja de ser una tabla. Tres cifras grandes arriba, barras comparables al medio y una frase que dice qué significan. La fuente va al pie, siempre.</p>
+
+<span class="rot">Páginas 10–11</span>
+<div class="pliego">
+  <div class="h t-turquesa">
+    <div class="caja caja--int-der">
+      <div class="rub">Comunidad y servicios</div>
+      <h2 class="tit tit--chico">Agenda de<br>octubre</h2>
+      <div class="agenda">
+        <div class="ev"><b>Sábado 4 · 10:00</b><h4>Jornada en la casona</h4><p>Pintura del ala poniente. Llevar brocha si tiene.</p></div>
+        <div class="ev"><b>Martes 7 · 19:00</b><h4>Asamblea mensual</h4><p>Sede, calle Balmaceda. Se vota el uso de la sala grande.</p></div>
+        <div class="ev"><b>Sábado 11 · 11:00</b><h4>Feria de las pulgas</h4><p>Plaza. Inscripción de puestos hasta el jueves.</p></div>
+        <div class="ev"><b>Jueves 16 · 18:30</b><h4>Taller de encuadernación</h4><p>Veinte cupos. Materiales incluidos.</p></div>
+        <div class="ev"><b>Domingo 19 · 10:00</b><h4>Recorrido patrimonial</h4><p>Salida desde la plaza. Dos horas, apto para niños.</p></div>
+        <div class="ev"><b>Sábado 25 · 16:00</b><h4>Bingo de la casona</h4><p>Fondos para el techo del ala poniente.</p></div>
+        <div class="ev"><b>Martes 28 · 19:00</b><h4>Reunión de seguridad</h4><p>Con la comisaría del sector. Sede, sala grande.</p></div>
+        <div class="ev"><b>Jueves 30 · 18:00</b><h4>Cierre de inscripciones</h4><p>Último día para el taller de oficios de noviembre.</p></div>
+      </div>
+      <div class="txt" style="margin-top:calc(3.4*var(--u))">
+        <p><b>Dónde pedir ayuda.</b> Oficina de vivienda: lunes a jueves, 9 a 13. Asistencia jurídica gratuita: martes en la sede, con hora pedida por WhatsApp. Retiro de escombros: se solicita por el formulario municipal y demora cerca de tres semanas.</p>
+        <p><b>Reciclaje.</b> El punto limpio de la plaza recibe vidrio, papel y latas de lunes a sábado hasta las 18. No recibe pilas ni aceite: eso se lleva al de la avenida, los primeros sábados del mes.</p>
+        <p><b>Si se corta la luz.</b> Anote la hora y llame igual, aunque el vecino ya haya llamado. El registro por dirección es lo que después permite reclamar la compensación.</p>
+        <p><b>Para publicar en esta agenda.</b> Escriba antes del día 20 con el nombre de la actividad, la fecha, la hora, el lugar y un contacto. Se publica gratis todo lo que sea del barrio y sin fines de lucro.</p>
+        <p><b>Transporte.</b> El recorrido 412 dejó de entrar al casco en agosto. La parada más cercana quedó en la avenida, a seis cuadras. Hay una solicitud ingresada para reponer el paradero de la plaza.</p>
+        <p><b>Salud.</b> El consultorio entrega horas de matrona los lunes desde las 8 y se acaban temprano. Para adulto mayor hay una fila aparte que casi nadie usa.</p>
+      </div>
+    </div>
+    <div class="folio folio--int-izq">10<span>·</span>Comunidad</div>
+  </div>
+
+  <div class="h t-ciruela con-faldon">
+    <div class="caja caja--int-der">
+      <div class="rub">Cartas al director</div>
+      <h2 class="tit tit--chico">Lo que<br>nos escriben</h2>
+      <div style="columns:2;column-gap:calc(5*var(--u));margin-top:calc(2.4*var(--u))">
+        <div class="carta">
+          <h4>Sobre la feria</h4>
+          <p>Llevo veinte años poniendo puesto los domingos. El cambio al sábado se avisó con seis días. Entiendo que hay obras, pero seis días no alcanzan para avisarle a la clientela.</p>
+          <cite>[Nombre], calle Concha y Toro</cite>
+        </div>
+        <div class="carta">
+          <h4>La plaza de noche</h4>
+          <p>Los postes nuevos se agradecen. Falta el tramo desde la esquina hacia el sur, que es justo por donde pasan los que vuelven del turno de la tarde.</p>
+          <cite>[Nombre], pasaje Los Almendros</cite>
+        </div>
+        <div class="carta">
+          <h4>Gracias por la casona</h4>
+          <p>Vivo al frente. Doce años miré esa casa tapiada. El sábado que sacaron las tablas me puse a llorar en la vereda como una tonta.</p>
+          <cite>[Nombre], Balmaceda</cite>
+        </div>
+        <div class="carta">
+          <h4>Una corrección</h4>
+          <p>En el número anterior dijeron que el almacén de la esquina cerró en 2019. Cerró en 2021. Lo sé porque era mi papá el que atendía.</p>
+          <cite>[Nombre], por correo</cite>
+        </div>
+        <div class="carta">
+          <h4>Los perros de la plaza</h4>
+          <p>Somos varios los que dejamos agua en la reja. No es para que se queden: es porque en enero el pasto quema. Si alguien puede aportar un bebedero fijo, avise.</p>
+          <cite>[Nombre], calle Balmaceda</cite>
+        </div>
+      </div>
+      <p class="fuente" style="position:absolute;left:0;right:0;bottom:0">Las cartas se publican con nombre y calle. Se editan por extensión, nunca por contenido. Escriba a revista@cascohistorico.cl</p>
+    </div>
+    <aside class="faldon faldon--int-der">
+      <span class="rot-pub">Espacio cedido</span>
+      <div class="faldon__cuerpo">
+        <div>
+          <h3>Consultorio Casco Histórico</h3>
+          <p>Horas de matrona los lunes desde las 8. Vacunación sin hora de martes a jueves. Avenida [nombre] [número].</p>
+        </div>
+        <div class="marco"><img class="f" src="./prueba-restauracion-patio-carga.jpg" alt=""></div>
+      </div>
+    </aside>
+    <div class="folio folio--der">11<span>·</span>Cartas</div>
+  </div>
+</div>
+
+<span class="rot">Contraportada · las dos versiones</span>
+<div class="pliego">
+  <div class="h plena">
+    <div class="marco"><img class="f" src="./prueba-comercio-barrio-carga.jpg" alt=""></div>
+    <div class="pie">
+      <span class="rot-pub">Publicidad</span>
+      <h2>Almacén y flores<br>Doña Marta</h2>
+      <p>Cuarenta años en la esquina de Balmaceda con el pasaje. Flores por encargo, abarrotes y el único teléfono público que todavía funciona.<br>Lunes a domingo de 8 a 21 · [dirección] · [teléfono]</p>
+    </div>
+  </div>
+
+  <div class="h contra">
+    <div class="lienzo"><img class="f" src="./prueba-comercio-barrio-carga.jpg" alt=""></div>
+    <div class="velo"></div>
+    <div class="cierre">
+      <img src="../brand/logo-casco-historico.webp" alt="">
+      <h2>Casco Histórico</h2>
+      <p>Esta revista la hace la Asociación Casco Histórico de Puente Alto. Se reparte gratis y se financia con bingos, rifas y el aviso de la contraportada.</p>
+      <p>El próximo número cierra el 20 de noviembre.</p>
+      <div class="datos-pie">revista@cascohistorico.cl · WhatsApp [número] · Sede: Balmaceda [número]</div>
+    </div>
+  </div>
+</div>
+<p class="nota">La contraportada tiene dos versiones y el taller ya las alterna con un botón. A la izquierda, vendida como aviso a página completa: imagen a sangre y pie con el rótulo y los datos del anunciante. A la derecha, la institucional. Los créditos de la revista no dependen de esta página: viven al pie del sumario.</p>
+
+<span class="rot">Páginas de publicidad del catálogo · opcionales</span>
+<div class="pliego">
+  <div class="h plena">
+    <div class="marco"><img class="f" src="./prueba-puerta-patrimonial-carga.jpg" alt=""></div>
+    <div class="pie">
+      <span class="rot-pub">Publicidad</span>
+      <h2>Maderas y restauración<br>Hermanos Soto</h2>
+      <p>Reparación de puertas y ventanas antiguas. Tablero podrido cambiado, marco y herrajes conservados.<br>[dirección] · [teléfono] · Presupuesto sin costo</p>
+    </div>
+  </div>
+
+  <div class="h">
+    <div class="caja caja--int-der">
+      <span class="rot-pub">Publicidad</span>
+      <h2 class="tit tit--chico" style="margin-top:calc(1.4*var(--u))">Comercios<br>del barrio</h2>
+      <div class="modulos">
+        <article class="mod">
+          <div class="marco"><img class="f" src="./prueba-comercio-barrio-carga.jpg" alt=""></div>
+          <h3>Librería de viejo El Pasaje</h3>
+          <p>Compra y venta. Martes a sábado de 11 a 19. [dirección].</p>
+        </article>
+        <article class="mod">
+          <div class="marco"><img class="f" src="./prueba-retrato-encuadernador-carga.jpg" alt=""></div>
+          <h3>Taller de encuadernación</h3>
+          <p>Tesis, libros de familia y cuadernos por encargo. [teléfono].</p>
+        </article>
+        <article class="mod">
+          <div class="marco"><img class="f" src="./prueba-restauracion-patio-carga.jpg" alt=""></div>
+          <h3>Pinturas y andamios Lira</h3>
+          <p>Arriendo por día o por semana. Retiro en [dirección].</p>
+        </article>
+        <article class="mod">
+          <div class="marco"><img class="f" src="./prueba-portada-calle-historica-carga.jpg" alt=""></div>
+          <h3>Inmobiliaria del Casco</h3>
+          <p>Arriendo y venta en el barrio. Tasación sin costo. [teléfono].</p>
+        </article>
+        <article class="mod">
+          <div class="marco"><img class="f" src="./prueba-puerta-patrimonial-carga.jpg" alt=""></div>
+          <h3>Cerrajería La Llave</h3>
+          <p>Copias, cerraduras y aperturas de urgencia. Turno de noche. [teléfono].</p>
+        </article>
+        <article class="mod libre"><span>Espacio<br>disponible<br><br>revista@cascohistorico.cl</span></article>
+      </div>
+      <p class="fuente" style="margin-top:calc(3.4*var(--u))">Las páginas de publicidad no forman parte del programa base de doce páginas. Se agregan desde el catálogo cuando hay avisos vendidos que las justifiquen.</p>
+    </div>
+  </div>
+</div>
+<p class="nota">Los dos diseños de publicidad del catálogo, en el registro nuevo: página completa y módulos. El módulo vacío no es un error: es cómo se ofrece el espacio que todavía no se vende.</p>
+
+<p class="nota">Fotografías de prueba, generadas para maqueta. No son registro documental y no deben publicarse como fotografía periodística, según indica <code>assets/demo/LEEME.md</code>.</p>
+
+</div>
+</body>
+</html>

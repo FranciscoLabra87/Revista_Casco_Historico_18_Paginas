@@ -1,11 +1,13 @@
 import { createReadStream } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
+import { homedir } from "node:os";
 import { dirname, extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const host = "127.0.0.1";
+const HEALTH_REVISION = "casco-studio-12-2026-08-20";
 const requestedPort = Number.parseInt(process.argv[2] || "8787", 10);
 const port = Number.isInteger(requestedPort) && requestedPort >= 1024 && requestedPort <= 65_535
   ? requestedPort
@@ -74,6 +76,15 @@ function safePath(urlPath) {
 const MODELO = "claude-sonnet-5";
 const MAX_CUERPO_BYTES = 200_000;
 const MAX_TOKENS_RESPUESTA = 1_500;
+const ASISTENTE_TIMEOUT_MS = 65_000;
+const IDLE_SHUTDOWN_MS = 45 * 60_000;
+const localAppData = String(process.env.LOCALAPPDATA || "").trim();
+const directorioLlave = localAppData
+  ? join(localAppData, "CascoHistorico")
+  : join(homedir(), ".casco-historico");
+const archivoLlave = join(directorioLlave, "clave-ia.txt");
+let asistenteEnCurso = false;
+let ultimaActividad = Date.now();
 const ORIGENES_PERMITIDOS = new Set([
   `http://127.0.0.1:${port}`,
   `http://localhost:${port}`
@@ -83,7 +94,7 @@ async function leerLlave() {
   const desdeEntorno = String(process.env.ANTHROPIC_API_KEY || "").trim();
   if (desdeEntorno) return desdeEntorno;
   try {
-    const archivo = await readFile(join(root, "clave-ia.txt"), "utf8");
+    const archivo = await readFile(archivoLlave, "utf8");
     return archivo.trim();
   } catch {
     return "";
@@ -91,6 +102,7 @@ async function leerLlave() {
 }
 
 function responderJson(response, status, cuerpo) {
+  if (response.destroyed || response.writableEnded) return;
   const texto = JSON.stringify(cuerpo);
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -120,7 +132,7 @@ function leerCuerpo(request) {
 
 async function manejarAsistente(request, response) {
   const origen = request.headers.origin;
-  if (origen && !ORIGENES_PERMITIDOS.has(origen)) {
+  if (!ORIGENES_PERMITIDOS.has(origen)) {
     responderJson(response, 403, { error: "Origen no permitido." });
     return;
   }
@@ -129,7 +141,7 @@ async function manejarAsistente(request, response) {
   if (!llave) {
     responderJson(response, 503, {
       error: "Falta la llave de la API.",
-      detalle: "Cree el archivo clave-ia.txt junto a servidor-local.mjs con la llave dentro, o defina la variable de entorno ANTHROPIC_API_KEY, y vuelva a iniciar el taller."
+      detalle: "Guarde clave-ia.txt en la carpeta local CascoHistorico indicada en DOCUMENTACION/ASISTENTE_IA.md, o defina ANTHROPIC_API_KEY, y vuelva a iniciar el taller."
     });
     return;
   }
@@ -137,6 +149,9 @@ async function manejarAsistente(request, response) {
   let peticion;
   try {
     peticion = JSON.parse(await leerCuerpo(request));
+    if (!peticion || typeof peticion !== "object" || Array.isArray(peticion)) {
+      throw new TypeError("La solicitud debe contener un objeto JSON.");
+    }
   } catch (error) {
     responderJson(response, 400, { error: error.message || "No se pudo leer la solicitud." });
     return;
@@ -149,6 +164,17 @@ async function manejarAsistente(request, response) {
     return;
   }
 
+  if (asistenteEnCurso) {
+    responderJson(response, 429, { error: "El asistente ya está atendiendo otra solicitud. Espere a que termine." });
+    return;
+  }
+
+  asistenteEnCurso = true;
+  const controller = new AbortController();
+  const cancelarCliente = () => controller.abort(new Error("El cliente cerró la solicitud."));
+  const temporizador = setTimeout(() => controller.abort(new Error("La API agotó el tiempo de espera.")), ASISTENTE_TIMEOUT_MS);
+  request.once("aborted", cancelarCliente);
+  response.once("close", cancelarCliente);
   try {
     const respuesta = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -162,7 +188,8 @@ async function manejarAsistente(request, response) {
         max_tokens: MAX_TOKENS_RESPUESTA,
         system: sistema || undefined,
         messages: [{ role: "user", content: mensaje }]
-      })
+      }),
+      signal: controller.signal
     });
 
     const datos = await respuesta.json();
@@ -188,15 +215,29 @@ async function manejarAsistente(request, response) {
       }
     });
   } catch (error) {
+    if (response.destroyed) return;
+    if (controller.signal.aborted) {
+      responderJson(response, 504, {
+        error: "La solicitud del asistente fue cancelada o agotó el tiempo de espera."
+      });
+      return;
+    }
     responderJson(response, 502, {
       error: "No se pudo contactar la API.",
       detalle: "Compruebe la conexión a internet. El resto del taller funciona sin conexión."
     });
+  } finally {
+    clearTimeout(temporizador);
+    request.removeListener("aborted", cancelarCliente);
+    response.removeListener("close", cancelarCliente);
+    asistenteEnCurso = false;
   }
 }
 
 const server = createServer(async (request, response) => {
-  const ruta = (request.url || "").split("?")[0];
+  try {
+    ultimaActividad = Date.now();
+    const ruta = (request.url || "").split("?")[0];
 
   if (!anfitrionValido(request)) {
     response.writeHead(403, { "Content-Type": "text/plain; charset=utf-8" });
@@ -224,12 +265,14 @@ const server = createServer(async (request, response) => {
   }
 
   if (request.url.split("?")[0] === "/__casco_health") {
+    const cuerpo = JSON.stringify({ status: "CASCO_STUDIO_OK", revision: HEALTH_REVISION, root });
     response.writeHead(200, {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Length": Buffer.byteLength(cuerpo),
       "Cache-Control": "no-store",
-      "X-Casco-Studio": "1"
+      "X-Casco-Studio": "2"
     });
-    response.end(request.method === "HEAD" ? undefined : "CASCO_STUDIO_OK");
+    response.end(request.method === "HEAD" ? undefined : cuerpo);
     return;
   }
 
@@ -245,24 +288,32 @@ const server = createServer(async (request, response) => {
     return;
   }
 
-  try {
-    let info = await stat(target);
-    if (info.isDirectory()) {
-      target = join(target, "index.html");
-      info = await stat(target);
+    try {
+      let info = await stat(target);
+      if (info.isDirectory()) {
+        target = join(target, "index.html");
+        info = await stat(target);
+      }
+      if (!info.isFile()) throw new Error("not-file");
+      response.writeHead(200, {
+        "Content-Type": mimeTypes[extname(target).toLowerCase()] || "application/octet-stream",
+        "Content-Length": info.size,
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff"
+      });
+      if (request.method === "HEAD") response.end();
+      else createReadStream(target).pipe(response);
+    } catch {
+      response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+      response.end("Archivo no encontrado");
     }
-    if (!info.isFile()) throw new Error("not-file");
-    response.writeHead(200, {
-      "Content-Type": mimeTypes[extname(target).toLowerCase()] || "application/octet-stream",
-      "Content-Length": info.size,
-      "Cache-Control": "no-cache",
-      "X-Content-Type-Options": "nosniff"
-    });
-    if (request.method === "HEAD") response.end();
-    else createReadStream(target).pipe(response);
-  } catch {
-    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-    response.end("Archivo no encontrado");
+  } catch (error) {
+    console.error("Solicitud local no controlada:", error);
+    if (response.headersSent) {
+      response.destroy();
+    } else {
+      responderJson(response, 500, { error: "El servidor local no pudo completar la solicitud." });
+    }
   }
 });
 
@@ -274,3 +325,11 @@ server.on("error", (error) => {
 server.listen(port, host, () => {
   console.log(`Taller editorial disponible en http://${host}:${port}/`);
 });
+
+const idleTimer = setInterval(() => {
+  if (!asistenteEnCurso && Date.now() - ultimaActividad >= IDLE_SHUTDOWN_MS) {
+    clearInterval(idleTimer);
+    server.close(() => process.exit(0));
+  }
+}, 60_000);
+idleTimer.unref();

@@ -1,6 +1,8 @@
 # Taller Editorial de la Revista Casco Histórico
 
-Este es un software local para crear, conservar y revisar varias ediciones independientes de una revista A4 de 12 páginas, incluida la portada y la contraportada. El PDF es sólo la salida final o de revisión: el trabajo editable permanece dentro del sistema y puede trasladarse mediante respaldos JSON.
+Este es un software local para crear, conservar y revisar varias ediciones independientes de una revista comunal. Una revista nueva parte de un **programa base de 12 páginas y 10 segmentos**, incluida la portada y la contraportada, pero cada edición puede agregar, quitar y reordenar sus secciones o páginas. El formato puede ser A5, A4 o tabloide de 280 × 400 mm.
+
+El PDF es una salida final o de revisión; no es el archivo de trabajo. La edición completa permanece dentro del sistema y puede trasladarse mediante un respaldo JSON v2.
 
 ## Inicio rápido
 
@@ -12,7 +14,7 @@ Use siempre el lanzador. No abra `index.html` directamente para el trabajo habit
 
 Mantenga una sola pestaña del taller abierta. Si una segunda pestaña muestra **El taller ya está abierto**, continúe en la primera para proteger el autoguardado.
 
-## Programa editorial
+## Programa editorial base
 
 - P01: portada.
 - P02: sumario, créditos y carta editorial.
@@ -26,7 +28,7 @@ Mantenga una sola pestaña del taller abierta. Si una segunda pestaña muestra *
 - P11: cartas y opinión vecinal.
 - P12: contraportada.
 
-El programa detallado se encuentra en `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`.
+El programa detallado se encuentra en `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`. Si una edición modifica su estructura, el árbol y el sumario recompuesto por el taller muestran su paginación real.
 
 ## Estructura
 
@@ -34,10 +36,10 @@ El programa detallado se encuentra en `DOCUMENTACION/PROGRAMA_12_PAGINAS.md`.
 - `INICIAR_REVISTA.ps1` y `servidor-local.mjs`: inician la aplicación local.
 - `index.html`: interfaz del taller editorial.
 - `assets/`: identidad visual, estilos, funcionamiento, almacenamiento de ediciones y tipografías locales con sus licencias OFL.
-- `segments/`: catorce carpetas independientes para las secciones editoriales.
-- Cada segmento contiene `segmento.js`, su explicación y una carpeta `imagenes`.
+- `segments/`: diez carpetas independientes que forman el programa base.
+- Cada segmento contiene `segmento.js`, su explicación y, cuando corresponde, una carpeta `imagenes`.
 
-Las carpetas de segmentos forman la plantilla común. El contenido de cada edición se guarda por separado en IndexedDB dentro del navegador.
+Las carpetas de segmentos forman la plantilla común. La estructura propia, el contenido y los estados de cada edición se guardan por separado en IndexedDB dentro del navegador.
 
 ## Uso recomendado
 
@@ -46,8 +48,8 @@ revista**, y los va marcando según el avance real de la edición. Se puede pleg
 con **Ocultar** y el taller recuerda la preferencia.
 
 1. Cree o abra una revista desde **Mis revistas**.
-2. Use el árbol lateral para recorrer los segmentos y las 12 páginas.
-3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. Ahí se elige también el **formato**: A5 de bolsillo, A4, o tabloide de 280 × 400 mm, que es tamaño de diario. Cambiar el formato recompone las 12 páginas, así que conviene decidirlo antes de escribir. El sistema la reutiliza en las páginas correspondientes.
+2. Use el árbol lateral para recorrer los segmentos y las páginas actuales.
+3. Abra **Datos de edición**, complete la información y confirme que fue comprobada. Ahí se elige también el **formato**: A5 de bolsillo, A4 o tabloide de 280 × 400 mm. Cambiar el formato recompone todas las páginas actuales, así que conviene decidirlo antes de escribir. El sistema reutiliza esos datos en las páginas correspondientes.
 4. Presione **Editar** para cambiar textos y fotografías. Cada foto exige descripción accesible, crédito y confirmación de permiso. Si modifica una página aprobada, vuelve automáticamente a estado pendiente.
    - Al pegar desde Word o desde el correo, el taller conserva sólo el texto: lo que ve en pantalla es lo que se va a imprimir.
    - **Deshacer** revierte el último cambio de texto. También funciona con Ctrl+Z cuando el cursor no está dentro de un campo.
@@ -57,17 +59,26 @@ con **Ocultar** y el taller recuerda la preferencia.
    - En **Identidad** puedes reemplazar el logotipo de la revista y volver al original cuando quieras.
    - El subrayado tenue bajo los textos señala qué se puede editar; no se imprime. Se apaga con **Mostrar qué se puede editar**, en la lista de la izquierda, para ver la página tal como saldrá sin salir del modo edición.
    - El botón **Formato** abre un panel para ajustar el elemento que elijas: en un texto, tipografía, cuerpo, interlineado, color, alineación y énfasis en negrita, cursiva o subrayado; en una fotografía, encaje, encuadre, altura del espacio y tratamiento en color, blanco y negro o sepia. **Restablecer** devuelve el elemento al formato de la maqueta.
-   - En las páginas impares (3, 5, 7, 9, 11, 13 y 15) aparece al pie un recuadro punteado **Agregar faldón publicitario**. Al pulsarlo se coloca un aviso con título, texto e imagen; el botón **Quitar faldón** lo retira sin borrar su contenido. Se puede quitar y su contenido se conserva. La maqueta ajusta la fotografía de apertura para que el aviso quepa sin sacar texto del marco.
-5. Use **Respaldar edición** con frecuencia. El archivo v2 contiene sólo la revista activa.
-6. Ejecute **Revisión final** para detectar páginas pendientes, texto de muestra, marcadores, fotografías o fichas incompletas, baja resolución y contenido fuera del marco A5.
-7. Si todavía hay observaciones, genere sólo un PDF de revisión. El sistema añade automáticamente la marca **BORRADOR · NO DISTRIBUIR**. Los problemas críticos bloquean la salida hasta corregirse.
-8. Para una copia A5 de oficina o digital, presione **Guardar PDF** y elija papel A5, escala 100 %, márgenes ninguno y gráficos de fondo.
+   - En las páginas interiores impares que lo permiten aparece al pie **Agregar un aviso al pie**. Al pulsarlo se coloca un aviso con título, texto e imagen; **Quitar el aviso** lo retira sin borrar su contenido.
+5. Si necesita otro cuerpo editorial, use los controles del árbol para agregar, quitar o reordenar secciones, añadir o quitar páginas y elegir una maqueta. La portada permanece al principio y la contraportada al final. Descargue un respaldo antes de quitar contenido.
+6. Use **Respaldar edición** con frecuencia. El archivo v2 contiene sólo la revista activa, con su estructura actual, textos, ajustes, copias de fotografías, fichas y estados.
+7. Ejecute **Revisión final** para detectar páginas pendientes, texto de muestra, marcadores, fotografías o fichas incompletas, baja resolución y contenido fuera del marco del formato elegido.
+8. Si todavía hay observaciones, genere sólo un PDF de revisión. El sistema añade automáticamente la marca **BORRADOR · NO DISTRIBUIR**. Los problemas críticos bloquean la salida hasta corregirse.
+9. Para una copia de oficina o digital, presione **Guardar PDF**, elija el papel correspondiente al formato de la edición, escala 100 %, márgenes ninguno y gráficos de fondo.
+
+### Cambiar el cuerpo de una edición
+
+El programa base no es una jaula. Desde el árbol puede mover las secciones interiores, eliminarlas, agregar páginas y crear una sección nueva de una a cuatro páginas. El sumario y los folios se recalculan. Estos cambios pertenecen sólo a la edición abierta: no modifican las carpetas de `segments/` ni las otras revistas.
+
+Antes de una eliminación, descargue un respaldo. Después de cualquier cambio estructural, revise el sumario, los llamados de portada, los rangos de texto, las páginas aprobadas y el total de páginas. Un total múltiplo de cuatro sólo es necesario si la revista se fabricará como cuadernillo doblado y corcheteado.
 
 ## Respaldo y copias JSON
 
 El guardado automático usa IndexedDB y queda sólo en este navegador y en este dispositivo. No es un respaldo externo. Exporte una copia JSON y guárdela en una carpeta segura o en otro medio.
 
-El sistema acepta respaldos v2 actuales y copias v1 del editor anterior. Toda importación crea una revista nueva e independiente; no reemplaza el proyecto abierto. Las copias antiguas de 16 páginas se pueden redistribuir a la estructura actual de 12 páginas. Abra únicamente archivos creados por este sistema y recibidos de una fuente confiable.
+El respaldo v2 incluye la estructura actual de la edición, incluso si se agregaron o reordenaron secciones; también incluye textos, ajustes, copias reducidas de fotografías, sus fichas y estados. No contiene las otras revistas del panel, los originales fotográficos de máxima resolución ni `clave-ia.txt`.
+
+El sistema acepta respaldos v2 actuales y copias v1 de editores anteriores. Toda importación crea una revista nueva e independiente; no reemplaza el proyecto abierto. Cuando reconoce una estructura histórica de 16 o 18 páginas, redistribuye el contenido hacia el programa base actual. Los datos sin una página equivalente quedan archivados dentro del nuevo respaldo como información de compatibilidad y no cuentan como páginas vigentes. Conserve el archivo antiguo sin modificar y revise todas las páginas importadas antes de continuar. Abra únicamente archivos creados por este sistema y recibidos de una fuente confiable.
 
 ## Fotografías, permisos y créditos
 
@@ -75,19 +86,23 @@ Al cargar una imagen, el sistema compara su proporción con la del espacio donde
 
 Antes de publicar una imagen, confirme su archivo original, autor, permiso de publicación, pie de foto y crédito exacto. Use `PLANTILLAS/FICHA_FOTOGRAFIA.md` y el archivo `LEEME_IMAGENES.txt` de cada carpeta `imagenes`.
 
-El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y para el PDF de oficina. **El archivo original completo debe quedar en la carpeta `imagenes` del segmento**, junto al comprobante del permiso. Si la revista se imprime, el archivo final se arma con esos originales.
+El taller guarda una copia reducida a 1.600 píxeles, suficiente para maquetar y para el PDF de oficina. **El archivo original completo debe quedar en la carpeta `imagenes` del segmento**, junto al comprobante del permiso. El taller no sustituye automáticamente la copia reducida al exportar: para imprenta, entregue también los originales y acuerde con el proveedor cómo incorporarlos.
 
 ## Qué tipo de PDF se obtiene
 
 - **PDF de revisión:** puede contener pendientes; el sistema incorpora la marca visible **BORRADOR · NO DISTRIBUIR** y no se usa como archivo final.
-- **PDF A5 de oficina o digital:** las 12 páginas sirven para revisión en pantalla, distribución digital o impresión común en A5 después del control de cierre.
-- **Cuadernillo doblado y corcheteado:** suele necesitar una cantidad de páginas múltiplo de cuatro. Consulte a la imprenta si debe ampliar la edición a 20 páginas antes de diseñar los pliegos.
-- **Archivo de imprenta:** al guardar el PDF puede elegir esta salida. Coloca cada página A5 centrada en una hoja A4, con 3 mm de sangrado y marcas de corte y de registro, y un pie técnico que indica página, edición, medida de corte y sangrado. Es lo que un taller gráfico necesita para el tiraje. No incluye imposición de pliegos ni perfil de color: eso lo aplica la imprenta con sus propios equipos.
+- **PDF de oficina o digital:** conserva todas las páginas actuales al tamaño elegido —A5, A4 o tabloide—. Sirve para pantalla, distribución digital o impresión común y no lleva sangrado.
+- **Archivo de imprenta:** coloca cada página centrada en una hoja mayor, con 3 mm de sangrado, marcas de corte y registro, y un pie técnico con folio, edición, corte y sangrado. No incluye imposición de pliegos ni perfil de color: eso lo aplica la imprenta con sus propios equipos.
+- **Cuadernillo doblado y corcheteado:** es una forma de encuadernación, no un tercer PDF. Sólo en este caso el total suele tener que ser múltiplo de cuatro. Consulte a la imprenta antes de cerrar.
 
 ## Asistente editorial
 
 El botón **Asistente** abre un panel que conoce la página abierta, su pauta y la extensión que pide el programa. Redacta borradores, ajusta el largo, propone titulares, escribe pies de foto y revisa el estilo. Siempre **propone**: el texto se lee, se corrige y se pega a mano.
 
-Necesita una llave de la API de Anthropic e internet; el resto del taller funciona sin ambas. La llave se guarda en `clave-ia.txt`, queda sólo en el servidor local y no viaja en los respaldos. Instrucciones completas en [`DOCUMENTACION/ASISTENTE_IA.md`](DOCUMENTACION/ASISTENTE_IA.md).
+Necesita una llave de la API de Anthropic e internet; el resto del taller funciona sin ambas. La llave se guarda fuera de esta carpeta, en `%LOCALAPPDATA%\CascoHistorico\clave-ia.txt`, y no viaja por OneDrive ni en los respaldos. Instrucciones completas en [`DOCUMENTACION/ASISTENTE_IA.md`](DOCUMENTACION/ASISTENTE_IA.md).
 
 El manual completo del software está en [`DOCUMENTACION/MANUAL_SOFTWARE.md`](DOCUMENTACION/MANUAL_SOFTWARE.md). La explicación de los controles Ultra está en [`DOCUMENTACION/GUIA_VERSION_ULTRA.md`](DOCUMENTACION/GUIA_VERSION_ULTRA.md).
+
+La organización técnica, los contratos de compatibilidad y la ruta de refactorización están documentados en [`DOCUMENTACION/ARQUITECTURA.md`](DOCUMENTACION/ARQUITECTURA.md).
+
+Para comprobar una modificación técnica, ejecute `npm run check` desde esta carpeta. El comando revisa sintaxis, módulos del núcleo, respaldos, migraciones, maquetas, almacenamiento y servidor local.

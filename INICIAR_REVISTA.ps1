@@ -1,11 +1,16 @@
 $ErrorActionPreference = "Stop"
 $appRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $serverFile = Join-Path $appRoot "servidor-local.mjs"
+$healthRevision = "casco-studio-12-2026-08-20"
 
 function Test-CascoServer([int]$Port) {
     try {
         $response = Invoke-WebRequest -Uri "http://127.0.0.1:$Port/__casco_health" -UseBasicParsing -TimeoutSec 1
-        return $response.StatusCode -eq 200 -and $response.Content -eq "CASCO_STUDIO_OK"
+        $health = $response.Content | ConvertFrom-Json
+        return $response.StatusCode -eq 200 `
+            -and $health.status -eq "CASCO_STUDIO_OK" `
+            -and $health.revision -eq $healthRevision `
+            -and $health.root -eq $appRoot
     } catch {
         return $false
     }
@@ -40,7 +45,7 @@ if (-not (Test-CascoServer $selectedPort)) {
     if (Test-PortOccupied $selectedPort) {
         Add-Type -AssemblyName PresentationFramework
         [System.Windows.MessageBox]::Show(
-            "El puerto local 8787 está siendo usado por otro programa. Ciérrelo y vuelva a abrir la revista; así se conserva siempre el mismo almacenamiento editorial.",
+            "El puerto local 8787 está siendo usado por otro programa o por una copia anterior del taller. Cierre esa copia (o reinicie el equipo) y vuelva a abrir la revista; así se evita mezclar instalaciones y almacenamiento editorial.",
             "Taller editorial Casco Histórico"
         ) | Out-Null
         exit 1

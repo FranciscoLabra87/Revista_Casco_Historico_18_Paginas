@@ -1,104 +1,137 @@
 # Guía de la versión Ultra
 
-La versión Ultra agrega una capa de control editorial al sistema ramificado de 12 páginas sin cambiar el formato A5 ni la identidad visual patrimonial.
+La versión Ultra agrega control editorial, estructura variable y preparación de salida al programa base de 12 páginas y 10 segmentos. Mantiene la identidad visual patrimonial y permite elegir formato A5, A4 o tabloide de 280 × 400 mm.
 
-Las familias Cinzel, Cormorant Garamond y Source Sans 3 se incluyen localmente en `assets/fonts`, en formato WOFF2 con el subconjunto latino completo y junto con sus licencias OFL. Por eso la composición no depende de que estén instaladas en el computador.
+Las familias Cinzel, Cormorant Garamond, Source Serif 4, Archivo Narrow y Source Sans 3 se incluyen localmente en `assets/fonts`, en formato WOFF2 y con sus licencias OFL. La composición no depende de que estén instaladas en el computador.
 
-## 1. Programa editorial
+## 1. Programa editorial base
 
-La edición incluye portada y contraportada:
+Una revista nueva incluye:
 
-- P01 portada; P02 sumario y créditos; P03 editorial.
-- P04 noticias breves; P05 avances de la agrupación.
-- P06–P07 reportaje central; P08–P09 entrevista; P10–P11 memoria y patrimonio.
-- P12 comunidad y servicios; P13 comercio local; P14 cartas y opinión.
-- P15 agenda y datos útiles; P16 cultura y participación.
-- P17 publicidad y colaboradores; P18 contraportada.
+- P01 portada;
+- P02 sumario, créditos y carta editorial;
+- P03 noticias breves;
+- P04 avances de la agrupación;
+- P05–P06 reportaje central;
+- P07 voces del comercio;
+- P08 memoria y patrimonio;
+- P09 observatorio de datos públicos;
+- P10 comunidad, servicios y agenda;
+- P11 cartas al director;
+- P12 contraportada.
 
-Consulte el detalle en `PROGRAMA_12_PAGINAS.md`.
+Consulte la pauta en `PROGRAMA_12_PAGINAS.md`.
 
-## 2. Datos generales de edición
+## 2. Estructura propia de cada edición
 
-El botón `Datos generales de edición` centraliza:
+El programa base es el punto de partida. Dentro de una revista abierta se pueden:
+
+- mover las secciones interiores;
+- agregar o quitar páginas;
+- cambiar la maqueta de una página;
+- eliminar una sección;
+- crear una sección nueva de una a cuatro páginas.
+
+La portada permanece al principio y la contraportada al final. El taller vuelve a numerar los folios y recompone el sumario. Los cambios afectan sólo a la edición activa y viajan en su respaldo JSON.
+
+Antes de eliminar una sección, descargue un respaldo. Después de un cambio estructural, revise llamados de portada, sumario, extensiones, publicidad, aprobaciones y total de páginas.
+
+El aviso de múltiplo de cuatro se refiere únicamente a un cuadernillo doblado y corcheteado. No bloquea un PDF digital, una impresión de oficina ni una producción en páginas sueltas.
+
+## 3. Datos y formato de la edición
+
+**Datos de edición** centraliza:
 
 - nombre y fecha de la edición;
 - responsable editorial;
 - correo y teléfono o WhatsApp;
 - fecha límite para recibir aportes;
-- ubicación y frase institucional.
+- ubicación y frase institucional;
+- formato A5, A4 o tabloide.
 
-Al guardar, esos datos se aplican en portada, contacto editorial, firma, convocatoria y contraportada. Las páginas afectadas vuelven a estado pendiente para que sean revisadas otra vez.
+Los datos compartidos se aplican a portada, créditos, firma y contraportada sin reemplazar a ciegas un texto cambiado manualmente. Las páginas que realmente cambian vuelven a estado pendiente.
 
-La confirmación institucional registra que una persona responsable comprobó esos datos. Cualquier cambio obliga a confirmarlos nuevamente antes del cierre.
+Cambiar el formato recompone la retícula, márgenes, tipografía y capacidad de todas las páginas actuales. El contador de palabras ajusta sus rangos al tamaño elegido. Conviene seleccionar el formato antes de redactar y revisar toda la edición después de cambiarlo.
 
-## 3. Estados por página
+## 4. Estados por página
 
-Cada página se puede marcar como lista durante la edición sólo cuando no conserva advertencias ni problemas críticos. El árbol lateral muestra el avance de las 12 páginas. Si se cambia un texto o una fotografía, la aprobación de esa página se retira automáticamente.
+Cada página actual se puede marcar como lista sólo cuando no conserva advertencias ni problemas críticos. El árbol muestra el avance con el total real de la edición. Si cambia un texto, fotografía, dato compartido, formato o estructura, las páginas afectadas deben revisarse de nuevo.
 
-## 4. Revisión final
+## 5. Revisión final
 
-La revisión final analiza las 12 páginas, aunque en pantalla se vea una sola o una doble página. Comprueba:
+La revisión final analiza todas las páginas actuales, aunque en pantalla se vea una sola o una doble página. Comprueba:
 
-- estructura y orden de las 12 páginas;
+- estructura, orden y folios;
 - páginas aún no aprobadas;
 - fotografías faltantes;
-- descripción accesible, crédito y confirmación de permiso de cada fotografía incorporada;
-- resolución estimada de las fotografías cargadas;
-- resolución del archivo original frente a los 300 ppp que pide una imprenta;
-- marcadores entre corchetes que todavía deben reemplazarse;
-- textos de muestra que siguen exactamente iguales al modelo;
-- extensión de la página frente al rango del programa editorial;
-- texto horizontal o vertical fuera del marco A5;
-- datos generales incompletos;
-- recordatorio de conservar los archivos fotográficos originales.
+- descripción accesible, crédito y permiso de cada fotografía;
+- autorización registrada cuando aparecen menores;
+- resolución de las copias guardadas y de los originales declarados;
+- marcadores entre corchetes;
+- textos que siguen iguales al modelo;
+- autoría de páginas y citas cuando corresponde;
+- extensión frente al rango del formato actual;
+- contenido fuera del marco de la página;
+- contactos y datos generales incompletos;
+- conservación externa de los originales fotográficos.
 
-Cada observación incluye un botón para ir directamente a la página que debe corregirse. Los desbordes de texto también aparecen como una alerta sobre la hoja y bloquean su aprobación hasta corregirlos.
+Cada observación incluye un acceso a la página que debe corregirse. Los desbordes bloquean la aprobación hasta resolverlos.
 
-La cabecera de la portada es editable, y la revisión avisa si se aparta de la identidad institucional: no lo impide, sólo pide confirmarlo, porque esa cabecera identifica a la revista de un número al siguiente.
+La cabecera de portada es editable. Si se aparta de la identidad institucional, la revisión pide confirmarlo porque identifica la revista entre números.
 
-La detección de texto de muestra compara cada campo con el valor del modelo: si el texto sigue igual, aparece en la lista con el nombre del campo. Por eso el control sigue funcionando aunque se edite un archivo `segmento.js`.
+Las observaciones de extensión, recorte o resolución pueden ser informativas. El sistema no puede comprobar por sí solo que una fuente, permiso o declaración sea verdadera: el control humano y los comprobantes externos siguen siendo obligatorios.
 
-Las observaciones de extensión y de resolución de imprenta son informativas: avisan, pero no bloquean la aprobación de la página.
+## 6. Copia editable completa
 
-El sistema exige registrar crédito y confirmar el permiso, pero no puede comprobar por sí solo que la declaración sea verdadera. El equipo debe conservar los originales y comprobantes fuera del navegador y realizar el control humano antes de aprobar el PDF final.
+**Respaldar edición** descarga un JSON v2 de la revista activa con:
 
-## 5. Copia editable
+- estructura actual y maquetas;
+- textos, listas, estilos y ajustes;
+- datos generales y formato;
+- copias reducidas de fotografías y sus fichas;
+- estados y aprobaciones.
 
-`Respaldar edición` descarga un archivo JSON v2 con textos, estados, datos generales, fotografías y sus fichas de la revista activa. Al importar una copia v1 o v2, el sistema valida su estructura y crea una revista nueva e independiente; no reemplaza ni mezcla la edición abierta. Las copias v1 del programa antiguo de 16 páginas se pueden redistribuir a la estructura actual de 12 páginas.
+No incluye las otras revistas del panel, los originales de máxima resolución, sus comprobantes externos ni la llave del asistente. El autoguardado y las imágenes quedan sólo en el navegador de este dispositivo hasta que se descarga un respaldo.
 
-El guardado automático y las fotografías quedan sólo en el navegador de este dispositivo. No son un respaldo externo. Conviene usar archivos JPEG o WebP optimizados, descargar copias editables con frecuencia y guardarlas en otro lugar seguro.
+Al importar una copia v1 o v2, el sistema valida el archivo y crea un proyecto nuevo; no reemplaza ni mezcla la edición abierta. Las copias históricas de 16 o 18 páginas pueden necesitar redistribución. Conserve el archivo original y revise todas las páginas importadas.
 
-Abra sólo copias JSON creadas por este sistema y entregadas por su propio equipo. Revise el nombre y la fecha antes de importarlas; el archivo se agregará a **Mis revistas** como un proyecto nuevo.
+## 7. Salida PDF
 
-## 6. Salida PDF
+**Guardar PDF** ejecuta primero la revisión final. Antes de abrir el diálogo de impresión, el sistema:
 
-`Guardar PDF` ejecuta primero la revisión final. Antes de imprimir, el sistema:
-
-- monta automáticamente las 12 páginas en orden;
-- desactiva las marcas y controles de edición;
-- espera las fuentes disponibles y dos ciclos de dibujo del navegador;
-- usa páginas A5 de 148 × 210 mm sin márgenes añadidos.
+- monta todas las páginas actuales en orden;
+- oculta controles y marcas de edición;
+- espera las fuentes y fotografías;
+- aplica el tamaño elegido a la composición.
 
 ### PDF de revisión
 
-Si quedan observaciones, el archivo es sólo para revisión y el sistema coloca automáticamente la marca **BORRADOR · NO DISTRIBUIR** en todas las páginas. Si existe un problema crítico, la salida PDF se bloquea hasta corregirlo.
+Si quedan observaciones no críticas, el archivo lleva **BORRADOR · NO DISTRIBUIR** en todas las páginas. Un problema crítico bloquea la salida hasta corregirlo.
 
-### PDF A5 de oficina o digital
+### PDF de oficina o digital
 
-Cuando el control de cierre esté completo, puede guardar las 12 páginas para pantalla o impresión común. En el cuadro del navegador, elija `Guardar como PDF`, papel A5, escala 100 %, márgenes ninguno y gráficos de fondo activados.
+Guarda las páginas al tamaño final elegido —A5, A4 o tabloide—, sin sangrado ni marcas. Sirve para pantalla, correo, mensajería e impresión común. En el diálogo use escala 100 %, márgenes ninguno y gráficos de fondo. El tabloide puede requerir un papel personalizado.
 
-### Cuadernillo e imprenta profesional
+### Archivo de imprenta
 
-Una revista doblada y corcheteada suele requerir un total de páginas múltiplo de cuatro. Antes de enviarla, consulte si la imprenta necesita ampliar el programa a 20 páginas. La salida actual no incluye imposición, sangrado, marcas de corte ni perfil de color de imprenta. Pregunte además por resolución, perfil de color y especificaciones de entrega; si se exigen, prepare y valide un archivo distinto.
+Coloca cada página sobre una hoja mayor, con 3 mm de sangrado, marcas de corte y registro, y un pie técnico que declara folio, edición, corte y sangrado. El corte coincide con el formato elegido.
 
-## 7. Significado de las vistas
+Esta salida no hace imposición de pliegos, no aplica un perfil de color y no reemplaza automáticamente las copias reducidas por los originales. Confirme con la imprenta hoja, papel, resolución, color, encuadernación e imposición, y entregue los originales cuando los solicite.
 
-- `Página`: una hoja para corregir detalles.
-- `Doble página`: dos páginas enfrentadas en orden de lectura. No es imposición de imprenta.
-- `Todas`: revisión continua de las 12 páginas.
+### Cuadernillo doblado y corcheteado
 
-En teléfonos, el sistema inicia en vista de una página y conserva acceso a edición, estructura y revisión final.
+Es una forma de encuadernación. Sus pliegos suelen necesitar un total múltiplo de cuatro. Compruebe el número actual de páginas y consulte a la imprenta antes del cierre. Esta condición no se aplica por sí sola a las otras salidas.
 
-## 8. Archivos de imagen
+## 8. Significado de las vistas
 
-Cada carpeta `imagenes` contiene un `LEEME_IMAGENES.txt`. Para cada imagen, conserve aparte el original y registre nombre del archivo, autor, permiso de publicación, pie de foto y crédito exacto. No publique una imagen mientras alguno de esos datos esté pendiente.
+- **Página:** una hoja para corregir detalles.
+- **Doble página:** dos páginas enfrentadas en orden de lectura; no es imposición de imprenta.
+- **Todas:** revisión continua de todas las páginas actuales.
+
+En teléfonos, el sistema comienza en vista de una página y mantiene acceso a edición, estructura y revisión.
+
+## 9. Archivos de imagen
+
+Las carpetas que admiten originales contienen `imagenes/LEEME_IMAGENES.txt`. Para cada imagen, conserve aparte el original y registre nombre del archivo, autor, permiso, pie y crédito. No publique mientras alguno de esos datos esté pendiente.
+
+El taller guarda una copia reducida para maquetar y producir el PDF de oficina. Esa copia no reemplaza el original de alta resolución que puede exigir una imprenta.

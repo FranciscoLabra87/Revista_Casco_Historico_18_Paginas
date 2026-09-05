@@ -1,14 +1,14 @@
 # Estructura ramificada
 
-La carpeta principal contiene el software local, su plantilla editorial y catorce carpetas de segmentos. La plantilla compone una revista A5 de 12 páginas, incluida la portada y la contraportada. Cada carpeta reúne una sección editorial y puede controlar una o dos páginas.
+La carpeta principal contiene el software local y un **programa base de 12 páginas y 10 segmentos**, incluida la portada y la contraportada. Ese programa es el punto de partida: cada edición puede agregar, quitar y reordenar secciones o páginas sin modificar las demás revistas.
 
 El sistema tiene dos ramificaciones complementarias:
 
-- **Plantilla en carpetas:** define la identidad, el diseño, las secciones y las páginas comunes.
-- **Proyectos en “Mis revistas”:** conserva varias ediciones independientes dentro de IndexedDB. Cada una tiene sus propios textos, imágenes, datos y aprobaciones.
+- **Programa base en carpetas:** define la identidad, las maquetas y el contenido inicial común.
+- **Ediciones en “Mis revistas”:** cada proyecto conserva en IndexedDB su propia estructura, textos, imágenes, datos, formatos y aprobaciones.
 
 ```text
-Sistema_Revista_Casco_Historico_Interactivo/
+Revista_Casco_Historico/
 ├── index.html
 ├── ABRIR_REVISTA.cmd
 ├── INICIAR_REVISTA.ps1
@@ -21,36 +21,37 @@ Sistema_Revista_Casco_Historico_Interactivo/
 │   └── fonts/
 ├── segments/
 │   ├── 01_portada/                    P01
-│   ├── 02_sumario_creditos/           P02
-│   ├── 03_carta_editorial/            P03
-│   ├── 04_noticias_breves/            P04–P05
-│   ├── 05_reportaje_central/          P06–P07
-│   ├── 06_entrevista/                 P08–P09
-│   ├── 07_memoria_patrimonio/         P10–P11
-│   ├── 08_comunidad_servicios/        P12
-│   ├── 09_comercio_local/             P13
-│   ├── 10_cartas_director/            P14
-│   ├── 11_agenda_datos/               P15
-│   ├── 12_cultura_participacion/      P16
-│   ├── 13_cierre_publicidad/          P17
-│   └── 14_contraportada/              P18
+│   ├── 02_sumario_editorial/          P02
+│   ├── 03_noticias_breves/            P03–P04
+│   ├── 04_reportaje_central/          P05–P06
+│   ├── 05_voces_comercio/             P07
+│   ├── 06_memoria_patrimonio/         P08
+│   ├── 07_observatorio_datos/         P09
+│   ├── 08_comunidad_servicios/        P10
+│   ├── 09_cartas_director/            P11
+│   └── 10_contraportada/              P12
 ├── DOCUMENTACION/
-│   └── MANUAL_SOFTWARE.md
+│   ├── MANUAL_SOFTWARE.md
+│   └── PROGRAMA_12_PAGINAS.md
 └── PLANTILLAS/
 ```
 
-El número de cada carpeta sigue el orden de lectura de la revista: la carpeta 04 abre en la página 4 y la 05 en la página 6.
+El número de carpeta indica el orden de los segmentos en el programa base; no es necesariamente el folio. Si una edición cambia su estructura, el taller vuelve a numerar las páginas y recompone el sumario automáticamente. La portada permanece al principio y la contraportada al final.
 
 Dentro de cada segmento:
 
-- `segmento.js` contiene los textos de muestra y la información que aparece en el sistema.
-- `LEEME.md` explica el objetivo, la extensión, las páginas y los materiales necesarios.
-- `imagenes/` recibe fotografías y recursos originales del segmento.
+- `segmento.js` contiene la maqueta y los textos iniciales del programa base.
+- `LEEME.md` explica el propósito, la extensión y los materiales de la sección.
+- Cuando existe, `imagenes/` recibe los originales y comprobantes externos de esa sección.
 
-`ABRIR_REVISTA.cmd` es el punto de entrada normal: inicia el servidor local y abre `http://127.0.0.1:8787/`. No conviene abrir `index.html` directamente, porque los orígenes `file://` y `http://127.0.0.1:8787` no comparten almacenamiento.
+Las secciones creadas desde el taller viven dentro de la edición y de su respaldo JSON; no crean carpetas nuevas en `segments/`. Una sección nueva puede tener de una a cuatro páginas. Antes de quitar una sección o cambiar mucho la estructura, descargue un respaldo.
 
-Los cambios realizados desde el botón **Editar** se guardan automáticamente en la edición activa. Para conservar una copia trasladable, utilice **Respaldar edición**. Al importar un respaldo v1 o v2, el software crea un proyecto nuevo y no sobrescribe las demás revistas.
+`ABRIR_REVISTA.cmd` es el punto de entrada normal: inicia el servidor local y abre `http://127.0.0.1:8787/`. No conviene abrir `index.html` directamente, porque `file://` y el servidor local no comparten almacenamiento.
 
-El PDF de 12 páginas sirve para distribución digital o impresión de oficina. Si se desea un cuadernillo doblado y corcheteado, consulte a la imprenta: normalmente exige una cantidad de páginas múltiplo de cuatro, por lo que puede ser necesario ampliar esta edición a 20 páginas.
+El formato de una edición puede ser A5, A4 o tabloide de 280 × 400 mm. Cambiarlo recompone todas sus páginas y obliga a revisarlas nuevamente.
 
-La administración de ediciones, los respaldos y la salida PDF se explican en [`DOCUMENTACION/MANUAL_SOFTWARE.md`](DOCUMENTACION/MANUAL_SOFTWARE.md).
+Los cambios se guardan automáticamente en la edición activa. **Respaldar edición** descarga una copia trasladable de esa revista, incluida su estructura actual. Importar un respaldo crea otro proyecto y no sobrescribe los existentes.
+
+El PDF de oficina o digital mantiene el tamaño elegido y no exige que el total sea múltiplo de cuatro. Esa condición se aplica solamente cuando la revista se producirá como cuadernillo doblado y corcheteado. El archivo de imprenta agrega sangrado y marcas, pero no hace la imposición de pliegos ni aplica un perfil de color.
+
+La administración de ediciones, la estructura variable, los respaldos y las salidas PDF se explican en [`DOCUMENTACION/MANUAL_SOFTWARE.md`](DOCUMENTACION/MANUAL_SOFTWARE.md).

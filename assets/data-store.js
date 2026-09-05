@@ -1,44 +1,28 @@
 (function () {
   "use strict";
 
+  const migrationTools = window.CascoMigraciones;
+  if (!migrationTools) throw new Error("No se pudo cargar el núcleo de migraciones.");
+  const recordSchema = window.CascoEsquemaRegistros;
+  if (!recordSchema) throw new Error("No se pudo cargar el esquema editorial.");
+
   const DB_NAME = "casco-revista-studio";
   const DB_VERSION = 1;
   const EDITIONS_STORE = "editions";
   const RECORDS_STORE = "records";
-  const TEMPLATE_ID = "casco-18";
+  const TEMPLATE_ID = "casco-studio";
   const TEMPLATE_VERSION = 1;
   const MAX_EDITIONS = 40;
-  const MAX_ENTRIES = 1_000;
-  const MAX_TOTAL_CHARACTERS = 40_000_000;
-  const MAX_TEXT_CHARACTERS = 100_000;
-  const MAX_IMAGE_CHARACTERS = 6_300_000;
+  const MAX_ENTRIES = recordSchema.LIMITES.entradas;
+  const MAX_TOTAL_CHARACTERS = recordSchema.LIMITES.caracteresTotales;
   const AUTOSAVE_DELAY = 400;
   const FORMAT = "revista-casco-historico-v2";
   const ACTIVE_ID_KEY = "casco-revista:data-store:active-id";
   const MIGRATION_KEY = "casco-revista:data-store:migration-v1";
   const LEGACY_EDITION_ID = "ed_legacy_v1";
   const LEGACY_KEY_PATTERN = /^casco-revista:(text|image|image-meta|done|settings):(.+)$/;
-  const LEGACY_16_PAGE_MAP = Object.freeze({
-    p01: "p01", p02: "p02", p03: "p03", p04: "p06", p05: "p07", p06: "p04",
-    p07: "p08", p08: "p09", p09: "p10", p10: "p12", p11: "p13", p12: "p14",
-    p13: "p15", p14: "p16", p15: "p17", p16: "p18"
-  });
-  const LEGACY_16_MARKERS = [
-    "text:p16.tagline", "text:p16.contact1", "text:p15.primaryTitle", "text:p04.body1",
-    "text:p07.intro", "text:p08.q3", "text:p10.block1Title", "text:p11.contact",
-    "text:p14.callout", "image:p04.main", "image:p05.support", "image:p07.portrait",
-    "image:p08.context", "image:p09.historic", "image:p10.service", "image:p11.commerce", "image:p14.culture"
-  ];
-  const CURRENT_18_MARKERS = [
-    "text:p18.tagline", "text:p18.contact1", "text:p17.primaryTitle", "text:p05.nextTitle",
-    "text:p06.body1", "text:p08.intro", "text:p09.q3", "text:p11.caption", "image:p05.progress",
-    "image:p06.main", "image:p07.support", "image:p08.portrait", "image:p09.context",
-    "image:p10.historic", "image:p11.memory", "image:p12.service", "image:p13.commerce", "image:p16.culture"
-  ];
   const INTERNAL_ID_PATTERN = /^ed_[a-z0-9_-]{8,80}$/;
-  const IMAGE_IDENTIFIER_PATTERN = /^(?:p[a-z0-9]{2,22}|brand)\.[A-Za-z0-9_-]{1,80}$/;
-  const RELATIVE_KEY_PATTERN = /^(text|image|image-meta|done|settings):([A-Za-z0-9._-]{1,180})$/;
-  const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i;
+  const PAGE_ID_PATTERN = recordSchema.PATRONES.pagina;
   const DELETE_VALUE = Symbol("delete-record");
 
   let database = null;
@@ -46,11 +30,23 @@
   let initPromise = null;
   let activeEditionId = null;
   let activeRecords = new Map();
+  let activeRecordVersions = new Map();
+  let activeMutationSerial = 0;
   let editions = new Map();
   let pendingWrites = new Map();
   let autosaveTimer = null;
   let flushPromise = null;
   let migrationNotice = null;
+
+  function resetActiveRecordVersions() {
+    activeMutationSerial += 1;
+    activeRecordVersions = new Map();
+  }
+
+  function markActiveRecordMutation(key) {
+    activeMutationSerial += 1;
+    activeRecordVersions.set(key, activeMutationSerial);
+  }
 
   function requestResult(request) {
     return new Promise((resolve, reject) => {
@@ -161,95 +157,28 @@
   }
 
   function validateRelativeKey(relativeKey) {
-    const key = String(relativeKey || "");
-    const match = key.match(RELATIVE_KEY_PATTERN);
-    if (!match) throw new TypeError("La clave editorial no es válida.");
-    return { key, kind: match[1], identifier: match[2] };
+    const parsed = recordSchema.analizarClave(String(relativeKey || ""));
+    return { key: parsed.clave, kind: parsed.tipo, identifier: parsed.identificador };
   }
 
-  function validateRelativeEntry(relativeKey, value) {
-    const { key, kind, identifier } = validateRelativeKey(relativeKey);
-    if (typeof value !== "string") throw new TypeError("El contenido editorial debe ser texto.");
-    if (kind === "text") {
-      if (!/^p[a-z0-9]{2,22}\.[A-Za-z0-9._-]{1,160}$/.test(identifier) || value.length > MAX_TEXT_CHARACTERS) {
-        throw new TypeError("El campo de texto no es válido.");
-      }
-    } else if (kind === "image") {
-      if (!IMAGE_IDENTIFIER_PATTERN.test(identifier)
-        || value.length > MAX_IMAGE_CHARACTERS
-        || !DATA_IMAGE_PATTERN.test(value)) {
-        throw new TypeError("La fotografía no es válida.");
-      }
-    } else if (kind === "image-meta") {
-      if (!IMAGE_IDENTIFIER_PATTERN.test(identifier) || value.length > 20_000) {
-        throw new TypeError("La ficha fotográfica no es válida.");
-      }
-      let metadata;
-      try {
-        metadata = JSON.parse(value);
-      } catch {
-        throw new TypeError("La ficha fotográfica no contiene JSON válido.");
-      }
-      if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
-        throw new TypeError("La ficha fotográfica no es válida.");
-      }
-    } else if (kind === "done") {
-      if (!/^p[a-z0-9]{2,22}$/.test(identifier) || value !== "1") throw new TypeError("El estado de página no es válido.");
-    } else if (kind === "settings") {
-      // "issue" son los datos de la edición; "estructura", las secciones que
-      // el equipo armó. La estructura puede ser larga, porque lleva una
-      // entrada por página.
-      const AJUSTES_VALIDOS = { issue: 20_000, estructura: 200_000 };
-      const tope = AJUSTES_VALIDOS[identifier];
-      if (!tope || value.length > tope) throw new TypeError("Los datos de edición no son válidos.");
-      let settings;
-      try {
-        settings = JSON.parse(value);
-      } catch {
-        throw new TypeError("Los datos de edición no contienen JSON válido.");
-      }
-      if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
-        throw new TypeError("Los datos de edición no son válidos.");
-      }
-    }
+  function validateRelativeEntry(relativeKey, value, options = {}) {
+    const key = String(relativeKey || "");
+    recordSchema.validarEntrada(key, value, options);
     return key;
   }
 
   function normalizeEntries(input) {
-    let rawEntries;
-    if (input instanceof Map) rawEntries = [...input.entries()];
-    else if (Array.isArray(input)) rawEntries = input;
-    else if (input && typeof input === "object") rawEntries = Object.entries(input);
-    else throw new TypeError("La colección de contenidos no es válida.");
-
-    if (rawEntries.length > MAX_ENTRIES) throw new RangeError("La edición contiene demasiados elementos.");
+    const rawEntries = recordSchema.validarColeccion(input, { permitirBorrado: true });
     const normalized = new Map();
-    let totalCharacters = 0;
-    rawEntries.forEach((entry) => {
-      if (!Array.isArray(entry) || entry.length !== 2) throw new TypeError("Una actualización editorial no es válida.");
-      const [rawKey, value] = entry;
-      const key = String(rawKey || "");
-      if (value === null || value === undefined) {
-        validateRelativeKey(key);
-        normalized.set(key, DELETE_VALUE);
-        return;
-      }
-      validateRelativeEntry(key, value);
-      totalCharacters += key.length + value.length;
-      if (totalCharacters > MAX_TOTAL_CHARACTERS) throw new RangeError("La edición excede el tamaño máximo permitido.");
-      normalized.set(key, value);
+    rawEntries.forEach(([key, value]) => {
+      normalized.set(key, value === null ? DELETE_VALUE : value);
     });
     return normalized;
   }
 
   function assertRecordCollectionLimits(records) {
-    if (records.size > MAX_ENTRIES) throw new RangeError("La edición contiene demasiados elementos.");
-    let totalCharacters = 0;
-    records.forEach((value, key) => {
-      if (value === DELETE_VALUE) return;
-      totalCharacters += key.length + value.length;
-      if (totalCharacters > MAX_TOTAL_CHARACTERS) throw new RangeError("La edición excede el tamaño máximo permitido.");
-    });
+    const vigentes = [...records.entries()].filter(([, value]) => value !== DELETE_VALUE);
+    recordSchema.validarLimitesColeccion(vigentes);
   }
 
   function cloneEdition(edition) {
@@ -311,15 +240,70 @@
     }
   }
 
+  function parseRecordObject(records, key) {
+    try {
+      const parsed = JSON.parse(records.get(key) || "null");
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function fixedProgramPageIds(total) {
+    return new Set(Array.from({ length: total }, (unused, index) => `p${String(index + 1).padStart(2, "0")}`));
+  }
+
+  function currentPageIds(records) {
+    const structure = parseRecordObject(records, "settings:estructura");
+    if (Array.isArray(structure?.secciones)) {
+      const ids = new Set();
+      structure.secciones.forEach((section) => {
+        if (!Array.isArray(section?.paginas)) return;
+        section.paginas.forEach((page) => {
+          const id = String(page?.id || "");
+          if (PAGE_ID_PATTERN.test(id)) ids.add(id);
+        });
+      });
+      if (ids.size) return ids;
+    }
+
+    const settings = parseRecordObject(records, "settings:issue");
+    const twelvePages = settings?.programVersion === "12" || settings?.estructura === "12";
+    return fixedProgramPageIds(twelvePages ? 12 : 18);
+  }
+
   function editionWithRecordSummary(edition, records) {
-    const completedPages = [...records.entries()]
-      .filter(([key, value]) => key.startsWith("done:") && value === "1")
+    const pageIds = currentPageIds(records);
+    const completedPages = [...pageIds]
+      .filter((pageId) => records.get(`done:${pageId}`) === "1")
       .length;
     return {
       ...edition,
       completedPages,
+      pageTotal: pageIds.size,
       recordCount: records.size
     };
+  }
+
+  async function rehydrateEditionSummaries() {
+    const refreshed = [];
+    for (const edition of editions.values()) {
+      const records = await readRecords(edition.id);
+      const summarized = editionWithRecordSummary(edition, records);
+      if (summarized.completedPages !== edition.completedPages
+        || summarized.pageTotal !== edition.pageTotal
+        || summarized.recordCount !== edition.recordCount) {
+        refreshed.push(summarized);
+      }
+    }
+    if (!refreshed.length) return;
+
+    const transaction = database.transaction(EDITIONS_STORE, "readwrite");
+    const done = transactionResult(transaction);
+    const store = transaction.objectStore(EDITIONS_STORE);
+    refreshed.forEach((edition) => store.put(edition));
+    await done;
+    refreshed.forEach((edition) => editions.set(edition.id, edition));
   }
 
   async function writeEditionWithEntries(edition, records) {
@@ -349,7 +333,10 @@
         const value = window.localStorage.getItem(storageKey);
         if (typeof value !== "string") continue;
         const relativeKey = `${match[1]}:${match[2]}`;
-        validateRelativeEntry(relativeKey, value);
+        validateRelativeEntry(relativeKey, value, {
+          versionesPrograma: ["16", "18"],
+          exigirExtremos: false
+        });
         totalCharacters += relativeKey.length + value.length;
         if (found.size >= MAX_ENTRIES || totalCharacters > MAX_TOTAL_CHARACTERS) {
           throw new RangeError("El borrador antiguo excede el tamaño permitido.");
@@ -360,15 +347,14 @@
       if (error instanceof RangeError || error instanceof TypeError) throw error;
       return new Map();
     }
-    const oldProgram = LEGACY_16_MARKERS.some((key) => found.has(key));
-    const currentProgram = CURRENT_18_MARKERS.some((key) => found.has(key));
+    const detectedProgram = migrationTools.detectarProgramaHeredado([...found.entries()]);
     const hasAffectedPages = [...found.keys()].some((relativeKey) => {
       const identifier = relativeKey.slice(relativeKey.indexOf(":") + 1);
       const match = identifier.match(/^p(\d{2})(?:\.|$)/);
       return match && Number(match[1]) >= 4;
     });
-    if (forcedPageCount === 18 || currentProgram) return found;
-    if (forcedPageCount !== 16 && !oldProgram) {
+    if (forcedPageCount === 18 || detectedProgram === 18) return found;
+    if (forcedPageCount !== 16 && detectedProgram !== 16) {
       if (hasAffectedPages) {
         const error = new Error("El borrador antiguo no indica si corresponde al programa de 16 o de 18 páginas.");
         error.code = "LEGACY_PROGRAM_AMBIGUOUS";
@@ -376,23 +362,7 @@
       }
       return found;
     }
-    const remapped = new Map();
-    found.forEach((value, relativeKey) => {
-      const separator = relativeKey.indexOf(":");
-      const kind = relativeKey.slice(0, separator);
-      const identifier = relativeKey.slice(separator + 1);
-      if (kind === "settings") {
-        remapped.set(relativeKey, value);
-        return;
-      }
-      const pageId = identifier.split(".")[0];
-      const mappedPageId = LEGACY_16_PAGE_MAP[pageId];
-      const mappedKey = mappedPageId
-        ? `${kind}:${mappedPageId}${identifier.slice(pageId.length)}`
-        : relativeKey;
-      remapped.set(mappedKey, value);
-    });
-    return remapped;
+    return new Map(migrationTools.remapearEntradasDieciseis([...found.entries()]));
   }
 
   function legacyEditionLabel(records) {
@@ -444,6 +414,7 @@
     if (id === null) {
       activeEditionId = null;
       activeRecords = new Map();
+      resetActiveRecordVersions();
       pendingWrites = new Map();
       safeLocalRemove(ACTIVE_ID_KEY);
       return null;
@@ -453,6 +424,7 @@
     if (!edition) throw new Error("La edición solicitada no existe.");
     if (edition.trashedAt) throw new Error("Restaura la edición antes de abrirla.");
     activeRecords = await readRecords(validId);
+    resetActiveRecordVersions();
     activeEditionId = validId;
     pendingWrites = new Map();
     safeLocalSet(ACTIVE_ID_KEY, validId);
@@ -464,6 +436,18 @@
     const safeName = cleanName(name);
     const safeEdition = cleanEdition(edition, safeName);
     const initialRecords = initialEntries ? normalizeEntries(initialEntries) : new Map();
+    // Una edición nueva ya pertenece al programa vigente. Sin este registro la
+    // tarjeta inicial se clasificaba como un legado de 18 páginas hasta abrirla.
+    if (!initialRecords.has("settings:issue")) {
+      initialRecords.set("settings:issue", JSON.stringify({
+        edition: safeEdition,
+        formato: "a5",
+        programVersion: "12",
+        verified: false,
+        verifiedAt: ""
+      }));
+    }
+    if (!initialRecords.has("text:p01.edition")) initialRecords.set("text:p01.edition", safeEdition);
     const now = new Date().toISOString();
     let id = generateId();
     while (editions.has(id)) id = generateId();
@@ -477,9 +461,9 @@
       updatedAt: now,
       trashedAt: null
     };
-    await writeEditionWithEntries(record, initialRecords);
+    const created = await writeEditionWithEntries(record, initialRecords);
     if (activate) await setActiveInternal(id);
-    return cloneEdition(record);
+    return cloneEdition(created);
   }
 
   async function init() {
@@ -498,6 +482,7 @@
         }
         storageEvent("error", error);
       }
+      await rehydrateEditionSummaries();
 
       initialized = true;
       if (!editions.size) {
@@ -577,6 +562,7 @@
     nextRecords.set(key, value);
     assertRecordCollectionLimits(nextRecords);
     activeRecords.set(key, value);
+    markActiveRecordMutation(key);
     pendingWrites.set(key, value);
     scheduleFlush();
     return value;
@@ -586,6 +572,7 @@
     requireActive();
     const { key } = validateRelativeKey(relativeKey);
     activeRecords.delete(key);
+    markActiveRecordMutation(key);
     pendingWrites.set(key, DELETE_VALUE);
     scheduleFlush();
   }
@@ -657,6 +644,10 @@
     await flush();
     const normalized = normalizeEntries(updates);
     if (!normalized.size) return;
+    const versionsBeforeWrite = new Map();
+    normalized.forEach((unused, key) => {
+      versionsBeforeWrite.set(key, activeRecordVersions.get(key) || 0);
+    });
     const nextRecords = new Map(activeRecords);
     normalized.forEach((value, key) => {
       if (value === DELETE_VALUE) nextRecords.delete(key);
@@ -673,32 +664,43 @@
       flushPromise = null;
     }
     normalized.forEach((value, key) => {
+      // Si setItem/removeItem tocó la misma clave mientras IndexedDB confirmaba
+      // este lote, activeRecords ya contiene una intención más nueva. El lote
+      // queda en disco, pero no debe devolver la caché a un estado anterior.
+      if ((activeRecordVersions.get(key) || 0) !== versionsBeforeWrite.get(key)) return;
       if (value === DELETE_VALUE) activeRecords.delete(key);
       else activeRecords.set(key, value);
+      markActiveRecordMutation(key);
     });
-    storageEvent("saved");
+    storageEvent(pendingWrites.size ? "saving" : "saved");
   }
 
   async function clearActive() {
     await ensureInitialized();
     await flush();
     const current = requireActive();
-    const updated = { ...current, updatedAt: new Date().toISOString(), completedPages: 0, recordCount: 0 };
+    const keysBeforeClear = [...activeRecords.keys()];
+    const versionsBeforeClear = new Map(keysBeforeClear.map((key) => [key, activeRecordVersions.get(key) || 0]));
+    const updated = editionWithRecordSummary({ ...current, updatedAt: new Date().toISOString() }, new Map());
     const transaction = database.transaction([EDITIONS_STORE, RECORDS_STORE], "readwrite");
     const done = transactionResult(transaction);
     transaction.objectStore(EDITIONS_STORE).put(updated);
-    await deleteRecords(transaction, activeEditionId);
     // Mismo motivo que en putMany: una escritura durante este borrado volvía a
-    // insertar un registro justo después de haber vaciado el mapa.
-    flushPromise = done;
+    // insertar un registro justo después de haber vaciado el mapa. El bloqueo
+    // se instala antes del primer await para cubrir toda la transacción.
+    flushPromise = Promise.all([deleteRecords(transaction, activeEditionId), done]);
     try {
-      await done;
+      await flushPromise;
     } finally {
       flushPromise = null;
     }
-    activeRecords = new Map();
+    keysBeforeClear.forEach((key) => {
+      if ((activeRecordVersions.get(key) || 0) !== versionsBeforeClear.get(key)) return;
+      activeRecords.delete(key);
+      markActiveRecordMutation(key);
+    });
     editions.set(updated.id, updated);
-    storageEvent("saved");
+    storageEvent(pendingWrites.size ? "saving" : "saved");
   }
 
   async function create(options) {
@@ -867,6 +869,7 @@
         edition: current.edition,
         templateId: current.templateId,
         templateVersion: current.templateVersion,
+        pageTotal: current.pageTotal,
         createdAt: current.createdAt,
         updatedAt: current.updatedAt
       },

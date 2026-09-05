@@ -4,6 +4,26 @@
   const LEGACY_STORAGE_PREFIX = "casco-revista:";
   const projectStorage = window.MagazineData;
   if (!projectStorage) throw new Error("El taller no pudo iniciar su almacenamiento.");
+  const backupTools = window.MagazineBackupTools;
+  if (!backupTools) throw new Error("El taller no pudo iniciar la validación de respaldos.");
+  const modeloEditorial = window.CascoModeloEditorial;
+  const herramientasEstructura = window.CascoEstructura;
+  const migraciones = window.CascoMigraciones;
+  const esquemaRegistros = window.CascoEsquemaRegistros;
+  if (!modeloEditorial || !herramientasEstructura || !migraciones || !esquemaRegistros) {
+    throw new Error("El taller no pudo cargar su núcleo editorial.");
+  }
+  const {
+    AJUSTES_EDICION_POR_OMISION: ISSUE_DEFAULTS,
+    FORMATOS,
+    PRESUPUESTOS_PALABRAS: PAGE_WORD_BUDGETS,
+    PRESUPUESTOS_MAQUETAS: CATALOG_LAYOUT_WORD_BUDGETS,
+    RANGOS_POR_ELEMENTO: RANGO_POR_ELEMENTO,
+    ESPECIFICACIONES_LISTAS: LIST_SPECS,
+    TONOS_SECCION: SECTION_TONES,
+    LAYOUTS_PERMITIDOS,
+    CATALOGO_MAQUETAS
+  } = modeloEditorial;
   async function acquireWriterLock() {
     if (!navigator.locks?.request) return true;
     return new Promise((resolve) => {
@@ -14,13 +34,16 @@
         }
         resolve(true);
         return new Promise((release) => window.addEventListener("pagehide", release, { once: true }));
-      }).catch(() => resolve(true));
+      // Si el navegador anuncia Web Locks pero la solicitud falla, continuar
+      // sin exclusión podría permitir dos escritores sobre la misma edición.
+      // Es más seguro detener esta ventana y ofrecer el reintento.
+      }).catch(() => resolve(false));
     });
   }
   if (!await acquireWriterLock()) {
     const home = document.getElementById("projectHome");
     if (home) {
-      home.innerHTML = `<main class="project-home__main"><div class="project-empty-state"><div><h1>El taller ya está abierto</h1><p>Para proteger tus revistas, sólo se permite una ventana de edición a la vez. Vuelve a la pestaña anterior y cierra ésta.</p><button type="button" class="button button--primary" id="retryWriterLock">Reintentar</button></div></div></main>`;
+      home.innerHTML = `<main class="project-home__main"><div class="project-empty-state"><div><h1>Esta ventana no puede editar</h1><p>El taller puede estar abierto en otra pestaña o el navegador no pudo reservar el acceso exclusivo. Para proteger tus revistas, vuelve a la ventana anterior o cierra las demás y reintenta.</p><button type="button" class="button button--primary" id="retryWriterLock">Reintentar</button></div></div></main>`;
       home.querySelector("#retryWriterLock")?.addEventListener("click", () => window.location.reload());
     }
     return;
@@ -63,48 +86,26 @@
     warning.querySelector("button").addEventListener("click", () => warning.remove());
     document.body.prepend(warning);
   }
+  if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+    // El servidor se apaga cuando no queda ninguna ventana del taller. Mientras
+    // ésta siga abierta, un pulso liviano mantiene disponibles archivos y asistente.
+    window.setInterval(() => {
+      fetch("/__casco_health", { cache: "no-store", credentials: "same-origin" }).catch(() => undefined);
+    }, 5 * 60_000);
+  }
 
-  // Ya no hay un número de páginas correcto: la estructura la arma cada
-  // edición. Lo que sí es obligatorio es que el total sea múltiplo de cuatro,
-  // porque una revista cosida al lomo se arma con pliegos de cuatro páginas.
-  // Estaba escrito a mano en seis sitios, así que al cambiar la estructura la
-  // interfaz seguía hablando de dieciocho páginas.
+  // Ya no hay un número de páginas fijo: la estructura la arma cada edición.
+  // Para cuadernillos corcheteados conviene un múltiplo de cuatro; para PDF
+  // digital u otros encuadernados no es una obligación. El rótulo se deriva de
+  // la estructura para no volver a dejar cifras antiguas en la interfaz.
   function etiquetaTamano() {
     return `${pages.length} páginas`;
   }
-  const ISSUE_DEFAULTS = {
-    edition: "Edición N.° 1 · Mes 2026",
-    responsible: "",
-    closingDate: "",
-    email: "",
-    whatsapp: "",
-    location: "Puente Alto · Chile",
-    motto: "Un barrio con historia es un barrio con futuro",
-    verified: false,
-    verifiedAt: "",
-    formato: "a5"
-  };
-  const DATA_IMAGE_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/i;
-  const MAX_IMAGE_CHARACTERS = 6_300_000;
+  const MAX_IMAGE_CHARACTERS = esquemaRegistros.LIMITES.imagen;
   const MAX_SOURCE_IMAGE_BYTES = 20_000_000;
   const IMAGE_MAX_EDGE = 1600;
   const PRINT_TARGET_PPI = 300;
-  const MAX_BACKUP_CHARACTERS = 40_000_000;
-  const IMAGE_SLOTS = new Set([
-    "p01.hero",
-    "p02.portrait",
-    "p04.progress",
-    "p05.main",
-    "p06.support",
-    "p07.portrait",
-    "p07.commerce",
-    "p08.historic",
-    "p09.culture",
-    "p10.service",
-    "brand.logo",
-    "p12.ad",
-    ...["p02", "p03", "p04", "p05", "p06", "p07", "p08", "p09", "p10", "p11"].map((id) => `${id}.ad`)
-  ]);
+  const MAX_BACKUP_CHARACTERS = esquemaRegistros.LIMITES.caracteresTotales;
   const WORD_BUDGET_EXCLUDED = new Set([
     "title", "subtitle", "ribbon", "kicker", "headline", "edition", "label", "contact",
     "contact1", "contact2", "contact3", "credits", "credit", "photoCredit", "signature",
@@ -121,18 +122,6 @@
   // Estos valores son la capacidad real de cada maqueta en A4, medida
   // llenándolas con texto hasta que desbordan. El mínimo deja la página
   // razonablemente llena; el máximo se queda por debajo del desborde.
-  const PAGE_WORD_BUDGETS = {
-    p02: { min: 300, max: 460, nombre: "Sumario, créditos y editorial" },
-    p03: { min: 380, max: 500, nombre: "Noticias breves" },
-    p04: { min: 280, max: 480, nombre: "Avances de la agrupación" },
-    p05: { min: 195, max: 250, nombre: "Reportaje · apertura" },
-    p06: { min: 315, max: 400, nombre: "Reportaje · continuación" },
-    p07: { min: 270, max: 345, nombre: "Voces del comercio" },
-    p08: { min: 225, max: 290, nombre: "Memoria y patrimonio" },
-    p09: { min: 250, max: 320, nombre: "Observatorio de datos" },
-    p10: { min: 300, max: 385, nombre: "Comunidad, servicios y agenda" },
-    p11: { min: 360, max: 600, nombre: "Cartas al director" }
-  };
 
   function countWords(value) {
     const text = String(value ?? "").trim();
@@ -155,31 +144,23 @@
 
   // Rango por elemento para las páginas cuyo número de elementos es variable.
   // Rangos por elemento, también en palabras de A4.
-  const RANGO_POR_ELEMENTO = {
-    p03: { lista: "briefs", min: 95, max: 125 },
-    p11: { lista: "letters", min: 90, max: 150 }
-  };
 
   // Los presupuestos están medidos en A4. Para los otros formatos se ajustan
   // por dos cosas a la vez: la superficie de la caja y el cuerpo de lectura,
   // que crece con el formato y por tanto reduce las palabras por milímetro.
   function factorFormato() {
-    const base = FORMATOS.a4;
-    const f = FORMATOS[formatoActual()] || base;
-    const superficie = (f.superficie || 1) / (base.superficie || 1);
-    const cuerpo = Math.pow((base.cuerpo || 10) / (f.cuerpo || 10), 2);
-    return superficie * cuerpo;
+    return modeloEditorial.factorFormato(formatoActual());
   }
 
   function wordBudgetState(pageId, pageElement) {
-    const budget = PAGE_WORD_BUDGETS[pageId];
+    const page = pages.find((entry) => entry.id === pageId);
+    const budget = PAGE_WORD_BUDGETS[pageId] || CATALOG_LAYOUT_WORD_BUDGETS[page?.layout];
     if (!budget) return null;
     const factor = factorFormato();
     const words = countPageWords(pageElement);
     const porElemento = RANGO_POR_ELEMENTO[pageId];
 
     if (porElemento) {
-      const page = pages.find((entry) => entry.id === pageId);
       const defaults = page?.lists?.[porElemento.lista] || [];
       const total = listCount(page, porElemento.lista, defaults);
       const unidadMin = Math.round(porElemento.min * factor);
@@ -255,33 +236,6 @@
   // márgenes, la línea base y el cuerpo de lectura se derivan de él.
   // ---------------------------------------------------------------------------
 
-  const FORMATOS = {
-    a5: {
-      etiqueta: "A5 · 148 × 210 mm",
-      descripcion: "Revista de bolsillo. Es el formato con el que nació esta publicación.",
-      ancho: 148, alto: 210,
-      cabeza: 13.5, pie: 16.5, interior: 13, exterior: 10,
-      medianil: 4, base: 4.5, cuerpo: 9,
-      texto: 82, apoyo: 39, medida: 82, medidaCorta: 60, superficie: 1
-    },
-    a4: {
-      etiqueta: "A4 · 210 × 297 mm",
-      descripcion: "El doble de superficie. Cabe más texto y la fotografía respira.",
-      ancho: 210, alto: 297,
-      cabeza: 16, pie: 20, interior: 16, exterior: 13,
-      medianil: 5, base: 5, cuerpo: 10,
-      texto: 98, apoyo: 78, medida: 98, medidaCorta: 86, superficie: 2.1
-    },
-    tabloide: {
-      etiqueta: "Tabloide · 280 × 400 mm",
-      descripcion: "Formato de diario. Titulares grandes y varias noticias por página.",
-      ancho: 280, alto: 400,
-      cabeza: 18, pie: 22, interior: 18, exterior: 15,
-      medianil: 5, base: 5.5, cuerpo: 10.5,
-      texto: 165, apoyo: 77, medida: 78, medidaCorta: 78, superficie: 3.9
-    }
-  };
-
   function formatoActual() {
     const guardado = issueSettings().formato;
     return FORMATOS[guardado] ? guardado : "a5";
@@ -315,6 +269,9 @@
     raiz.setProperty("--ancho-apoyo", `${f.apoyo}mm`);
     raiz.setProperty("--medida-texto", `${f.medida}mm`);
     raiz.setProperty("--medida-corta", `${f.medidaCorta}mm`);
+    const hojaImprenta = modeloEditorial.dimensionesSalida(clave, "press");
+    raiz.setProperty("--formato-hoja-ancho", `${hojaImprenta.ancho}mm`);
+    raiz.setProperty("--formato-hoja-alto", `${hojaImprenta.alto}mm`);
     document.body.dataset.formato = clave;
     refrescarRotulosDeFormato();
     applyPageRule(state.pressOutput === true ? "press" : "office");
@@ -323,13 +280,16 @@
   async function cambiarFormato(clave) {
     if (!FORMATOS[clave] || clave === formatoActual()) return;
     try {
-      const ajustes = { ...issueSettings(), formato: clave };
-      await projectStorage.putMany(new Map([[storageKey("settings", "issue"), JSON.stringify(ajustes)]]));
+      const ajustes = issueSettingsForStorage({ ...issueSettings(), formato: clave });
+      const updates = new Map([[storageKey("settings", "issue"), JSON.stringify(ajustes)]]);
+      pages.forEach((page) => updates.set(storageKey("done", page.id), null));
+      await projectStorage.putMany(updates);
     } catch (error) {
       showToast(error?.message || "No se pudo cambiar el formato.");
       return;
     }
     aplicarFormato();
+    syncPrintOutput();
     invalidatePreflight();
     renderTree();
     renderMagazine();
@@ -337,18 +297,15 @@
     showToast(`Formato ${f.etiqueta}. Revisa las páginas: el contenido se recompone y puede sobrar o faltar texto.`);
   }
 
-  const TRIM_LABEL = "148 × 210 mm";
   function etiquetaCorte() {
     const f = FORMATOS[formatoActual()];
     return `${f.ancho} × ${f.alto} mm`;
   }
-  const PRESS_BLEED_LABEL = "3 mm";
+  const PRESS_BLEED_LABEL = `${modeloEditorial.SANGRADO_IMPRENTA_MM} mm`;
   // La hoja de imprenta lleva la página centrada con sangrado y marcas: necesita
   // margen alrededor, así que crece 62 x 87 mm respecto del corte.
   function reglaPagina(modo) {
-    const f = FORMATOS[formatoActual()];
-    if (modo === "press") return `@page { size: ${f.ancho + 62}mm ${f.alto + 87}mm; margin: 0; }`;
-    return `@page { size: ${f.ancho}mm ${f.alto}mm; margin: 0; }`;
+    return modeloEditorial.reglaPagina(formatoActual(), modo);
   }
 
   // El tamaño de hoja no se puede elegir con una clase: @page es una regla de
@@ -395,15 +352,6 @@
       requestAnimationFrame(() => requestAnimationFrame(terminar));
     });
   }
-
-  const LIST_SPECS = {
-    "p03.briefs":     { parts: 3, min: 2, max: 6, uno: "noticia",    varias: "noticias" },
-    "p04.milestones": { parts: 4, min: 2, max: 6, uno: "avance",     varias: "avances" },
-    "p10.agenda":     { parts: 4, min: 1, max: 3, uno: "actividad",  varias: "actividades" },
-    "p11.letters":    { parts: 3, min: 1, max: 5, uno: "carta",      varias: "cartas" },
-    "p09.registros":  { parts: 5, min: 3, max: 9,  uno: "registro",   varias: "registros" },
-    "p09.lineas":     { parts: 2, min: 2, max: 3,  uno: "línea",      varias: "líneas de trabajo" }
-  };
 
   function listCountKey(pageId, listName) {
     return `${pageId}.${listName}.count`;
@@ -486,18 +434,6 @@
   // El tono acompaña a la sección: el lector distingue de un vistazo en qué
   // parte de la revista está. Oro para la apertura y el cierre, y los otros
   // tres alternando para que dos secciones seguidas nunca coincidan.
-  const SECTION_TONES = {
-    "01_portada": "gold",
-    "02_sumario_editorial": "gold",
-    "03_noticias_breves": "ceramic",
-    "04_reportaje_central": "wood",
-    "05_voces_comercio": "palm",
-    "06_memoria_patrimonio": "wood",
-    "07_observatorio_datos": "ceramic",
-    "08_comunidad_servicios": "palm",
-    "09_cartas_director": "ceramic",
-    "10_contraportada": "gold"
-  };
   const MASTHEAD_DEFAULTS = {
     title: "Casco Histórico",
     tagline: "Patrimonio · Comunidad · Historia · Comercio local"
@@ -548,11 +484,14 @@
   const COLORES_IDENTIDAD = [
     { etiqueta: "Tinta", valor: "#1d140d" },
     { etiqueta: "Chocolate", valor: "#391e14" },
-    { etiqueta: "Madera", valor: "#57381d" },
-    { etiqueta: "Dorado", valor: "#79501d" },
-    { etiqueta: "Palmera", valor: "#365448" },
-    { etiqueta: "Cerámica", valor: "#2f6e92" },
-    { etiqueta: "Ladrillo", valor: "#8a3025" }
+    { etiqueta: "Madera", valor: "#8a4b2a" },
+    { etiqueta: "Ocre", valor: "#c8862a" },
+    { etiqueta: "Oliva", valor: "#2f6b52" },
+    { etiqueta: "Azulejo", valor: "#1f6f8b" },
+    { etiqueta: "Teja", valor: "#c8402f" },
+    { etiqueta: "Índigo", valor: "#3f5aa6" },
+    { etiqueta: "Turquesa", valor: "#1b8a86" },
+    { etiqueta: "Ciruela", valor: "#7a3b6b" }
   ];
 
   const ALINEACIONES = [
@@ -730,106 +669,8 @@
   // sólo sirve para el reportaje. Estas otras no: sirven para cualquier sección
   // que alguien quiera armar, y son las que ofrece el taller al crear una.
   // ---------------------------------------------------------------------------
-  const CATALOGO_MAQUETAS = [
-    {
-      id: "texto-2col",
-      nombre: "Texto a dos columnas",
-      descripcion: "Título, bajada, firma y cuatro párrafos. Para un reportaje propio o de fuera, una columna de opinión o un informe.",
-      campos: {
-        title: "Título de la sección",
-        deck: "Una bajada que explique de qué trata y por qué importa aquí.",
-        body1: "Primer párrafo: lo más importante primero, con nombres y fechas.",
-        body2: "Segundo párrafo: el desarrollo, con los datos y su fuente.",
-        body3: "Tercer párrafo: los antecedentes y lo que falta por resolver.",
-        body4: "Cuarto párrafo: el cierre y dónde seguir la información."
-      }
-    },
-    {
-      id: "texto-foto",
-      nombre: "Fotografía grande y texto",
-      descripcion: "Una fotografía a lo ancho arriba, con su pie, y el texto debajo a dos columnas.",
-      campos: {
-        title: "Título de la sección",
-        deck: "Una bajada breve.",
-        caption: "Pie de la fotografía: qué se ve, dónde y cuándo. Crédito: [nombre].",
-        body1: "Primer párrafo.",
-        body2: "Segundo párrafo.",
-        body3: "Tercer párrafo."
-      }
-    },
-    {
-      id: "foto-plena",
-      nombre: "Fotografía a página completa",
-      descripcion: "Una sola imagen ocupando la página, con su pie al pie. Para una apertura de sección o una imagen que se sostiene sola.",
-      campos: {
-        caption: "Pie de la fotografía: qué se ve, dónde y cuándo. Crédito: [nombre]."
-      }
-    },
-    {
-      id: "listado",
-      nombre: "Listado de fichas",
-      descripcion: "Filas con nombre y detalle, de largo variable. Para condolencias, saludos, resultados, socios o cualquier nómina.",
-      listas: {
-        fichas: {
-          parts: 3,
-          min: 1,
-          max: 24,
-          uno: "ficha",
-          varias: "fichas",
-          modelo: "[Nombre]|[Fechas o referencia]|[Texto breve]"
-        }
-      },
-      campos: {
-        title: "Título de la sección",
-        deck: "Una bajada que explique qué reúne esta página.",
-        nota: "Nota al pie: quién envía estos textos y cómo se comprueban."
-      }
-    },
-    {
-      id: "publicidad-plena",
-      nombre: "Publicidad a página completa",
-      descripcion: "Un solo aviso ocupando la página. Va rotulado como publicidad, siempre.",
-      campos: {
-        adTitle: "Nombre del anunciante",
-        adBody: "Texto aprobado por el anunciante, con dirección, horario y teléfono verificados."
-      }
-    },
-    {
-      id: "publicidad-modulos",
-      nombre: "Página de avisos",
-      descripcion: "Varios avisos en módulos, de dos a seis. Cada uno con su nombre, su texto y su imagen.",
-      listas: {
-        avisos: {
-          parts: 2,
-          min: 2,
-          max: 6,
-          uno: "aviso",
-          varias: "avisos",
-          modelo: "[Nombre del anunciante]|[Dirección · horario · teléfono]"
-        }
-      },
-      campos: {
-        title: "Avisos del barrio",
-        deck: "Espacios comerciales claramente identificados."
-      }
-    },
-    {
-      id: "galeria",
-      nombre: "Galería de fotografías",
-      descripcion: "Cuatro imágenes con sus pies. Para cubrir una actividad, una feria o un recorrido.",
-      campos: {
-        title: "Título de la galería",
-        deck: "Una bajada que sitúe la actividad: qué fue, dónde y cuándo.",
-        caption1: "Pie 1. Crédito: [nombre].",
-        caption2: "Pie 2. Crédito: [nombre].",
-        caption3: "Pie 3. Crédito: [nombre].",
-        caption4: "Pie 4. Crédito: [nombre]."
-      }
-    }
-  ];
-
   function maquetaDelCatalogo(id) {
-    return CATALOGO_MAQUETAS.find((m) => m.id === id) || null;
+    return herramientasEstructura.maquetaDelCatalogo(CATALOGO_MAQUETAS, id);
   }
 
   // Los identificadores nuevos no dicen nada de la posición, a propósito.
@@ -852,101 +693,47 @@
   // poder agregar una sección de tres páginas, una de condolencias o una sólo de
   // avisos sin tocar el código.
   // ---------------------------------------------------------------------------
-  const SEGMENTOS_BASE = (window.MAGAZINE_SEGMENTS || [])
-    .slice()
-    .sort((a, b) => Math.min(...a.pages.map((p) => p.number)) - Math.min(...b.pages.map((p) => p.number)));
+  const SEGMENTOS_BASE = herramientasEstructura.ordenarSegmentos(window.MAGAZINE_SEGMENTS || []);
 
   function estructuraBase() {
-    return SEGMENTOS_BASE.map((segmento) => ({
-      id: segmento.id,
-      titulo: segmento.title,
-      proposito: segmento.purpose,
-      tono: SECTION_TONES[segmento.id] || "gold",
-      base: true,
-      paginas: segmento.pages
-        .slice()
-        .sort((a, b) => a.number - b.number)
-        .map((pagina) => ({ id: pagina.id, layout: pagina.layout, titulo: pagina.title }))
-    }));
+    return herramientasEstructura.estructuraBase(SEGMENTOS_BASE, SECTION_TONES);
   }
 
   function leerEstructura() {
     const crudo = projectStorage.getItem(storageKey("settings", "estructura"));
-    if (!crudo) return estructuraBase();
-    try {
-      const datos = JSON.parse(crudo);
-      const secciones = Array.isArray(datos?.secciones) ? datos.secciones : null;
-      if (!secciones || !secciones.length) return estructuraBase();
-      return secciones;
-    } catch (error) {
-      return estructuraBase();
-    }
+    return herramientasEstructura.leerEstructuraGuardada(crudo, estructuraBase());
   }
 
   async function guardarEstructura(secciones) {
-    await projectStorage.putMany(new Map([
+    const updates = new Map([
       [storageKey("settings", "estructura"), JSON.stringify({ version: 1, secciones })]
-    ]));
+    ]);
+    let aprobaciones = 0;
+    pages.forEach((page) => {
+      const key = storageKey("done", page.id);
+      if (projectStorage.getItem(key) === "1") aprobaciones += 1;
+      updates.set(key, null);
+    });
+    await projectStorage.putMany(updates);
+    return aprobaciones;
   }
 
   // El modelo de una página: del programa base si viene de ahí, del catálogo si
   // la creó alguien. Es lo que da los textos de muestra y las listas.
-  function modeloDePagina(pagina, seccion) {
-    const delBase = SEGMENTOS_BASE
-      .flatMap((s) => s.pages)
-      .find((p) => p.id === pagina.id);
-    if (delBase) return delBase;
-    const maqueta = maquetaDelCatalogo(pagina.layout);
-    if (!maqueta) return { id: pagina.id, fields: {}, lists: {} };
-    const listas = {};
-    Object.entries(maqueta.listas || {}).forEach(([nombre, spec]) => {
-      listas[nombre] = Array.from({ length: spec.min }, () => spec.modelo);
-    });
-    return {
-      id: pagina.id,
-      title: pagina.titulo || maqueta.nombre,
-      layout: pagina.layout,
-      status: "modelo",
-      fields: { ...maqueta.campos, ribbon: seccion?.titulo || maqueta.nombre },
-      lists: listas
-    };
-  }
-
   function construirPaginas() {
-    const secciones = leerEstructura();
-    let numero = 0;
-    const salida = [];
-    secciones.forEach((seccion) => {
-      (seccion.paginas || []).forEach((pagina, indice) => {
-        numero += 1;
-        const modelo = modeloDePagina(pagina, seccion);
-        salida.push({
-          ...modelo,
-          id: pagina.id,
-          layout: pagina.layout || modelo.layout,
-          number: numero,
-          title: pagina.titulo || modelo.title,
-          segmentId: seccion.id,
-          segmentTitle: seccion.titulo,
-          segmentPurpose: seccion.proposito || "",
-          isOpener: indice === 0,
-          tone: seccion.tono || SECTION_TONES[seccion.id] || "gold",
-          delCatalogo: !seccion.base
-        });
-      });
+    return herramientasEstructura.construirPaginas({
+      secciones: leerEstructura(),
+      segmentos: SEGMENTOS_BASE,
+      catalogo: CATALOGO_MAQUETAS,
+      tonos: SECTION_TONES
     });
-    return salida;
   }
 
   let pages = construirPaginas();
 
   // Las listas del catálogo se registran junto a las del programa base.
   function specDeLista(clave) {
-    if (LIST_SPECS[clave]) return LIST_SPECS[clave];
-    const [pageId, nombre] = String(clave).split(".");
-    const page = pages.find((p) => p.id === pageId);
-    const maqueta = page ? maquetaDelCatalogo(page.layout) : null;
-    return maqueta?.listas?.[nombre] || null;
+    return herramientasEstructura.especificacionDeLista(clave, pages, LIST_SPECS, CATALOGO_MAQUETAS);
   }
 
   function recargarEstructura() {
@@ -1089,31 +876,26 @@
     return `Guardado ${new Intl.DateTimeFormat("es-CL", { hour: "2-digit", minute: "2-digit" }).format(new Date())}`;
   }
 
-  function issueSettings() {
+  function storedIssueSettings() {
     try {
       const saved = JSON.parse(projectStorage.getItem(storageKey("settings", "issue")) || "{}");
-      return {
-        ...ISSUE_DEFAULTS,
-        edition: projectStorage.active()?.edition || ISSUE_DEFAULTS.edition,
-        ...saved,
-        verified: saved?.verified === true,
-        verifiedAt: typeof saved?.verifiedAt === "string" ? saved.verifiedAt : ""
-      };
+      return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function issueSettings() {
+    try {
+      const saved = storedIssueSettings();
+      return modeloEditorial.resolverAjustesGuardados(saved, projectStorage.active()?.edition);
     } catch {
       return { ...ISSUE_DEFAULTS };
     }
   }
 
-  function localizedDate(value) {
-    if (!value) return "";
-    const [year, month, day] = value.split("-").map(Number);
-    if (!year || !month || !day) return value;
-    return new Intl.DateTimeFormat("es-CL", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC"
-    }).format(new Date(Date.UTC(year, month - 1, day)));
+  function issueSettingsForStorage(source = {}) {
+    return modeloEditorial.normalizarAjustesParaGuardar(source);
   }
 
   function setTextOverride(updates, pageId, fieldKey, value) {
@@ -1150,12 +932,15 @@
   }
 
   async function applyIssueSettings(settings) {
-    const normalized = {
+    const current = issueSettings();
+    const normalized = issueSettingsForStorage({
       ...ISSUE_DEFAULTS,
+      ...current,
       ...settings,
+      formato: FORMATOS[current.formato] ? current.formato : ISSUE_DEFAULTS.formato,
       verified: settings.verified === true,
       verifiedAt: settings.verified === true ? new Date().toISOString() : ""
-    };
+    });
     const updates = new Map([[storageKey("settings", "issue"), JSON.stringify(normalized)]]);
     const respetados = [];
 
@@ -1171,7 +956,6 @@
     }
 
     const contact = [normalized.email, normalized.whatsapp].filter(Boolean).join(" · ");
-    const closing = localizedDate(normalized.closingDate);
     const tocadas = new Set();
     if (aplicarDato("p01", "edition", normalized.edition)) tocadas.add("p01");
     const indexPage = pages.find((page) => page.id === "p02");
@@ -1286,9 +1070,12 @@
   }
 
   function isValidImageData(data) {
-    return typeof data === "string"
-      && data.length <= MAX_IMAGE_CHARACTERS
-      && DATA_IMAGE_PATTERN.test(data);
+    try {
+      esquemaRegistros.validarImagenDataUri(data);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1459,7 +1246,8 @@
     const sideClass = page.number % 2 === 1 ? "page--recto" : "page--verso";
     const roleClass = `${page.isOpener ? "page--opener" : "page--continuation"} ${sideClass} page--tone-${page.tone || "gold"}`;
     const sheetLabel = escapeHtml(`P${String(page.number).padStart(2, "0")} · ${issueSettings().edition} · corte ${etiquetaCorte()} · sangrado ${PRESS_BLEED_LABEL}`);
-    return `<div class="page-sheet" data-sheet="${sheetLabel}"><article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article></div>`;
+    const accessibleLabel = escapeHtml(`Página ${page.number}: ${page.title}`);
+    return `<div class="page-sheet" data-sheet="${sheetLabel}"><article class="mag-page ${roleClass} ${extraClass} ${state.safe ? "show-safe" : ""}" data-page-id="${page.id}" aria-label="${accessibleLabel}">${cornerMarkup()}${completeButton}${adStripToggle(page)}${overflowBadge}${content}${adStrip(page)}${folio}</article></div>`;
   }
 
   // El faldón se ofrece en las páginas impares: en un cuadernillo son las de la
@@ -1537,7 +1325,7 @@
       : `Se agregó un aviso al pie de la página ${page.number}.`);
   }
 
-  const PAGINAS_CON_FIRMA = new Set(["p03", "p05", "p07", "p08", "p09", "p10"]);
+  const PAGINAS_CON_FIRMA = new Set(["p05", "p07", "p08", "p09", "p10"]);
 
   function firma(page) {
     if (!PAGINAS_CON_FIRMA.has(page.id)) return "";
@@ -1548,29 +1336,47 @@
     return editableLabel(page, "runningHead", label || page.segmentTitle, "div", "page-running-head");
   }
 
+  function limpiarLlamadoPortada(value) {
+    return String(value ?? "")
+      .replace(/\s*(?:·|\|)\s*p[aá]gina\.?\s*\d+\s*$/iu, "")
+      .trim();
+  }
+
+  function coverTeaser(page, index, label, fallback) {
+    const legacyKey = `teaser${index}`;
+    const legacyValue = savedText(page.id, legacyKey, page.fields?.[legacyKey] ?? "");
+    const copy = limpiarLlamadoPortada(legacyValue) || fallback;
+    return `<div class="cover-teaser">
+      ${editableValue(page, `${legacyKey}Label`, label, "span", "cover-teaser__label")}
+      ${editableValue(page, `${legacyKey}Copy`, copy, "p", "cover-teaser__copy")}
+    </div>`;
+  }
+
   function renderCover(page) {
+    const hasPhoto = Boolean(imageData(page.id, "hero"));
     const content = `
       ${imageSlot(page, "hero", "Agregar fotografía principal", "cover-hero")}
       <div class="cover-content">
         <div class="cover-masthead">
-          <img src="${escapeHtml(brandLogoSource())}" alt="Logo Casco Histórico" />
-          <div>
-            ${editableLabel(page, "mastheadTitle", MASTHEAD_DEFAULTS.title, "h2", "preline")}
-            ${editableLabel(page, "mastheadTagline", MASTHEAD_DEFAULTS.tagline, "p")}
-          </div>
+          ${editableLabel(page, "mastheadTitle", MASTHEAD_DEFAULTS.title, "h2", "preline")}
         </div>
-        <div class="cover-edition">${editable(page, "edition")}</div>
+        <div class="cover-flag">
+          ${editableValue(page, "coverPlace", "Casco Histórico")}
+          ${editable(page, "edition")}
+          ${editableValue(page, "coverDistribution", "Distribución gratuita")}
+        </div>
         <div class="cover-story">
           <span class="kicker">${editable(page, "kicker")}</span>
           <h3>${editable(page, "headline")}</h3>
           <p>${editable(page, "deck")}</p>
           <div class="cover-teasers">
-            <div class="cover-teaser">${editable(page, "teaser1")}</div>
-            <div class="cover-teaser">${editable(page, "teaser2")}</div>
+            ${coverTeaser(page, 1, "Patrimonio", "Historias, lugares y archivos que vuelven a abrir conversación.")}
+            ${coverTeaser(page, 2, "Comercio", "Oficios y negocios que sostienen la vida cotidiana del barrio.")}
+            ${coverTeaser(page, 3, "Comunidad", "Servicios, fechas y maneras concretas de participar.")}
           </div>
         </div>
       </div>`;
-    return pageFrame(page, content, "cover-page");
+    return pageFrame(page, content, `cover-page ${hasPhoto ? "cover-page--with-photo" : "cover-page--type-only"}`);
   }
 
   // El sumario se arma sobre la estructura viva, no sobre los archivos de
@@ -1590,47 +1396,61 @@
     return [...porSeccion.entries()].map(([segmentId, datos]) => {
       const numbers = datos.numbers.slice().sort((a, b) => a - b);
       const first = numbers[0];
-      const last = numbers[numbers.length - 1];
       return {
         segmentId,
         title: datos.title,
         marker: String(first).padStart(2, "0"),
-        range: first === last ? String(first) : `${first}–${last}`
+        tone: pages.find((page) => page.segmentId === segmentId)?.tone || SECTION_TONES[segmentId] || "gold"
       };
     });
   }
 
+  function indexFeatureSource() {
+    return pages.find((item) => item.layout === "feature-open")
+      || pages.find((item) => item.number > 2 && item.number < pages.length)
+      || null;
+  }
+
   function renderIndex(page) {
-    const rows = contentsRows().map((row) => `<div class="contents-row">
+    const rows = contentsRows().map((row) => `<div class="contents-row contents-row--tone-${escapeHtml(row.tone)}">
         <strong>${escapeHtml(row.marker)}</strong>
-        <span>${editableValue(page, `contents.${row.segmentId}.title`, row.title)}</span>
-        <em>${escapeHtml(row.range)}</em>
-      </div>`).join("");
-    const content = `
-      ${runningHead(page)}
-      <h2 class="page-title">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "intro")}</p>
-      <div class="index-grid">
-        <div class="contents-list">${rows}</div>
-        <aside class="credits-box">
-          ${editableLabel(page, "creditsLabel", "Quiénes hacemos esta revista", "h3")}
-          <p class="preline">${editable(page, "credits")}</p>
-          ${editableLabel(page, "participateLabel", "Participa", "h3")}
-          ${editableLabel(page, "participateBody", "Envía noticias, fotografías y cartas para el próximo número.", "p")}
-          <p><strong>${editable(page, "contact")}</strong></p>
-        </aside>
-      </div>
-      <div class="editorial-breve page-fill">
-        ${editableLabel(page, "edLabel", "Carta editorial", "span", "section-ribbon")}
-        <h3 class="editorial-breve__titulo">${editable(page, "edTitle")}</h3>
-        <div class="two-columns">
-          <p class="body-copy lead-copy">${editable(page, "edBody1")}</p>
-          <p class="body-copy">${editable(page, "edBody2")}</p>
-          <p class="body-copy">${editable(page, "edBody3")}</p>
+        <div>
+          ${editableValue(page, `contents.${row.segmentId}.label`, row.title, "i")}
+          ${editableValue(page, `contents.${row.segmentId}.title`, row.title, "span")}
         </div>
-        <p class="editorial-breve__firma"><strong>${editable(page, "signature")}</strong></p>
-      </div>`;
-    return pageFrame(page, content);
+      </div>`).join("");
+    const featured = indexFeatureSource();
+    const featuredTitle = featured
+      ? savedText(featured.id, "title", featured.fields?.title || featured.title)
+      : "La historia principal de esta edición";
+    const featuredDeck = featured
+      ? savedText(featured.id, "deck", featured.fields?.deck || "Una lectura en profundidad para abrir la edición.")
+      : "Una lectura en profundidad para abrir la edición.";
+    const hasFeaturedPhoto = Boolean(imageData(page.id, "featured"));
+    const content = `
+      <header class="index-heading">
+        <h2 class="page-title">${editable(page, "title")}</h2>
+        <span>${escapeHtml(issueSettings().edition)}</span>
+      </header>
+      <div class="index-overview">
+        <section class="index-feature">
+          <div class="index-feature__copy">
+            ${editableValue(page, "featuredNumber", String(featured?.number || 3).padStart(2, "0"), "span", "index-feature__number")}
+            ${editableValue(page, "featuredTitle", featuredTitle, "h3")}
+            ${editableValue(page, "featuredDeck", featuredDeck, "p")}
+          </div>
+          ${imageSlot(page, "featured", "Agregar fotografía destacada del sumario", "index-feature__image")}
+        </section>
+        <div class="contents-list">${rows}</div>
+      </div>
+      <footer class="contents-credits">
+        <div class="contents-credits__brand">
+          <img src="${escapeHtml(brandLogoSource())}" data-brand-logo alt="Logo institucional Casco Histórico" />
+          ${editableLabel(page, "creditsLabel", "Asociación Casco Histórico", "strong")}
+        </div>
+        <b>${editable(page, "contact")}</b>
+      </footer>`;
+    return pageFrame(page, content, `index-page ${hasFeaturedPhoto ? "index-page--with-photo" : "index-page--type-only"}`);
   }
 
   function renderEditorial(page) {
@@ -1657,33 +1477,27 @@
   }
 
   function renderFeatureOpen(page) {
+    const hasPhoto = Boolean(imageData(page.id, "main"));
     const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      <h2 class="page-title">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      ${firma(page)}
-      ${imageSlot(page, "main", "Agregar fotografía principal del reportaje", "feature-image")}
-      <p class="caption">${editableValue(page, "mainCaption", "Pie de la fotografía principal: qué se ve, dónde y cuándo. Crédito: [nombre].")}</p>
-      <div class="feature-grid page-fill">
-        <div class="two-columns">
+      <header class="feature-open__hero">
+        ${imageSlot(page, "main", "Agregar fotografía principal del reportaje", "feature-image")}
+        <div class="feature-open__hero-copy">
+          ${editable(page, "ribbon", "span", "feature-open__label")}
+          <h2 class="page-title">${editable(page, "title")}</h2>
+        </div>
+      </header>
+      <div class="feature-open__body page-fill">
+        <p class="page-deck feature-open__deck">${editable(page, "deck")}</p>
+        ${firma(page)}
+        <div class="feature-open__text">
           <p class="body-copy lead-copy">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
+          <blockquote class="quote-card feature-open__quote">${editableValue(page, "quote", "Una historia de barrio comienza cuando alguien decide volver a mirarla.")}${editableValue(page, "quoteAuthor", "— Cita de muestra", "cite", "quote-author")}</blockquote>
           <p class="body-copy">${editableValue(page, "body3", "Tercer párrafo del desarrollo: antecedentes comprobados, cifras con su fuente y el estado real del asunto.")}</p>
           <p class="body-copy">${editableValue(page, "body4", "Cuarto párrafo: qué falta por resolver y quién tiene que responder. Continúa en la página siguiente.")}</p>
         </div>
-        <aside class="feature-aside">
-          <div class="stat-card">
-            <strong>${editable(page, "stat")}</strong>
-            <span>${editable(page, "statLabel")}</span>
-          </div>
-          <div class="contact-card">
-            ${editableLabel(page, "sourcesLabel", "Cómo lo comprobamos", "h3")}
-            <p>${editableValue(page, "sources", "Documentos consultados, organismos a los que se preguntó y quién no respondió al cierre.")}</p>
-          </div>
-        </aside>
       </div>`;
-    return pageFrame(page, content);
+    return pageFrame(page, content, `feature-open-page ${hasPhoto ? "feature-open-page--with-photo" : "feature-open-page--type-only"}`);
   }
 
   function renderFeatureClose(page) {
@@ -1716,17 +1530,33 @@
   function renderBriefs(page) {
     const defaults = page.lists?.briefs || [];
     const total = listCount(page, "briefs", defaults);
-    const cards = Array.from({ length: total }, (unused, index) => {
+    const briefs = Array.from({ length: total }, (unused, index) => {
       const [title, body, meta] = splitItem(defaults[index], 3);
-      const wide = index === 4 ? "brief-card--wide" : "";
-      return `<article class="brief-card ${wide}">
+      return { index, title, body, meta };
+    });
+    const principal = briefs[0] || { index: 0, title: "Noticia principal", body: "Resumen de la noticia principal.", meta: "" };
+    const shortCards = briefs.slice(1).map(({ index, title, body, meta }) => `<article class="brief-short">
+        <span class="brief-meta">${editableList(page, "briefs", index, "meta", meta)}</span>
         <h3>${editableList(page, "briefs", index, "title", title)}</h3>
         <p>${editableList(page, "briefs", index, "body", body)}</p>
-        <span class="brief-meta">${editableList(page, "briefs", index, "meta", meta)}</span>
-      </article>`;
-    }).join("");
-    const content = `${runningHead(page)}<h2 class="page-title">${editable(page, "title")}</h2><p class="page-deck">${editable(page, "deck")}</p>${firma(page)}<div class="brief-grid page-fill">${cards}</div>${listControls(page, "briefs", total)}`;
-    return pageFrame(page, content);
+      </article>`).join("");
+    const hasPhoto = Boolean(imageData(page.id, "main"));
+    const content = `
+      <header class="briefs-heading">
+        ${runningHead(page)}
+        <h2 class="page-title">${editable(page, "title")}</h2>
+      </header>
+      <section class="briefs-main">
+        ${imageSlot(page, "main", "Agregar fotografía del brief principal", "briefs-main__image")}
+        <article class="briefs-main__copy">
+          ${editableValue(page, "briefMainLabel", "Lo principal", "span", "briefs-main__label")}
+          <h3>${editableList(page, "briefs", principal.index, "title", principal.title)}</h3>
+          <p>${editableList(page, "briefs", principal.index, "body", principal.body)}</p>
+        </article>
+      </section>
+      <div class="briefs-short-grid page-fill">${shortCards}</div>
+      ${listControls(page, "briefs", total)}`;
+    return pageFrame(page, content, `briefs-page ${hasPhoto ? "briefs-page--with-photo" : "briefs-page--type-only"}`);
   }
 
   function renderAdvances(page) {
@@ -2228,6 +2058,7 @@
     commerce: renderCommerce,
     letters: renderLetters,
     agenda: renderAgenda,
+    culture: renderCulture,
     observatorio: renderObservatorio,
     voices: renderVoices,
     "texto-2col": renderTexto2Col,
@@ -2240,6 +2071,10 @@
     ads: renderAds,
     back: renderBack
   };
+  const layoutsSinRenderer = LAYOUTS_PERMITIDOS.filter((layout) => typeof renderers[layout] !== "function");
+  if (layoutsSinRenderer.length) {
+    throw new Error(`Faltan renderizadores para: ${layoutsSinRenderer.join(", ")}`);
+  }
 
   function renderPage(page) {
     const renderer = renderers[page.layout];
@@ -2372,12 +2207,13 @@
     const resto = total % 4;
     if (!resto) return "";
     const faltan = 4 - resto;
-    return `${total} páginas no se pueden encuadernar: los pliegos van de cuatro en cuatro. ${faltan === 1 ? "Falta una página" : `Faltan ${faltan} páginas`} para llegar a ${total + faltan}.`;
+    return `Si esta edición se doblará y corcheteará como cuadernillo, los pliegos van de cuatro en cuatro: ${faltan === 1 ? "falta una página" : `faltan ${faltan} páginas`} para llegar a ${total + faltan}. El PDF digital y otros tipos de encuadernación sí pueden conservar ${total} páginas.`;
   }
 
   async function aplicarEstructura(secciones, mensaje) {
+    let aprobaciones = 0;
     try {
-      await guardarEstructura(secciones);
+      aprobaciones = await guardarEstructura(secciones);
     } catch (error) {
       showToast(error?.message || "No se pudo guardar la estructura.");
       return false;
@@ -2389,7 +2225,10 @@
     renderTree();
     renderMagazine();
     const aviso = avisoDePliego(pages.length);
-    showToast(aviso ? `${mensaje} ${aviso}` : mensaje);
+    const revision = aprobaciones
+      ? ` ${aprobaciones === 1 ? "La página que estaba aprobada vuelve" : `Las ${aprobaciones} páginas aprobadas vuelven`} a revisión.`
+      : "";
+    showToast(aviso ? `${mensaje}${revision} ${aviso}` : `${mensaje}${revision}`);
     return true;
   }
 
@@ -2432,7 +2271,11 @@
       return;
     }
     const ultima = seccion.paginas[seccion.paginas.length - 1];
-    seccion.paginas.push({ id: nuevoIdPagina(), layout: ultima?.layout || "texto-2col" });
+    // Las maquetas del programa base dependen de campos ligados a su página
+    // original. Una página nueva debe partir de una maqueta genérica completa;
+    // copiar, por ejemplo, "briefs" creaba una hoja vacía sin controles.
+    const layout = maquetaDelCatalogo(ultima?.layout) ? ultima.layout : "texto-2col";
+    seccion.paginas.push({ id: nuevoIdPagina(), layout, titulo: seccion.titulo });
     await aplicarEstructura(secciones, `“${seccion.titulo}” quedó con ${seccion.paginas.length} páginas.`);
   }
 
@@ -2531,6 +2374,8 @@
     }
     const titulo = document.getElementById("seccionTitulo");
     if (titulo) titulo.value = "";
+    const proposito = document.getElementById("seccionProposito");
+    if (proposito) proposito.value = "";
     pintarPaginasDelBorrador();
     dialogo.showModal();
     titulo?.focus();
@@ -2751,13 +2596,15 @@
       evento.preventDefault();
       const titulo = String(document.getElementById("seccionTitulo")?.value || "").trim();
       if (!titulo) return;
+      const proposito = String(document.getElementById("seccionProposito")?.value || "").trim();
+      if (!proposito) return;
       const tono = document.getElementById("seccionTono")?.value || "ceramic";
       const posicion = Number(document.getElementById("seccionDonde")?.value || 1);
       const secciones = leerEstructura();
       const nueva = {
         id: nuevoIdSeccion(),
         titulo,
-        proposito: "",
+        proposito,
         tono,
         base: false,
         paginas: borradorSeccion.map((layout) => ({ id: nuevoIdPagina(), layout, titulo }))
@@ -2781,7 +2628,10 @@
         const statusText = issues.length ? `${issues.length} ${issues.length === 1 ? "observación" : "observaciones"} en la revisión final` : complete ? "marcada como lista" : "en preparación";
         const indicePagina = paginasDeSeccion.indexOf(page);
         const quitar = fija || paginasDeSeccion.length <= 1 ? "" : `<button type="button" class="page-quitar" data-pagina-quitar="${segmentIndex}:${indicePagina}" aria-label="Quitar la página ${page.number} de ${escapeHtml(segment.titulo)}">−</button>`;
-        return `<div class="page-row"><button type="button" class="page-link" data-page-index="${pages.findIndex((entry) => entry.id === page.id)}" aria-label="Página ${page.number}: ${escapeHtml(page.title)}; ${escapeHtml(statusText)}"><span>P${String(page.number).padStart(2, "0")}</span><span>${escapeHtml(page.title)}</span><i class="page-status ${complete ? "is-complete" : ""} ${issueClass}" aria-hidden="true"></i></button>${quitar}</div>`;
+        const selectorMaqueta = page.delCatalogo
+          ? `<label class="page-layout"><span class="visually-hidden">Maqueta de la página ${page.number}</span><select class="page-layout-select" data-page-layout="${page.id}" title="Cambiar la maqueta de esta página">${opcionesDeMaqueta(page.layout)}</select></label>`
+          : "";
+        return `<div class="page-row"><button type="button" class="page-link" data-page-index="${pages.findIndex((entry) => entry.id === page.id)}" aria-label="Página ${page.number}: ${escapeHtml(page.title)}; ${escapeHtml(statusText)}"><span>P${String(page.number).padStart(2, "0")}</span><span>${escapeHtml(page.title)}</span><i class="page-status ${complete ? "is-complete" : ""} ${issueClass}" aria-hidden="true"></i></button>${selectorMaqueta}${quitar}</div>`;
       }).join("");
       const mandos = fija ? "" : `<div class="segment-tools">
         <button type="button" class="segment-tool" data-seccion-subir="${segmentIndex}" aria-label="Subir ${escapeHtml(segment.titulo)}"${segmentIndex <= 1 ? " disabled" : ""}>↑</button>
@@ -2823,6 +2673,9 @@
         const [seccion, pagina] = b.dataset.paginaQuitar.split(":").map(Number);
         quitarPaginaDeSeccion(seccion, pagina);
       });
+    });
+    els.tree.querySelectorAll("[data-page-layout]").forEach((select) => {
+      select.addEventListener("change", () => cambiarMaquetaDePagina(select.dataset.pageLayout, select.value));
     });
     els.tree.querySelector("#treeNuevaSeccion")?.addEventListener("click", abrirDialogoSeccion);
 
@@ -3086,12 +2939,13 @@
     const pliego = avisoDePliego(pages.length);
     if (pliego) {
       issues.push({
-        severity: "critical",
+        severity: "review",
         type: "pliego",
+        advisory: true,
         pageId: null,
         pageIndex: null,
-        title: "El total de páginas no se puede encuadernar",
-        detail: `${pliego} Agrega o quita páginas desde el árbol de secciones antes de mandar a imprenta.`
+        title: "Comprueba la encuadernación con la imprenta",
+        detail: pliego
       });
     }
     const missingSettings = [
@@ -3131,8 +2985,9 @@
     }
     // El descargo de la página de cartas es el único blindaje legal de la
     // revista, y era un rótulo editable que podía borrarse sin dejar rastro.
-    const descargoCartas = savedText("p11", "disclaimer", DESCARGO_CARTAS).trim();
-    if (!descargoCartas) {
+    const paginaCartas = pages.find((page) => page.id === "p11");
+    const descargoCartas = paginaCartas ? savedText("p11", "disclaimer", DESCARGO_CARTAS).trim() : "";
+    if (paginaCartas && !descargoCartas) {
       issues.push({
         severity: "critical",
         type: "disclaimer",
@@ -3152,6 +3007,7 @@
     ];
     const MUESTRA = /1234\s?5678|ejemplo\.|@cascohistorico\.cl|\[[^\]]+\]|correo@|tu@/i;
     CONTACTOS.forEach(({ pageId, key, donde }) => {
+      if (!pages.some((page) => page.id === pageId)) return;
       const valor = savedText(pageId, key, textoDeModelo(pageId, key) || "").trim();
       if (!valor || MUESTRA.test(valor)) {
         issues.push({
@@ -3399,12 +3255,16 @@
             type: "overflow",
             pageId: page.id,
             pageIndex,
-            title: "El contenido excede el marco A5",
+            title: `El contenido excede el marco ${FORMATOS[formatoActual()].etiqueta.split(" · ")[0]}`,
             detail: "Acorta el texto o redistribuye el contenido: una parte quedaría cortada en el PDF."
           });
         }
       });
-      const originals = [...IMAGE_SLOTS]
+      const currentPageIds = new Set(pages.map((page) => page.id));
+      const originals = projectStorage.entries()
+        .filter(([key]) => key.startsWith("image-meta:"))
+        .map(([key]) => key.slice("image-meta:".length))
+        .filter((slotKey) => slotKey === LOGO_KEY || currentPageIds.has(slotKey.split(".")[0]))
         .map((slotKey) => imageMetadata(slotKey)?.originalName)
         .filter((name) => typeof name === "string" && name.trim());
       if (originals.length) {
@@ -3626,73 +3486,13 @@
     return data;
   }
 
-  function validateImageMetadataValue(value) {
-    let metadata;
-    try {
-      metadata = JSON.parse(value);
-    } catch {
-      return false;
-    }
-    if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return false;
-    const dimensions = ["width", "height", "originalWidth", "originalHeight"];
-    if (dimensions.some((key) => metadata[key] !== undefined && (!Number.isFinite(metadata[key]) || metadata[key] <= 0 || metadata[key] > 30_000))) return false;
-    if (metadata.minors !== undefined && typeof metadata.minors !== "boolean") return false;
-    const textFields = ["alt", "credit", "caption", "originalName", "minorsAuth"];
-    if (textFields.some((key) => metadata[key] !== undefined && (typeof metadata[key] !== "string" || metadata[key].length > 2_000))) return false;
-    if (metadata.fit !== undefined && metadata.fit !== "cover" && metadata.fit !== "contain") return false;
-    return metadata.permission === undefined || typeof metadata.permission === "boolean";
-  }
-
-  function validateSettingsValue(value) {
-    let settings;
-    try {
-      settings = JSON.parse(value);
-    } catch {
-      return false;
-    }
-    if (!settings || typeof settings !== "object" || Array.isArray(settings)) return false;
-    if (Object.keys(settings).some((key) => !Object.hasOwn(ISSUE_DEFAULTS, key))) return false;
-    return Object.entries(settings).every(([key, setting]) => {
-      if (key === "verified") return typeof setting === "boolean";
-      return typeof setting === "string" && setting.length <= 1_000;
-    });
-  }
-
-  const OLD_16_PAGE_MAP = Object.freeze({
-    p01: "p01", p02: "p02", p03: "p03", p04: "p06", p05: "p07", p06: "p04",
-    p07: "p08", p08: "p09", p09: "p10", p10: "p12", p11: "p13", p12: "p14",
-    p13: "p15", p14: "p16", p15: "p17", p16: "p18"
-  });
-
   function detectLegacyPageProgram(entries) {
-    const keys = new Set(entries.map(([key]) => key));
-    const oldMarkers = [
-      "text:p16.tagline", "text:p16.contact1", "text:p15.primaryTitle", "image:p04.main",
-      "image:p05.support", "image:p07.portrait", "image:p08.context", "image:p09.historic",
-      "image:p10.service", "image:p11.commerce", "image:p14.culture"
-    ];
-    const newMarkers = [
-      "text:p18.tagline", "text:p18.contact1", "text:p17.primaryTitle", "image:p05.progress",
-      "image:p06.main", "image:p07.support", "image:p08.portrait", "image:p09.context",
-      "image:p10.historic", "image:p11.memory", "image:p12.service", "image:p13.commerce", "image:p16.culture"
-    ];
-    if (oldMarkers.some((key) => keys.has(key)) && !newMarkers.some((key) => keys.has(key))) return 16;
-    if (newMarkers.some((key) => keys.has(key))) return 18;
+    const detectado = migraciones.detectarProgramaHeredado(entries);
+    if (detectado) return detectado;
     const answer = window.prompt("Este respaldo antiguo no indica si tenía 16 o 18 páginas. Escribe 16 o 18 para importarlo; pulsa Cancelar para detener la operación.", "18");
     if (answer === null) throw new Error("Importación cancelada.");
     if (String(answer).trim() !== "16" && String(answer).trim() !== "18") throw new Error("Debes indicar 16 o 18 páginas para importar esta copia antigua.");
     return Number(answer);
-  }
-
-  function remapOld16Key(relativeKey) {
-    const separator = relativeKey.indexOf(":");
-    const kind = relativeKey.slice(0, separator);
-    const identifier = relativeKey.slice(separator + 1);
-    if (kind === "settings") return relativeKey;
-    const pageId = identifier.split(".")[0];
-    const mapped = OLD_16_PAGE_MAP[pageId];
-    if (!mapped) return relativeKey;
-    return `${kind}:${mapped}${identifier.slice(pageId.length)}`;
   }
 
   function validatedBackupEntries(storage, options = {}) {
@@ -3703,45 +3503,26 @@
       if (options.legacyPrefixed && !rawKey.startsWith(LEGACY_STORAGE_PREFIX)) throw new Error("La copia incluye datos que no pertenecen a este sistema.");
       return [options.legacyPrefixed ? rawKey.slice(LEGACY_STORAGE_PREFIX.length) : rawKey, value];
     });
-    const pageProgram = options.legacyPrefixed ? detectLegacyPageProgram(relativeEntries) : 18;
+    let declaredProgram = null;
+    try {
+      const issue = relativeEntries.find(([key]) => key === "settings:issue");
+      const version = issue ? Number(JSON.parse(issue[1])?.programVersion) : 0;
+      if (version === 12 || version === 16 || version === 18) declaredProgram = version;
+    } catch {
+      // El esquema común emitirá el mensaje de JSON inválido más adelante.
+    }
+    const pageProgram = options.legacyPrefixed
+      ? detectLegacyPageProgram(relativeEntries)
+      : options.legacyStructure ? 18 : declaredProgram || 12;
     const entries = pageProgram === 16
-      ? relativeEntries.map(([key, value]) => [remapOld16Key(key), value])
+      ? migraciones.remapearEntradasDieciseis(relativeEntries)
       : relativeEntries;
-    if (entries.length > 1_000) throw new Error("El respaldo contiene demasiados elementos.");
-    const pageIds = new Set(pages.map((page) => page.id));
-    const seen = new Set();
-    let totalCharacters = 0;
-
-    entries.forEach(([key, value]) => {
-      if (typeof value !== "string") throw new Error("La copia incluye datos que no pertenecen a este sistema.");
-      if (seen.has(key)) throw new Error("La copia contiene campos editoriales duplicados.");
-      seen.add(key);
-      totalCharacters += key.length + value.length;
-      if (totalCharacters > MAX_BACKUP_CHARACTERS) throw new Error("El respaldo excede el tamaño permitido.");
-
-      const separator = key.indexOf(":");
-      const kind = key.slice(0, separator);
-      const identifier = key.slice(separator + 1);
-      const pageId = identifier.split(".")[0];
-      if (separator <= 0 || !identifier) throw new Error("La copia contiene una clave dañada.");
-
-      if (kind === "text") {
-        if (!pageIds.has(pageId) || !/^p[a-z0-9]{2,22}\.[A-Za-z0-9._-]{1,160}$/.test(identifier) || value.length > 100_000) {
-          throw new Error("La copia contiene un campo de texto no válido.");
-        }
-      } else if (kind === "image") {
-        if (!IMAGE_SLOTS.has(identifier) || !isValidImageData(value)) throw new Error("La copia contiene una fotografía no válida.");
-      } else if (kind === "image-meta") {
-        if (!IMAGE_SLOTS.has(identifier) || !validateImageMetadataValue(value)) throw new Error("La copia contiene datos fotográficos no válidos.");
-      } else if (kind === "done") {
-        if (!pageIds.has(identifier) || value !== "1") throw new Error("La copia contiene un estado de página no válido.");
-      } else if (kind === "settings") {
-        if (identifier !== "issue" || !validateSettingsValue(value)) throw new Error("El respaldo contiene datos de edición no válidos.");
-      } else {
-        throw new Error("La copia incluye un tipo de dato no reconocido.");
-      }
+    // El importador es la frontera de compatibilidad: admite las dos versiones
+    // históricas conocidas y showEditor las migra antes de permitir edición.
+    return backupTools.validateEntries(entries, {
+      versionesPrograma: ["16", "18"],
+      exigirExtremos: pageProgram === 12
     });
-    return entries;
   }
 
   async function importDraft(file) {
@@ -3752,12 +3533,16 @@
       let edition;
       let importedEntries;
       if (data.format === "revista-casco-historico-v2") {
-        if (data.schemaVersion !== 2 || data.project?.templateId !== "casco-18" || data.project?.templateVersion !== 1) {
+        const plantillaReconocida = data.project?.templateVersion === 1
+          && (data.project?.templateId === "casco-studio" || data.project?.templateId === "casco-18");
+        if (data.schemaVersion !== 2 || !plantillaReconocida) {
           throw new Error("Este respaldo usa una plantilla que esta versión no reconoce.");
         }
         name = String(data.project?.name || "Revista importada");
         edition = String(data.project?.edition || name);
-        importedEntries = validatedBackupEntries(data.entries);
+        importedEntries = validatedBackupEntries(data.entries, {
+          legacyStructure: data.project.templateId === "casco-18"
+        });
       } else if (data.format === "revista-casco-historico-v1") {
         importedEntries = validatedBackupEntries(data.storage, { legacyPrefixed: true });
         const settingsEntry = importedEntries.find(([key]) => key === "settings:issue");
@@ -3769,7 +3554,7 @@
       }
       await projectStorage.importProject({ name, edition, entries: importedEntries });
       resetEditorState();
-      showEditor();
+      await showEditor();
       showToast("Respaldo importado como una revista independiente.");
     } catch (error) {
       console.warn("Importación rechazada:", error);
@@ -3784,15 +3569,13 @@
   }
 
   function completedPagesFor(project) {
-    if (project.id === projectStorage.active()?.id) {
-      return projectStorage.entries().filter(([key, value]) => key.startsWith("done:") && value === "1").length;
-    }
-    return Math.max(0, Math.min(pages.length, Number(project.completedPages) || 0));
+    const total = Math.max(1, Number(project.pageTotal) || 12);
+    return Math.max(0, Math.min(total, Number(project.completedPages) || 0));
   }
 
   function projectCard(project, trashed = false) {
     const completed = completedPagesFor(project);
-    const total = pages.length;
+    const total = Math.max(1, Number(project.pageTotal) || 12);
     const percent = total ? Math.round((completed / total) * 100) : 0;
     const ready = total > 0 && completed === total;
     const id = escapeHtml(project.id);
@@ -3860,9 +3643,9 @@
   }
 
   // Migración puntual: el sumario pasó de lista con índice numérico a filas
-  // derivadas de la estructura. Las claves antiguas no se leen, no se borran,
-  // viajan en cada respaldo y cuentan contra los límites de la edición.
-  function migrarSumarioAntiguo() {
+  // derivadas de la estructura. El valor anterior se conserva bajo un
+  // identificador de compatibilidad para que nunca desaparezca del respaldo.
+  async function migrarSumarioAntiguo() {
     const antiguas = projectStorage.entries()
       .map(([clave]) => clave)
       .filter((clave) => /^text:p02\.contents\.\d+\./.test(clave));
@@ -3877,10 +3660,12 @@
         const destino = storageKey("text", `p02.contents.${filas[indice].segmentId}.title`);
         if (!projectStorage.getItem(destino)) cambios.set(destino, projectStorage.getItem(clave));
       }
+      const archivo = clave.replace(/^text:p02\./, "text:plegacysumario02.");
+      if (!projectStorage.getItem(archivo)) cambios.set(archivo, projectStorage.getItem(clave));
       cambios.set(clave, null);
     });
 
-    projectStorage.putMany(cambios).catch(() => undefined);
+    await projectStorage.putMany(cambios);
     return antiguas.length;
   }
 
@@ -3888,18 +3673,21 @@
   // observatorio de datos. Dos campos de la maqueta anterior ya no se leen.
   const CAMPOS_RETIRADOS = ["p09.callout", "p09.deadline", "p10.body"];
 
-  function limpiarCamposRetirados() {
+  async function limpiarCamposRetirados() {
     const prefijos = CAMPOS_RETIRADOS.flatMap((campo) => [
       storageKey("text", campo),
       storageKey("text", `${campo}.${APLICADO_SUFIJO}`)
     ]);
     const cambios = new Map();
-    projectStorage.entries().forEach(([clave]) => {
-      if (prefijos.includes(clave)) cambios.set(clave, null);
+    projectStorage.entries().forEach(([clave, valor]) => {
+      if (!prefijos.includes(clave)) return;
+      const archivo = clave.replace(/^text:(p\d{2})\./, "text:plegacyretired$1.");
+      if (!projectStorage.getItem(archivo)) cambios.set(archivo, valor);
+      cambios.set(clave, null);
     });
     if (!cambios.size) return 0;
-    projectStorage.putMany(cambios).catch(() => undefined);
-    return cambios.size;
+    await projectStorage.putMany(cambios);
+    return prefijos.filter((clave) => cambios.has(clave)).length;
   }
 
   // ---------------------------------------------------------------------------
@@ -3915,61 +3703,33 @@
   // una sola escritura porque los identificadores se solapan: lo que era la
   // dieciséis pasa a ser la nueve, y la nueve antigua ya no existe.
   // ---------------------------------------------------------------------------
-  const MAPA_DOCE = {
-    p01: "p01", p02: "p02", p03: "p02", p04: "p03", p05: "p04", p06: "p05",
-    p07: "p06", p08: "p07", p10: "p08", p12: "p10", p14: "p11", p16: "p09", p18: "p12"
-  };
-  // La carta editorial entra en la página del sumario, que ya tiene título y
-  // bajada propios: sus campos cambian de nombre para no pisarlos.
-  const CAMPOS_EDITORIAL = {
-    title: "edTitle", body1: "edBody1", body2: "edBody2", body3: "edBody3",
-    signature: "signature", deck: null, runningHead: null
-  };
-
-  function migrarADocePaginas() {
-    const ajustes = issueSettings();
-    if (ajustes.estructura === "12") return 0;
-
-    const entradas = projectStorage.entries();
-    const cambios = new Map();
-    let movidas = 0;
-    let perdidas = 0;
-
-    entradas.forEach(([clave]) => {
-      if (/^(text|image|image-meta|done):p\d{2}/.test(clave)) cambios.set(clave, null);
+  async function migrarADocePaginas() {
+    const guardados = storedIssueSettings();
+    const ajustes = issueSettingsForStorage(issueSettings());
+    const plan = migraciones.planificarMigracionADoce({
+      entries: projectStorage.entries(),
+      ajustesGuardados: guardados,
+      ajustesNormalizados: ajustes
     });
-
-    entradas.forEach(([clave, valor]) => {
-      const m = /^(text|image|image-meta|done):(p\d{2})(?:\.(.+))?$/.exec(clave);
-      if (!m) return;
-      const [, tipo, viejo, resto] = m;
-      const nuevo = MAPA_DOCE[viejo];
-      if (!nuevo) { perdidas += 1; return; }
-      let cola = resto;
-      if (viejo === "p03") {
-        const raiz = String(resto || "").split(".")[0];
-        const destino = Object.prototype.hasOwnProperty.call(CAMPOS_EDITORIAL, raiz)
-          ? CAMPOS_EDITORIAL[raiz]
-          : raiz;
-        if (!destino) { perdidas += 1; return; }
-        cola = String(resto).replace(raiz, destino);
-      }
-      const claveNueva = cola ? `${tipo}:${nuevo}.${cola}` : `${tipo}:${nuevo}`;
-      if (claveNueva !== clave) movidas += 1;
-      cambios.set(claveNueva, valor);
-    });
-
-    cambios.set(storageKey("settings", "issue"), JSON.stringify({ ...ajustes, estructura: "12" }));
-    projectStorage.putMany(cambios).catch(() => undefined);
-    return movidas;
+    if (plan.cambios.size) await projectStorage.putMany(plan.cambios);
+    return { movidas: plan.movidas, archivadas: plan.archivadas };
   }
 
-  function showEditor(options = {}) {
+  async function showEditor(options = {}) {
     const project = projectStorage.active();
     if (!project) {
-      showProjectHome();
+      await showProjectHome();
       return;
     }
+    // Cada edición conserva su propia estructura. Hay que reconstruir las
+    // páginas inmediatamente después de activarla; de otro modo se alcanzaba a
+    // renderizar el árbol de la revista que estaba abierta antes.
+    recargarEstructura();
+    aplicarFormato();
+    const migracion = await migrarADocePaginas();
+    recargarEstructura();
+    aplicarFormato();
+    const huerfanas = await migrarSumarioAntiguo() + await limpiarCamposRetirados();
     els.projectHome.hidden = true;
     els.projectHome.inert = true;
     els.studioShell.hidden = false;
@@ -3977,16 +3737,16 @@
     els.currentProjectName.textContent = project.name;
     setAutosaveStatus(savedNowLabel());
     refreshBrandLogo();
-    aplicarFormato();
-    const reubicadas = migrarADocePaginas();
-    const huerfanas = migrarSumarioAntiguo() + limpiarCamposRetirados();
-    if (reubicadas) {
-      showToast(`Esta revista pasó de dieciocho a doce páginas. Se trasladaron ${reubicadas} textos a su página nueva: revísalas antes de imprimir.`);
+    if (migracion.movidas || migracion.archivadas) {
+      const archivo = migracion.archivadas
+        ? ` Los ${migracion.archivadas} datos sin una página equivalente quedaron resguardados en el respaldo.`
+        : "";
+      showToast(`Esta revista pasó de dieciocho a doce páginas. Se trasladaron ${migracion.movidas} datos a su página nueva.${archivo}`);
     }
     if (huerfanas) {
       showToast(huerfanas === 1
-        ? "Se actualizó la estructura de esta revista y se retiró un dato que ya no se usaba."
-        : `Se actualizó la estructura de esta revista y se retiraron ${huerfanas} datos que ya no se usaban.`);
+        ? "Se actualizó la estructura y un dato antiguo quedó resguardado en el respaldo."
+        : `Se actualizó la estructura y ${huerfanas} datos antiguos quedaron resguardados en el respaldo.`);
     }
     // De la edición dependían las fotos, los botones de lista, el faldón, el
     // contador y la aprobación de páginas. Quien abría la revista veía un
@@ -4024,7 +3784,7 @@
     try {
       await projectStorage.switchTo(id);
       resetEditorState();
-      showEditor();
+      await showEditor();
     } catch (error) {
       showToast(error?.message || "No se pudo abrir la revista.");
     }
@@ -4046,7 +3806,7 @@
       const duplicateName = `${source.name.slice(0, 100)} · nueva edición`;
       await projectStorage.duplicate(id, { name: duplicateName, mode: "new-edition" });
       resetEditorState();
-      showEditor();
+      await showEditor();
       showToast("Nueva edición creada con una copia de los contenidos; las aprobaciones se reiniciaron.");
     } catch (error) {
       showToast(error?.message || "No se pudo duplicar la revista.");
@@ -4101,12 +3861,15 @@
   }
 
   function openPrintDialog() {
+    syncPrintOutput();
     const finalMode = state.printMode === "final";
+    const formato = FORMATOS[formatoActual()];
+    const corto = formato.etiqueta.split(" · ")[0];
     if (els.printModeNotice) {
       els.printModeNotice.classList.toggle("is-final", finalMode);
       els.printModeNotice.classList.toggle("is-review", !finalMode);
       els.printModeNotice.innerHTML = finalMode
-        ? `<strong>PDF final A5</strong><p>La revisión automática está limpia y las ${etiquetaTamano()} fueron aprobadas. Esta salida sirve para distribución digital o impresión de oficina; confirma con la imprenta si necesita sangrado, marcas o un perfil de color específico.</p>`
+        ? `<strong>PDF final · ${escapeHtml(corto)}</strong><p>La revisión automática está limpia y las ${etiquetaTamano()} fueron aprobadas. Elige abajo una salida de oficina o de imprenta; confirma con la imprenta si necesita un perfil de color específico.</p>`
         : `<strong>PDF de revisión · BORRADOR</strong><p>El archivo llevará la marca “BORRADOR · NO DISTRIBUIR”. Úsalo para corregir y aprobar contenido; no lo distribuyas como edición final.</p>`;
     }
     if (typeof els.print.showModal === "function") els.print.showModal();
@@ -4223,7 +3986,7 @@
       });
       els.newProject.close();
       resetEditorState();
-      showEditor();
+      await showEditor();
       showToast("Revista creada. Ya puedes comenzar a editarla.");
     } catch (error) {
       showToast(error?.message || "No se pudo crear la revista.");
@@ -4482,25 +4245,27 @@
     if (els.preflight.open) els.preflight.close();
     openPrintDialog();
   });
-  const PRINT_STEPS = {
-    office: [
-      "En la ventana de impresión elige <strong>Guardar como PDF</strong>.",
-      "Selecciona papel <strong>A5</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.",
-      "Activa <strong>gráficos de fondo</strong> para conservar marcos, colores y mosaicos."
-    ],
-    press: [
-      "En la ventana de impresión elige <strong>Guardar como PDF</strong>.",
-      "Selecciona papel <strong>A4</strong>, escala <strong>100%</strong> y márgenes <strong>ninguno</strong>.",
-      "Activa <strong>gráficos de fondo</strong>: sin eso no se imprimen ni el sangrado ni las marcas.",
-      "Entrega ese PDF a la imprenta indicando corte de <strong>148 × 210 mm</strong> y sangrado de <strong>3 mm</strong>."
-    ]
-  };
+  function printStepsFor(output) {
+    return modeloEditorial.pasosImpresion(formatoActual(), output);
+  }
 
   function syncPrintOutput() {
     const elegido = document.querySelector("[name='printOutput']:checked")?.value === "press" ? "press" : "office";
     state.pressOutput = elegido === "press";
+    const formato = FORMATOS[formatoActual()];
+    const hojaImprenta = modeloEditorial.dimensionesSalida(formatoActual(), "press");
+    const corto = formato.etiqueta.split(" · ")[0];
+    const officeTitle = document.getElementById("officeOutputTitle");
+    const officeDescription = document.getElementById("officeOutputDescription");
+    const pressTitle = document.getElementById("pressOutputTitle");
+    const pressDescription = document.getElementById("pressOutputDescription");
+    if (officeTitle) officeTitle.textContent = `PDF ${corto} de oficina y uso digital`;
+    if (officeDescription) officeDescription.textContent = `${pages.length} páginas al corte ${formato.ancho} × ${formato.alto} mm, sin marcas ni sangrado.`;
+    if (pressTitle) pressTitle.textContent = `Archivo ${corto} para imprenta`;
+    if (pressDescription) pressDescription.textContent = `Cada página va centrada en una hoja de ${hojaImprenta.ancho} × ${hojaImprenta.alto} mm, con corte, sangrado y marcas.`;
+    if (els.printModeNotice) els.printModeNotice.dataset.outputLabel = `Salida ${corto}`;
     const pasos = document.getElementById("printSteps");
-    if (pasos) pasos.innerHTML = PRINT_STEPS[elegido].map((paso) => `<li>${paso}</li>`).join("");
+    if (pasos) pasos.innerHTML = printStepsFor(elegido).map((paso) => `<li>${paso}</li>`).join("");
   }
 
   document.querySelectorAll("[name='printOutput']").forEach((opcion) => {
@@ -4671,8 +4436,15 @@
     try {
       await exportDraft({ quiet: true });
       await projectStorage.clearActive();
+      const edition = String(proyecto?.edition || ISSUE_DEFAULTS.edition);
+      await projectStorage.putMany([
+        [storageKey("settings", "issue"), JSON.stringify(issueSettingsForStorage({ ...ISSUE_DEFAULTS, edition }))],
+        [storageKey("text", "p01.edition"), edition]
+      ]);
       undoStack.length = 0;
       resetEditorState();
+      recargarEstructura();
+      aplicarFormato();
       setAutosaveStatus("Edición reiniciada");
       renderTree();
       renderMagazine();
@@ -4760,7 +4532,7 @@
 
   const ASISTENTE_SISTEMA = [
     "Eres el asistente editorial de la revista comunal del Casco Histórico de Puente Alto, Chile,",
-    "que publica la Agrupación Barrio Casco Histórico. Es una revista vecinal impresa en A5.",
+    "que publica la Agrupación Barrio Casco Histórico. Es una revista vecinal impresa en el formato elegido por su equipo.",
     "",
     "Reglas que no puedes romper:",
     "- Escribe en castellano de Chile, claro y directo, comprensible para lectores de todas las edades.",
@@ -4781,8 +4553,6 @@
   const ASISTENTE_VOCES = new Set(["p07", "p11"]);
   // Hay palabras de personas reales también en las frases destacadas del
   // reportaje, de memoria y del comercio. Redactarlas es fabricar un testimonio.
-  const ASISTENTE_CAMPOS_VEDADOS = new Set(["quote", "quoteAuthor", "intro", "a1", "a2", "a3", "body"]);
-
   const ASISTENTE_TAREAS = {
     borrador: {
       etiqueta: "Redactando un borrador",
@@ -4863,7 +4633,7 @@
           .filter((nodo) => !WORD_BUDGET_EXCLUDED.has(String(nodo.dataset.editKey).split(".").at(-1)))
       : [];
     const texto = campos.map((nodo) => nodo.textContent.trim()).filter(Boolean).join(String.fromCharCode(10) + String.fromCharCode(10));
-    const budget = PAGE_WORD_BUDGETS[page.id];
+    const budget = wordBudgetState(page.id, elemento);
     return {
       page,
       numero: page.number,
@@ -4951,7 +4721,7 @@
       .then((estado) => {
         if (estado.disponible) return;
         els.assistantResult.hidden = false;
-        els.assistantOutput.textContent = "Falta la llave de la API. Crea el archivo clave-ia.txt junto a servidor-local.mjs, con la llave dentro, y vuelve a abrir el taller. Ese archivo está excluido de git y no viaja en los respaldos.";
+        els.assistantOutput.textContent = "Falta la llave de la API. Crea %LOCALAPPDATA%\\CascoHistorico\\clave-ia.txt, con la llave dentro, y vuelve a abrir el taller. Así la credencial queda fuera de OneDrive y de los respaldos.";
       })
       .catch(() => undefined);
   }
@@ -5241,24 +5011,36 @@
       && ["edition", "responsible", "email", "whatsapp", "closingDate", "location"]
         .every((clave) => String(settings[clave] || "").trim());
 
-    let conMuestra = 0;
-    let sinFoto = 0;
-    pages.forEach((page) => {
-      const elemento = els.host.querySelector(`[data-page-id="${page.id}"]`);
-      if (!elemento) return;
-      if ([...elemento.querySelectorAll("[data-edit-key]")].some((n) => isModelText(n.dataset.editKey, n.textContent))) conMuestra += 1;
+    // Registrar los modelos de todas las páginas, aunque en pantalla sólo esté
+    // abierto un pliego. También permite que las maquetas creadas por el equipo
+    // cuenten en la guía sin mantener otra lista fija de campos o fotografías.
+    const currentIds = new Set(pages.map((page) => page.id));
+    [...modelDefaults.keys()].forEach((key) => {
+      if (currentIds.has(String(key).split(".")[0])) modelDefaults.delete(key);
     });
-    [...IMAGE_SLOTS].forEach((slotKey) => {
-      if (slotKey === LOGO_KEY) return;
-      const [pageId, slot] = slotKey.split(".");
-      if (slot === "ad") return;
-      if (!imageData(pageId, slot)) sinFoto += 1;
+    [...labelKeys].forEach((key) => {
+      if (currentIds.has(String(key).split(".")[0])) labelKeys.delete(key);
     });
+    const renderedPages = pages.map(renderPage).join("");
+    const conMuestra = new Set();
+    modelDefaults.forEach((model, key) => {
+      const pageId = String(key).split(".")[0];
+      if (!currentIds.has(pageId) || labelKeys.has(key)) return;
+      const saved = projectStorage.getItem(storageKey("text", key));
+      if (saved === null || normalizeComparableText(saved) === model) conMuestra.add(pageId);
+    });
+
+    const imageKeys = [...renderedPages.matchAll(/data-image-key="([A-Za-z0-9._-]+)"/g)]
+      .map((match) => match[1])
+      .filter((key) => key !== LOGO_KEY && !key.endsWith(".ad"));
+    const sinFoto = [...new Set(imageKeys)]
+      .filter((key) => !projectStorage.getItem(storageKey("image", key)))
+      .length;
 
     const listas = pages.filter((page) => projectStorage.getItem(storageKey("done", page.id)) === "1").length;
     return {
       datos: datosListos,
-      textos: conMuestra === 0,
+      textos: conMuestra.size === 0,
       fotos: sinFoto === 0,
       listas: listas === pages.length,
       pdf: false,
@@ -5329,7 +5111,7 @@
   syncEditButton();
   if (printPreview) {
     resetEditorState();
-    showEditor({ focus: false });
+    await showEditor({ focus: false });
   } else {
     await showProjectHome({ focus: false });
   }
