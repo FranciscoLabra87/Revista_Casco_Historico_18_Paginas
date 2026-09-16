@@ -95,7 +95,8 @@
     "cover", "index", "editorial", "feature-open", "feature-close", "briefs", "advances",
     "interview-open", "interview-close", "voices", "heritage", "heritage-close", "community",
     "commerce", "letters", "agenda", "culture", "ads", "observatorio", "back", "texto-2col",
-    "texto-foto", "foto-plena", "listado", "publicidad-plena", "publicidad-modulos", "galeria"
+    "texto-foto", "foto-plena", "listado", "publicidad-plena", "publicidad-modulos", "galeria",
+    "antes-despues", "directorio-oficios", "agenda-barrio", "vecino-destacado", "pasatiempos"
   ]);
 
   const CATALOGO_MAQUETAS = deepFreeze([
@@ -192,6 +193,80 @@
         caption2: "Pie 2. Crédito: [nombre].",
         caption3: "Pie 3. Crédito: [nombre].",
         caption4: "Pie 4. Crédito: [nombre]."
+      }
+    },
+    {
+      id: "antes-despues",
+      nombre: "Antes y Después",
+      descripcion: "Dos fotografías contrastando el pasado y el presente del mismo lugar o edificio.",
+      campos: {
+        title: "Título de la sección",
+        deck: "Bajada explicando el lugar y su significado patrimonial.",
+        caption1: "Pie de la foto antigua (Antes): año y procedencia.",
+        caption2: "Pie de la foto actual (Después): fecha y cambios notables."
+      }
+    },
+    {
+      id: "directorio-oficios",
+      nombre: "Directorio de Oficios",
+      descripcion: "Listado a dos columnas para oficios tradicionales y comercio del barrio.",
+      listas: {
+        oficios: {
+          parts: 2,
+          min: 2,
+          max: 12,
+          uno: "oficio",
+          varias: "oficios",
+          modelo: "[Oficio o Negocio]|[Dirección y Teléfono]"
+        }
+      },
+      campos: {
+        title: "Oficios del Barrio",
+        deck: "Directorio de servicios y comercios locales."
+      }
+    },
+    {
+      id: "agenda-barrio",
+      nombre: "Agenda de Barrio",
+      descripcion: "Lista visual de eventos, bingos, misas y reuniones de la comunidad.",
+      listas: {
+        eventos: {
+          parts: 3,
+          min: 1,
+          max: 8,
+          uno: "evento",
+          varias: "eventos",
+          modelo: "[Día y Hora]|[Nombre del evento]|[Lugar y Detalles]"
+        }
+      },
+      campos: {
+        title: "Agenda de Barrio",
+        deck: "Próximas actividades y fechas importantes."
+      }
+    },
+    {
+      id: "vecino-destacado",
+      nombre: "Vecino Destacado",
+      descripcion: "Perfil a página completa con gran fotografía, título y entrevista breve.",
+      campos: {
+        title: "Título del Perfil",
+        deck: "Una bajada describiendo quién es y por qué se destaca.",
+        caption: "Crédito de la fotografía.",
+        body1: "Primer párrafo: presentación del vecino.",
+        body2: "Segundo párrafo: su historia en el barrio.",
+        body3: "Tercer párrafo: contribución o anécdota.",
+        body4: "Cuarto párrafo: cierre."
+      }
+    },
+    {
+      id: "pasatiempos",
+      nombre: "Pasatiempos",
+      descripcion: "Espacio para un crucigrama o sopa de letras con temática del barrio.",
+      campos: {
+        title: "Pasatiempos",
+        deck: "Juegue y descubra los secretos de nuestro barrio.",
+        body1: "Instrucciones del juego o pistas.",
+        caption: "Solución en la próxima edición."
       }
     }
   ]);

@@ -109,7 +109,10 @@ async function servirEmbebido(request, response, clave) {
     "Content-Type": tipoDe(nombre),
     "Content-Length": datos.length,
     "Cache-Control": "no-cache",
-    "X-Content-Type-Options": "nosniff"
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Content-Security-Policy": "default-src 'self' data:; connect-src 'self' https://api.anthropic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"
   });
   if (request.method === "HEAD") response.end();
   else response.end(datos);
@@ -128,7 +131,10 @@ async function servirDesdeDisco(request, response, destino) {
       "Content-Type": tipoDe(target),
       "Content-Length": info.size,
       "Cache-Control": "no-cache",
-      "X-Content-Type-Options": "nosniff"
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "X-XSS-Protection": "1; mode=block",
+      "Content-Security-Policy": "default-src 'self' data:; connect-src 'self' https://api.anthropic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"
     });
     if (request.method === "HEAD") response.end();
     else createReadStream(target).pipe(response);
