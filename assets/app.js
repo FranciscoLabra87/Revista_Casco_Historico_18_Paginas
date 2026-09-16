@@ -1490,7 +1490,7 @@
         <p class="page-deck feature-open__deck">${editable(page, "deck")}</p>
         ${firma(page)}
         <div class="feature-open__text">
-          <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+          <p class="body-copy lead-copy capitular">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
           <blockquote class="quote-card feature-open__quote">${editableValue(page, "quote", "Una historia de barrio comienza cuando alguien decide volver a mirarla.")}${editableValue(page, "quoteAuthor", "— Cita de muestra", "cite", "quote-author")}</blockquote>
           <p class="body-copy">${editableValue(page, "body3", "Tercer párrafo del desarrollo: antecedentes comprobados, cifras con su fuente y el estado real del asunto.")}</p>
@@ -1669,11 +1669,11 @@
       ${firma(page)}
       <div class="heritage-grid">
         <div>
-          ${imageSlot(page, "historic", "Agregar fotografía histórica", "heritage-photo")}
+          ${imageSlot(page, "historic", "Agregar fotografía histórica", "heritage-photo foto-archivo")}
           <p class="caption">${editable(page, "caption")}</p>
         </div>
         <div>
-          <p class="body-copy lead-copy">${editable(page, "body1")}</p>
+          <p class="body-copy lead-copy capitular">${editable(page, "body1")}</p>
           <p class="body-copy">${editable(page, "body2")}</p>
           <p class="body-copy">${editableValue(page, "body3", "Tercer párrafo: qué permanece hoy de aquello, qué cambió y qué conviene resguardar.")}</p>
           <div class="quote-card">${editableValue(page, "quote", "Testimonio breve de una vecina, vecino o especialista, identificado y autorizado.")}${editableValue(page, "quoteAuthor", "[Nombre y quién es]", "span", "quote-author")}</div>
@@ -2042,6 +2042,97 @@
     return pageFrame(page, content);
   }
 
+  function renderAntesDespues(page) {
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="antes-despues page-fill">
+        <figure class="antes-despues__pieza">
+          ${imageSlot(page, "antes", "Agregar foto antigua", "antes-despues__imagen foto-archivo")}
+          <figcaption class="caption">${editable(page, "caption1")}</figcaption>
+        </figure>
+        <figure class="antes-despues__pieza">
+          ${imageSlot(page, "despues", "Agregar foto actual", "antes-despues__imagen")}
+          <figcaption class="caption">${editable(page, "caption2")}</figcaption>
+        </figure>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
+  function renderDirectorioOficios(page) {
+    const items = listItems(page, "oficios", 2).map((item, index) => {
+      const parts = splitItem(item, 2);
+      return `<li class="oficio-item">
+        <div class="oficio-item__nombre">${editableList(page, "oficios", index, 0, parts[0])}</div>
+        <div class="oficio-item__detalle">${editableList(page, "oficios", index, 1, parts[1])}</div>
+      </li>`;
+    }).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      <ul class="directorio-oficios page-fill">${items}</ul>`;
+    return pageFrame(page, content);
+  }
+
+  function renderAgendaBarrio(page) {
+    const items = listItems(page, "eventos", 3).map((item, index) => {
+      const parts = splitItem(item, 3);
+      return `<li class="evento-item">
+        <div class="evento-item__fecha">${editableList(page, "eventos", index, 0, parts[0])}</div>
+        <div class="evento-item__cuerpo">
+          <div class="evento-item__nombre">${editableList(page, "eventos", index, 1, parts[1])}</div>
+          <div class="evento-item__detalle">${editableList(page, "eventos", index, 2, parts[2])}</div>
+        </div>
+      </li>`;
+    }).join("");
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      <ul class="agenda-barrio page-fill">${items}</ul>`;
+    return pageFrame(page, content);
+  }
+
+  function renderVecinoDestacado(page) {
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      ${imageSlot(page, "retrato", "Agregar el retrato del vecino", "vecino-destacado__imagen")}
+      <p class="caption">${editable(page, "caption")}</p>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      ${firma(page)}
+      <div class="two-columns page-fill">
+        <p class="body-copy lead-copy capitular">${editable(page, "body1")}</p>
+        <p class="body-copy">${editable(page, "body2")}</p>
+        <p class="body-copy">${editable(page, "body3")}</p>
+        <p class="body-copy">${editable(page, "body4")}</p>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
+  function renderPasatiempos(page) {
+    const content = `
+      ${runningHead(page)}
+      <span class="section-ribbon">${editable(page, "ribbon")}</span>
+      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
+      <p class="page-deck">${editable(page, "deck")}</p>
+      <div class="pasatiempos page-fill">
+        <p class="body-copy">${editable(page, "body1")}</p>
+        <div class="pasatiempos__juego">
+          ${imageSlot(page, "juego", "Agregar imagen del pasatiempo", "pasatiempos__imagen")}
+        </div>
+        <p class="caption pasatiempos__solucion">${editable(page, "caption")}</p>
+      </div>`;
+    return pageFrame(page, content);
+  }
+
   const renderers = {
     cover: renderCover,
     index: renderIndex,
@@ -2068,6 +2159,11 @@
     "publicidad-plena": renderPublicidadPlena,
     "publicidad-modulos": renderPublicidadModulos,
     galeria: renderGaleria,
+    "antes-despues": renderAntesDespues,
+    "directorio-oficios": renderDirectorioOficios,
+    "agenda-barrio": renderAgendaBarrio,
+    "vecino-destacado": renderVecinoDestacado,
+    pasatiempos: renderPasatiempos,
     ads: renderAds,
     back: renderBack
   };

@@ -87,6 +87,7 @@
   /* Serif de lectura y condensada de titular: el par clásico de un diario. */
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-condensed: "Archivo Narrow", "Arial Narrow", "Segoe UI", sans-serif;
+  --cuerpo-texto: 10.5pt;
 }
 
 * {
@@ -6574,3 +6575,143 @@ body.has-save-alert .topbar {
   .feature-open-page .feature-open__hero .page-title { font-size: 27pt; }
   .feature-open-page--type-only .feature-open__hero .page-title { font-size: 36pt; }
 }
+
+/* ==================================================================
+   Mejoras Estéticas y Nuevas Maquetas
+   ================================================================== */
+
+/* Capitular (Drop Cap) */
+p.capitular::first-letter {
+  float: left;
+  font-family: var(--font-title, Georgia, serif);
+  font-size: 3.5em;
+  line-height: 0.8;
+  padding-top: 0.1em;
+  padding-right: 0.1em;
+  padding-left: 0;
+  color: var(--chocolate);
+}
+
+/* Tratamiento Fotografía de Archivo / Vintage */
+.foto-archivo {
+  filter: sepia(0.6) contrast(1.1) brightness(0.9);
+  border: 1.5mm solid var(--cream);
+  box-shadow: 0 0 0 0.5mm var(--gold-text);
+}
+
+/* Maqueta: Antes y Después */
+.antes-despues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base);
+}
+.antes-despues__pieza {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--media-base);
+}
+.antes-despues__imagen {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* Maqueta: Directorio de Oficios */
+.directorio-oficios {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  column-count: 2;
+  column-gap: var(--base);
+}
+.oficio-item {
+  break-inside: avoid;
+  margin-bottom: var(--base);
+  padding-bottom: var(--media-base);
+  border-bottom: 0.5pt solid var(--line);
+}
+.oficio-item__nombre {
+  font-family: var(--font-subtitle, serif);
+  font-size: 13pt;
+  font-weight: bold;
+  color: var(--chocolate);
+  margin-bottom: 1mm;
+}
+.oficio-item__detalle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 9pt;
+  color: var(--ink);
+}
+
+/* Maqueta: Agenda de Barrio */
+.agenda-barrio {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base);
+}
+.evento-item {
+  display: grid;
+  grid-template-columns: 35mm 1fr;
+  gap: var(--media-base);
+  align-items: start;
+  border-bottom: 0.5pt solid var(--line);
+  padding-bottom: var(--base);
+}
+.evento-item__fecha {
+  font-family: var(--font-title, serif);
+  font-size: 14pt;
+  color: var(--teja);
+  line-height: 1.1;
+  text-align: right;
+  padding-right: var(--media-base);
+  border-right: 1.5pt solid var(--gold);
+}
+.evento-item__nombre {
+  font-family: var(--font-subtitle, serif);
+  font-weight: bold;
+  font-size: 14pt;
+  color: var(--chocolate);
+  margin-bottom: 1mm;
+}
+.evento-item__detalle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 10pt;
+}
+
+/* Maqueta: Vecino Destacado */
+.vecino-destacado__imagen {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  margin-bottom: var(--media-base);
+}
+
+/* Maqueta: Pasatiempos */
+.pasatiempos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base);
+}
+.pasatiempos__juego {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1pt solid var(--line);
+  background: var(--ivory);
+  padding: var(--base);
+}
+.pasatiempos__imagen {
+  max-width: 100%;
+  max-height: 120mm;
+  object-fit: contain;
+}
+.pasatiempos__solucion {
+  text-align: right;
+  font-style: italic;
+}
+
