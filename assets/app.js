@@ -6,11 +6,12 @@
   if (!projectStorage) throw new Error("El taller no pudo iniciar su almacenamiento.");
   const backupTools = window.MagazineBackupTools;
   if (!backupTools) throw new Error("El taller no pudo iniciar la validación de respaldos.");
+  const renderersExtra = window.CascoRenderersExtra;
   const modeloEditorial = window.CascoModeloEditorial;
   const herramientasEstructura = window.CascoEstructura;
   const migraciones = window.CascoMigraciones;
   const esquemaRegistros = window.CascoEsquemaRegistros;
-  if (!modeloEditorial || !herramientasEstructura || !migraciones || !esquemaRegistros) {
+  if (!modeloEditorial || !herramientasEstructura || !migraciones || !esquemaRegistros || !renderersExtra) {
     throw new Error("El taller no pudo cargar su núcleo editorial.");
   }
   const {
@@ -363,6 +364,11 @@
     const base = Number.isInteger(stored) && stored > 0 ? stored : (defaults?.length || 0);
     if (!spec) return base;
     return Math.min(spec.max, Math.max(spec.min, base));
+  }
+
+  function listItems(page, listName, defaults) {
+    const values = Array.isArray(defaults) ? defaults : [];
+    return Array.from({ length: listCount(page, listName, values) }, (unused, index) => values[index] ?? "");
   }
 
   function listControls(page, listName, total) {
@@ -2042,96 +2048,15 @@
     return pageFrame(page, content);
   }
 
-  function renderAntesDespues(page) {
-    const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      ${firma(page)}
-      <div class="antes-despues page-fill">
-        <figure class="antes-despues__pieza">
-          ${imageSlot(page, "antes", "Agregar foto antigua", "antes-despues__imagen foto-archivo")}
-          <figcaption class="caption">${editable(page, "caption1")}</figcaption>
-        </figure>
-        <figure class="antes-despues__pieza">
-          ${imageSlot(page, "despues", "Agregar foto actual", "antes-despues__imagen")}
-          <figcaption class="caption">${editable(page, "caption2")}</figcaption>
-        </figure>
-      </div>`;
-    return pageFrame(page, content);
-  }
-
-  function renderDirectorioOficios(page) {
-    const items = listItems(page, "oficios", 2).map((item, index) => {
-      const parts = splitItem(item, 2);
-      return `<li class="oficio-item">
-        <div class="oficio-item__nombre">${editableList(page, "oficios", index, 0, parts[0])}</div>
-        <div class="oficio-item__detalle">${editableList(page, "oficios", index, 1, parts[1])}</div>
-      </li>`;
-    }).join("");
-    const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      <ul class="directorio-oficios page-fill">${items}</ul>`;
-    return pageFrame(page, content);
-  }
-
-  function renderAgendaBarrio(page) {
-    const items = listItems(page, "eventos", 3).map((item, index) => {
-      const parts = splitItem(item, 3);
-      return `<li class="evento-item">
-        <div class="evento-item__fecha">${editableList(page, "eventos", index, 0, parts[0])}</div>
-        <div class="evento-item__cuerpo">
-          <div class="evento-item__nombre">${editableList(page, "eventos", index, 1, parts[1])}</div>
-          <div class="evento-item__detalle">${editableList(page, "eventos", index, 2, parts[2])}</div>
-        </div>
-      </li>`;
-    }).join("");
-    const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      <ul class="agenda-barrio page-fill">${items}</ul>`;
-    return pageFrame(page, content);
-  }
-
-  function renderVecinoDestacado(page) {
-    const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      ${imageSlot(page, "retrato", "Agregar el retrato del vecino", "vecino-destacado__imagen")}
-      <p class="caption">${editable(page, "caption")}</p>
-      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      ${firma(page)}
-      <div class="two-columns page-fill">
-        <p class="body-copy lead-copy capitular">${editable(page, "body1")}</p>
-        <p class="body-copy">${editable(page, "body2")}</p>
-        <p class="body-copy">${editable(page, "body3")}</p>
-        <p class="body-copy">${editable(page, "body4")}</p>
-      </div>`;
-    return pageFrame(page, content);
-  }
-
-  function renderPasatiempos(page) {
-    const content = `
-      ${runningHead(page)}
-      <span class="section-ribbon">${editable(page, "ribbon")}</span>
-      <h2 class="page-title page-title--compact">${editable(page, "title")}</h2>
-      <p class="page-deck">${editable(page, "deck")}</p>
-      <div class="pasatiempos page-fill">
-        <p class="body-copy">${editable(page, "body1")}</p>
-        <div class="pasatiempos__juego">
-          ${imageSlot(page, "juego", "Agregar imagen del pasatiempo", "pasatiempos__imagen")}
-        </div>
-        <p class="caption pasatiempos__solucion">${editable(page, "caption")}</p>
-      </div>`;
-    return pageFrame(page, content);
-  }
+  const renderersEspeciales = renderersExtra.create({
+    editable, editableList, firma, imageSlot,
+    listControls, listItems, pageFrame, runningHead, splitItem
+  });
+  function renderAntesDespues(page) { return renderersEspeciales["antes-despues"](page); }
+  function renderDirectorioOficios(page) { return renderersEspeciales["directorio-oficios"](page); }
+  function renderAgendaBarrio(page) { return renderersEspeciales["agenda-barrio"](page); }
+  function renderVecinoDestacado(page) { return renderersEspeciales["vecino-destacado"](page); }
+  function renderPasatiempos(page) { return renderersEspeciales.pasatiempos(page); }
 
   const renderers = {
     cover: renderCover,
